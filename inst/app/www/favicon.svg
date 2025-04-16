@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev/svgjs" width="144" height="144"><svg width="144" height="144" viewBox="0 0 144 144" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="SvgjsClipPath1053">
+      <polygon points="72,12 124,42 124,102 72,132 20,102 20,42"></polygon>
+    </clipPath>
+  </defs>
+<!--Hexagon Border with Green Fill-->
+  <polygon points="72,12 124,42 124,102 72,132 20,102 20,42" fill="#A3D9B1" stroke="#3182CE" stroke-width="4"></polygon>
+<!--Content Inside Hexagon-->
+  <g clip-path="url(#hex-clip)">
+<!--House Graphic-->
+    <g transform="translate(36, 18)">
+<!--Roof-->
+      <path d="M36 0L72 27V72H0V27L36 0Z" fill="#A3D9B1"></path>
+<!--House Outline-->
+      <path d="M36 10L66 33V69H6V33L36 10Z" stroke="#3182CE" stroke-width="3" fill="#80b881"></path>
+<!--Door-->
+      <rect x="28" y="36" width="16" height="28" fill="#D17F42" rx="2"></rect>
+<!--Doorknob-->
+      <circle cx="40" cy="50" r="1.5" fill="#FFF5E5"></circle>
+    </g>
+<!--Project Name-->
+    <text x="72" y="102" font-family="Arial, sans-serif" font-size="16" fill="#2C5282" text-anchor="middle" font-weight="bold" svgjs:data="{&quot;leading&quot;:&quot;1.3&quot;}">
+      homebuyR
+    </text>
+  </g>
+</svg><style>@media (prefers-color-scheme: light) { :root { filter: none; } }
+@media (prefers-color-scheme: dark) { :root { filter: none; } }
+</style></svg>
