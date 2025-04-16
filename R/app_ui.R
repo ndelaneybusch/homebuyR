@@ -3,17 +3,239 @@
 #' @param request Internal parameter for `{shiny}`.
 #'     DO NOT REMOVE.
 #' @import shiny
+#' @import shinyWidgets
+#' @import shinyhelper
 #' @noRd
 app_ui <- function(request) {
   tagList(
     # Leave this function for adding external resources
     golem_add_external_resources(),
-    # Your application UI logic
     fluidPage(
-      golem::golem_welcome_page() # Remove this line to start building your UI
-    )
-  )
-}
+      titlePanel(tagList(
+        tags$img(src = "www/favicon.ico", height = '35px', style = "margin-right:10px;"),
+        "Home Buying Analysis",
+        tags$p(tags$i("Placeholder for subtitle description"), style = "font-size: small;")
+      )),
+
+      sidebarLayout(
+        sidebarPanel(
+          tags$p(tags$i("Placeholder for text description at the top of the sidebar.")),
+          hr(), # Add a horizontal rule for separation
+          shinyhelper::helper(shinyWidgets::autonumericInput(inputId = "loan_amount",
+                                                               label = "Loan Amount ($)",
+                                                               value = 500000,
+                                                               currencySymbol = "$",
+                                                               currencySymbolPlacement = "p",
+                                                               decimalCharacter = ".",
+                                                               digitGroupSeparator = ",",
+                                                               minimumValue = 0),
+                           content = "Enter the total loan amount you are considering.",
+                           type = "inline"),
+          shinyhelper::helper(selectInput(inputId = "mortgage_term",
+                                          label = "Mortgage Term",
+                                          # Use named vector for choices (Display Name = Value)
+                                          choices = c("5 year" = 60,
+                                                      "10 year" = 120,
+                                                      "15 year" = 180,
+                                                      "20 year" = 240,
+                                                      "30 year" = 360),
+                                          selected = 360), # Select the value (360 for 30 years)
+                           content = "Select the duration of the mortgage.",
+                           type = "inline"),
+          shinyhelper::helper(numericInput(inputId = "annual_rate_pct",
+                                           label = "Annual Mortgage Rate (%)",
+                                           value = 6.5,
+                                           min = 0,
+                                           step = 0.01),
+                           content = "Enter the annual mortgage rate for the loan (e.g., 6.5 for 6.5%).",
+                           type = "inline"),
+          # --- Added PMI Inputs --- #
+          shinyhelper::helper(numericInput(inputId = "pmi_rate_annual",
+                                           label = "PMI Rate (Annual %)",
+                                           value = 0.5, # Default value
+                                           min = 0,
+                                           step = 0.01),
+                           content = "Enter the estimated annual Private Mortgage Insurance (PMI) rate, applied if down payment is below the threshold (e.g., 0.5 for 0.5%).",
+                           type = "inline"),
+          shinyhelper::helper(numericInput(inputId = "pmi_threshold_pct",
+                                           label = "PMI Threshold (% Down)",
+                                           value = 20, # Default value
+                                           min = 0,
+                                           max = 100,
+                                           step = 1),
+                           content = "Enter the down payment percentage below which PMI is typically required (e.g., 20 for 20%).",
+                           type = "inline"),
+          # --- End Added PMI Inputs --- #
+          shinyhelper::helper(dateInput(inputId = "loan_start",
+                                        label = "Loan Start Date",
+                                        value = as.Date(format(Sys.Date(), "%Y-%m-01")),
+                                        format = "yyyy-mm",
+                                        startview = "year"),
+                           content = "Select the month and year the loan payments will begin.",
+                           type = "inline")
+        ),
+        mainPanel(
+          tabsetPanel(id = "main_tabs",
+                      tabPanel("Readme"),
+                      tabPanel("Budgeting",
+                               div(style = "border: 2px solid #007bff; padding: 15px; border-radius: 5px;", # Opens Section 1 Div
+                                   h3("1) Monthly Housing Budget"),
+                                   # Monthly Budget Input
+                                   shinyhelper::helper(shinyWidgets::autonumericInput(inputId = "monthly_housing_budget",
+                                                                                      label = "Monthly Housing Budget ($)",
+                                                                                      value = NA, # Default empty
+                                                                                      currencySymbol = "$",
+                                                                                      currencySymbolPlacement = "p",
+                                                                                      decimalCharacter = ".",
+                                                                                      digitGroupSeparator = ",",
+                                                                                      minimumValue = 0),
+                                                    type = "inline",
+                                                    content = "Enter your target monthly budget for housing (principal, interest, taxes, insurance).",
+                                                    style = "display: inline-block;"),
+
+                                   # Checkbox to compute from income
+                                   checkboxInput(inputId = "compute_budget_from_income",
+                                                 label = "Compute from income?",
+                                                 value = FALSE),
+
+                                   # Conditional panel for income inputs
+                                   conditionalPanel(
+                                     condition = "input.compute_budget_from_income == true",
+                                     # Income Interval Dropdown
+                                     selectInput(inputId = "income_interval",
+                                                 label = "Income Interval",
+                                                 choices = c("Weekly", "Two Weeks", "Twice Monthly", "Monthly", "Annual"),
+                                                 selected = "Monthly"),
+                                     # Income Amount Input
+                                     shinyhelper::helper(shinyWidgets::autonumericInput(inputId = "income_amount",
+                                                                                        label = "Household Income ($)",
+                                                                                        value = NA,
+                                                                                        currencySymbol = "$",
+                                                                                        currencySymbolPlacement = "p",
+                                                                                        decimalCharacter = ".",
+                                                                                        digitGroupSeparator = ",",
+                                                                                        minimumValue = 0),
+                                                      type = "inline",
+                                                      content = "Enter your gross income for the selected interval.",
+                                                      style = "display: inline-block;"),
+                                     # Housing Percent Input
+                                     shinyhelper::helper(numericInput(inputId = "housing_percent",
+                                                                      label = "Housing Budget (% of Income)",
+                                                                      value = 28,
+                                                                      min = 0,
+                                                                      max = 100,
+                                                                      step = 0.1),
+                                                      type = "inline",
+                                                      content = "Recommended housing budget as a percentage of gross income (e.g., 28% is common).",
+                                                      style = "display: inline-block;"),
+                                     # Apply button
+                                     actionButton(inputId = "apply_budget_calc",
+                                                  label = "Apply",
+                                                  class = "btn-success",
+                                                  style="margin-top: 15px;") # Add some top margin
+                                   ) # Closes conditionalPanel
+                               ), # Closes Section 1 Div (Monthly Housing Budget)
+                               # Add a second box below the first one
+                               div(style = "border: 2px solid #007bff; padding: 15px; border-radius: 5px; margin-top: 20px;", # Opens Section 2 Div
+                                   h3("2) Monthly Mortgage Budget"),
+                                   tags$p(tags$i("The monthly housing budget minus non-mortgage recurring costs (insurance, taxes).")),
+                                   hr(), # Add separator
+                                   # Home Insurance Input
+                                   shinyhelper::helper(shinyWidgets::autonumericInput(inputId = "home_insurance_annual",
+                                                                                      label = "Home Insurance (Annual)",
+                                                                                      value = 1500,
+                                                                                      currencySymbol = "$",
+                                                                                      currencySymbolPlacement = "p",
+                                                                                      decimalCharacter = ".",
+                                                                                      digitGroupSeparator = ",",
+                                                                                      minimumValue = 0),
+                                                    content = "Enter your estimated annual home insurance premium.",
+                                                    style = "display: inline-block;"),
+                                   # Other Insurance Input
+                                   shinyhelper::helper(shinyWidgets::autonumericInput(inputId = "other_insurance_annual",
+                                                                                      label = "Other Insurance (Annual, e.g., Flood/Earthquake)",
+                                                                                      value = 0,
+                                                                                      currencySymbol = "$",
+                                                                                      currencySymbolPlacement = "p",
+                                                                                      decimalCharacter = ".",
+                                                                                      digitGroupSeparator = ",",
+                                                                                      minimumValue = 0),
+                                                    content = "Enter any additional annual insurance premiums (e.g., flood, earthquake) if applicable.",
+                                                    style = "display: inline-block;"),
+                                   # HOA Dues Input
+                                   shinyhelper::helper(shinyWidgets::autonumericInput(inputId = "hoa_dues_monthly",
+                                                                                      label = "HOA Dues (Monthly)",
+                                                                                      value = 0, # Default 0
+                                                                                      currencySymbol = "$",
+                                                                                      currencySymbolPlacement = "p",
+                                                                                      decimalCharacter = ".",
+                                                                                      digitGroupSeparator = ",",
+                                                                                      minimumValue = 0),
+                                                    content = "Enter any monthly Homeowners Association dues, if applicable.",
+                                                    style = "display: inline-block;"),
+                                   # Property Tax Input
+                                   shinyhelper::helper(numericInput(inputId = "prop_tax_rate_annual",
+                                                                     label = "Property Tax Rate (Annual %)",
+                                                                     value = 1.2,
+                                                                     min = 0,
+                                                                     step = 0.01),
+                                                    content = "Enter your estimated annual property tax rate as a percentage of home value (e.g., 1.2 for 1.2%). This will be used to estimate monthly tax.",
+                                                    style = "display: inline-block;"),
+                                   hr(), # Add separator
+                                   # Output table for mortgage budget calculation
+                                   h4("Monthly Housing Costs Breakdown:"), # Sub-header for table
+                                   tableOutput(outputId = "mortgage_budget_table"),
+                               ), # Closes Section 2 Div (Monthly Mortgage Budget)
+                               div(style = "border: 2px solid #007bff; padding: 15px; border-radius: 5px; margin-top: 20px;", # Opens Section 3 Div
+                                   h3("3) Money Down"),
+                                   uiOutput(outputId = "money_down_summary_text"), # Add UI output for dynamic text
+                                   hr(), # Add separator
+                                   div(style = "display: flex; align-items: flex-end; gap: 10px;", # Use flexbox for layout
+                                       # Down Payment Input
+                                       div(style = "flex-grow: 1;", # Allow input to take available space
+                                           shinyhelper::helper(shinyWidgets::autonumericInput(inputId = "down_payment_dollars",
+                                                                                      label = "Down Payment ($)",
+                                                                                      value = 0, # Default 0
+                                                                                      currencySymbol = "$",
+                                                                                      currencySymbolPlacement = "p",
+                                                                                      decimalCharacter = ".",
+                                                                                      digitGroupSeparator = ",",
+                                                                                      minimumValue = 0),
+                                                                content = "Enter the total dollar amount you plan to put down.",
+                                                                type = "inline")
+                                       ),
+                                       # Calculate 20% Button
+                                       div(style = "margin-bottom: 20px;", # Opens Button Div
+                                            actionButton(inputId = "calc_20_pct_down",
+                                                    label = "Calculate 20%",
+                                                    class = "btn-info") # Use info style for button
+                                       ) # Closes Button Div
+                                   ) # Closes inner flex div
+                               ), # Closes Section 3 Div (Money Down)
+                               # --- Added Plot Section --- #
+                               div(style = "border: 2px solid #28a745; padding: 15px; border-radius: 5px; margin-top: 20px;", # Opens Section 4 Div
+                                   h3("4) Affordability Visualizations"),
+                                   hr(),
+                                   tags$p(tags$i("Explore how affordable home price changes with down payment and interest rate.")),
+                                   # Price vs Down Payment Plot
+                                   h4("Affordable Price vs. Down Payment (%)"),
+                                   ggiraph::girafeOutput(outputId = "price_vs_dp_plot"),
+                                   br(), # Add some space
+                                   # Price vs Rate Plot
+                                   h4("Affordable Price vs. Annual Rate (%)"),
+                                   ggiraph::girafeOutput(outputId = "price_vs_rate_plot")
+                               ) # Closes Section 4 Div (Plots)
+                               # --- End Added Plot Section --- #
+                      ), # Closes tabPanel("Budgeting", ...)
+                      tabPanel("Buying"),
+                      tabPanel("Paying"),
+                      tabPanel("Refinancing")
+          ) # Closes tabsetPanel
+        ) # Closes mainPanel
+      ) # Closes sidebarLayout
+    ) # Closes fluidPage
+  ) # Closes tagList
+} # Closes app_ui function
 
 #' Add external Resources to the Application
 #'
