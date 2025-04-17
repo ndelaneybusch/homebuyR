@@ -406,87 +406,34 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
     }
 
   } else if (provided_dollars) {
-    # --- Scenario 2: Down Payment provided as Dollars (Corrected Logic) ---
-    dp_dollars <- down_payment_dollars
-
-    # Calculate affordable Home Price assuming NO PMI is required
-    # H_no_pmi = (B_avail + P_i * DP) / (P_i + T_m)
-    # where P_i = inverse PV factor, T_m = monthly tax rate
-    denominator_no_pmi <- inv_pv_factor + tax_rate_monthly
-    hp_no_pmi <- 0
-    if (denominator_no_pmi > 0) {
-      # Note: budget_avail already excludes non_mortgage_costs
-      # The term dp_dollars * inv_pv_factor accounts for the fact that the down payment reduces the principal needed
-      hp_no_pmi <- (budget_avail + dp_dollars * inv_pv_factor) / denominator_no_pmi
+    dp_dollars      <- down_payment_dollars
+    # Precompute scenarios
+    denom_no_pmi    <- inv_pv_factor + tax_rate_monthly
+    hp_no_pmi       <- if (denom_no_pmi > 0) (budget_avail + dp_dollars * inv_pv_factor) / denom_no_pmi else 0
+    denom_pmi       <- inv_pv_factor + tax_rate_monthly + pmi_rate_monthly
+    hp_pmi          <- if (denom_pmi > 0) (budget_avail + dp_dollars * inv_pv_factor + dp_dollars * pmi_rate_monthly) / denom_pmi else 0
+    pmi_thresh_dec  <- pmi_threshold_pct / 100
+    H_thresh        <- dp_dollars / pmi_thresh_dec
+    # Evaluate feasible home-price candidates
+    candidates <- numeric(0)
+    # 1. No-PMI scenario only if DP% ≥ threshold
+    if (hp_no_pmi > dp_dollars && (dp_dollars / hp_no_pmi) * 100 >= pmi_threshold_pct) {
+      candidates <- c(candidates, hp_no_pmi)
     }
-
-    # Check if this potential home price is actually affordable (i.e., > down payment)
-    if (hp_no_pmi <= dp_dollars) {
-      affordable_principal_pmi <- 0
-      home_price_pmi <- 0
+    # 2. PMI scenario always feasible if > DP
+    if (hp_pmi > dp_dollars) {
+      candidates <- c(candidates, hp_pmi)
+    }
+    # 3. Threshold-capped scenario if budget allows
+    if (hp_no_pmi >= H_thresh) {
+      candidates <- c(candidates, H_thresh)
+    }
+    # Pick the max affordable home price
+    if (length(candidates) > 0) {
+      h_best <- max(candidates)
+      affordable_principal <- h_best - dp_dollars
     } else {
-      # Check if PMI would be required at this hypothetical price (hp_no_pmi)
-      pmi_would_be_required <- FALSE
-      if (pmi_rate_monthly > 0) {
-        effective_dp_pct_at_hp_no_pmi <- (dp_dollars / hp_no_pmi) * 100
-        if (effective_dp_pct_at_hp_no_pmi < pmi_threshold_pct) {
-          pmi_would_be_required <- TRUE
-        }
-      }
-
-      if (!pmi_would_be_required) {
-        # If PMI is NOT required, then hp_no_pmi is the true affordable price
-        affordable_principal_pmi <- hp_no_pmi - dp_dollars
-        home_price_pmi <- hp_no_pmi
-      } else {
-        # If PMI IS required, then hp_no_pmi is not attainable.
-        # We must calculate the affordable home price *including* PMI.
-        # H_pmi = (B_avail + P_i*DP + M_m*DP) / (P_i + T_m + M_m)
-        # where M_m = monthly pmi rate
-        denominator_pmi <- inv_pv_factor + tax_rate_monthly + pmi_rate_monthly
-        hp_pmi <- 0
-        if (denominator_pmi > 0) {
-           # The term dp_dollars * pmi_rate_monthly accounts for the PMI reduction due to down payment
-           # (although PMI is usually on principal, this formulation works for solving for H)
-           numerator_pmi <- budget_avail + dp_dollars * inv_pv_factor + dp_dollars * pmi_rate_monthly
-           hp_pmi <- numerator_pmi / denominator_pmi
-        }
-
-        # Check if this price is affordable
-        if (hp_pmi <= dp_dollars) {
-          affordable_principal_pmi <- 0
-          home_price_pmi <- 0
-        } else {
-          affordable_principal_pmi <- hp_pmi - dp_dollars
-          home_price_pmi <- hp_pmi
-        }
-
-        # --- Compute the alternative: max home price without PMI given cash down ---
-        # H_no_pmi = D / (T/100)
-        # P_no_pmi = H_no_pmi - D
-        pmi_threshold_dec <- pmi_threshold_pct / 100
-        hp_no_pmi_threshold <- dp_dollars / pmi_threshold_dec
-        principal_no_pmi_threshold <- hp_no_pmi_threshold - dp_dollars
-
-        # Now check if this principal is affordable given the budget (no PMI)
-        principal_affordable_no_pmi <- compute_affordable_principal(
-          monthly_housing_budget = monthly_housing_budget,
-          monthly_non_mortgage_costs = monthly_non_mortgage_costs,
-          rate_per_month = rate_per_month,
-          n_payments_total = n_payments_total,
-          prop_tax_rate_annual = ifelse(is.null(prop_tax_rate_annual), 0, prop_tax_rate_annual),
-          down_payment_pct = pmi_threshold_pct
-        )
-        principal_no_pmi_final <- min(principal_no_pmi_threshold, principal_affordable_no_pmi)
-        home_price_no_pmi_final <- principal_no_pmi_final + dp_dollars
-
-        # --- Return the principal that yields the higher home price ---
-        if (home_price_no_pmi_final > home_price_pmi) {
-          affordable_principal <- principal_no_pmi_final
-        } else {
-          affordable_principal <- affordable_principal_pmi
-        }
-      }
+      affordable_principal <- 0
     }
   }
 
