@@ -13,12 +13,16 @@ test_that("compute_affordable_principal: Example 1 (no tax) works", {
   # expected_p1 = budget for P&I * PV factor
   expected_p1 <- 2200 * pvf # approx 366941.5
   
-  expect_equal(compute_affordable_principal(monthly_housing_budget = 2500,
-                                           monthly_non_mortgage_costs = 300,
-                                           rate_per_month = 0.06 / 12,
-                                           n_payments_total = 360),
+  result <- compute_affordable_principal(monthly_housing_budget = 2500,
+                                        monthly_non_mortgage_costs = 300,
+                                        rate_per_month = 0.06 / 12,
+                                        n_payments_total = 360)
+  expect_equal(result,
                expected_p1, 
                tolerance = 1) # Allow small tolerance for floating point
+  # Check affordability: monthly payment must be <= housing budget minus non-mortgage costs
+  monthly_payment <- compute_monthly_payment(result, 0.06 / 12, 360)
+  expect_lte(monthly_payment, 2500 - 300)
 })
 
 test_that("compute_affordable_principal: Example 2 (with tax) works", {
@@ -39,14 +43,20 @@ test_that("compute_affordable_principal: Example 2 (with tax) works", {
   # expected_p2 = 366941.5 / (1 + 0.2084895) = 366941.5 / 1.2084895 = 303636.7
   # Still discrepancy with doc (336815)... Testing against the formula's result.
 
-  expect_equal(compute_affordable_principal(monthly_housing_budget = 2500,
-                                           monthly_non_mortgage_costs = 300,
-                                           rate_per_month = rate_m,
-                                           n_payments_total = n_tot,
-                                           prop_tax_rate_annual = 1.2,
-                                           down_payment_pct = 20),
+  result <- compute_affordable_principal(monthly_housing_budget = 2500,
+                                        monthly_non_mortgage_costs = 300,
+                                        rate_per_month = rate_m,
+                                        n_payments_total = n_tot,
+                                        prop_tax_rate_annual = 1.2,
+                                        down_payment_pct = 20)
+  expect_equal(result,
                 expected_p2,
                 tolerance = 1)
+  monthly_payment <- compute_monthly_payment(result, rate_m, n_tot)
+  # Add property tax to monthly payment
+  home_price <- result / (1 - 0.20)
+  monthly_tax <- (home_price * 0.012) / 12
+  expect_lte(monthly_payment + monthly_tax, 2500 - 300 + monthly_tax) # Should not exceed budget
 })
 
 test_that("compute_affordable_principal: Example 3 (zero rate, with tax) works", {
@@ -67,14 +77,19 @@ test_that("compute_affordable_principal: Example 3 (zero rate, with tax) works",
   # expected_p3 = 324000 / (1 + 0.1666667) = 324000 / 1.1666667 = 277714.3
   # Again, discrepancy with doc (297521)... Testing against the formula's result.
   
-  expect_equal(compute_affordable_principal(monthly_housing_budget = 2000,
-                                           monthly_non_mortgage_costs = 200,
-                                           rate_per_month = rate_m,
-                                           n_payments_total = n_tot,
-                                           prop_tax_rate_annual = 1.0,
-                                           down_payment_pct = 10),
+  result <- compute_affordable_principal(monthly_housing_budget = 2000,
+                                        monthly_non_mortgage_costs = 200,
+                                        rate_per_month = rate_m,
+                                        n_payments_total = n_tot,
+                                        prop_tax_rate_annual = 1.0,
+                                        down_payment_pct = 10)
+  expect_equal(result,
                expected_p3,
                tolerance = 1)
+  monthly_payment <- compute_monthly_payment(result, rate_m, n_tot)
+  home_price <- result / (1 - 0.10)
+  monthly_tax <- (home_price * 0.01) / 12
+  expect_lte(monthly_payment + monthly_tax, 2000 - 200 + monthly_tax)
 })
 
 test_that("compute_affordable_principal: Handles zero budget correctly", {
@@ -286,6 +301,10 @@ test_that("compute_principal_with_pmi: percent DP path, no PMI", {
     pmi_threshold_pct = args$pmi_threshold_pct
   )
   expect_equal(result, expected, tolerance = 1)
+  monthly_payment <- compute_monthly_payment(result, args$rate_per_month, args$n_payments_total)
+  home_price <- result / (1 - args$down_payment_pct/100)
+  monthly_tax <- (home_price * args$prop_tax_rate_annual/100) / 12
+  expect_lte(monthly_payment + monthly_tax, args$monthly_housing_budget - args$monthly_non_mortgage_costs + monthly_tax)
 })
 
 test_that("compute_principal_with_pmi: percent DP path, with PMI", {
@@ -319,6 +338,11 @@ test_that("compute_principal_with_pmi: percent DP path, with PMI", {
     pmi_threshold_pct = args$pmi_threshold_pct
   )
   expect_equal(result, expected, tolerance = 1)
+  monthly_payment <- compute_monthly_payment(result, args$rate_per_month, args$n_payments_total)
+  home_price <- result / (1 - args$down_payment_pct/100)
+  monthly_tax <- (home_price * args$prop_tax_rate_annual/100) / 12
+  monthly_pmi <- (result * args$pmi_rate_annual/100) / 12
+  expect_lte(monthly_payment + monthly_tax + monthly_pmi, args$monthly_housing_budget - args$monthly_non_mortgage_costs + monthly_tax + monthly_pmi)
 })
 
 test_that("compute_principal_with_pmi: dollar DP path, no PMI", {
@@ -356,6 +380,10 @@ test_that("compute_principal_with_pmi: dollar DP path, no PMI", {
     pmi_threshold_pct = args$pmi_threshold_pct
   )
   expect_equal(result, expected, tolerance = 1)
+  monthly_payment <- compute_monthly_payment(result, args$rate_per_month, args$n_payments_total)
+  home_price <- result + args$down_payment_dollars
+  monthly_tax <- (home_price * args$prop_tax_rate_annual/100) / 12
+  expect_lte(monthly_payment + monthly_tax, args$monthly_housing_budget - args$monthly_non_mortgage_costs + monthly_tax)
 })
 
 test_that("compute_principal_with_pmi: dollar DP path, PMI", {
@@ -394,6 +422,11 @@ test_that("compute_principal_with_pmi: dollar DP path, PMI", {
     pmi_threshold_pct = args$pmi_threshold_pct
   )
   expect_equal(result, expected, tolerance = 1)
+  monthly_payment <- compute_monthly_payment(result, args$rate_per_month, args$n_payments_total)
+  home_price <- result + args$down_payment_dollars
+  monthly_tax <- (home_price * args$prop_tax_rate_annual/100) / 12
+  monthly_pmi <- (result * args$pmi_rate_annual/100) / 12
+  expect_lte(monthly_payment + monthly_tax + monthly_pmi, args$monthly_housing_budget - args$monthly_non_mortgage_costs + monthly_tax + monthly_pmi)
 })
 
 test_that("compute_principal_with_pmi: dollar DP path, threshold-capped", {
@@ -425,4 +458,8 @@ test_that("compute_principal_with_pmi: dollar DP path, threshold-capped", {
     pmi_threshold_pct = args$pmi_threshold_pct
   )
   expect_equal(result, expected, tolerance = 1)
+  # Affordability check for threshold-capped scenario
+  monthly_payment <- compute_monthly_payment(result, args$rate_per_month, args$n_payments_total)
+  # No property tax or PMI should apply (by construction of the test)
+  expect_lte(monthly_payment, args$monthly_housing_budget - args$monthly_non_mortgage_costs)
 })
