@@ -224,7 +224,6 @@ plot_price_vs_rate <- function(monthly_housing_budget,
            theme_minimal()
       return(p) # Return static plot
   }
-
   # Create tooltips
   down_payment_label <- if (down_payment_type == "pct") {
       paste0(down_payment_value, "%")
@@ -246,7 +245,48 @@ Down Payment: %s",
 
   # Create plot
   p <- ggplot(affordability_data, aes(x = rate_pct, y = affordable_home_price,
-                                      tooltip = tooltip_text, data_id = rate_pct)) +
+                                      tooltip = tooltip_text, data_id = rate_pct))
+  
+  # Add background rectangles if down_payment_type is not "pct"
+  if (down_payment_type != "pct") {
+    # Calculate down payment percentage for each point
+    affordability_data <- affordability_data %>%
+      dplyr::mutate(
+        down_payment_pct = (down_payment_value / affordable_home_price) * 100,
+        monthly_payment = (affordable_home_price - down_payment_value) * 
+                         (rate_pct/100/12) * (1 + rate_pct/100/12)^mortgage_term_months / 
+                         ((1 + rate_pct/100/12)^mortgage_term_months - 1) +
+                         (affordable_home_price * prop_tax_rate_annual/100/12),
+        zone = case_when(
+          down_payment_pct < pmi_threshold_pct ~ "PMI",
+          (down_payment_value / (pmi_threshold_pct/100)) - affordable_home_price < 0.001 * affordable_home_price ~ "avoid PMI",
+          TRUE ~ "No PMI"
+        )
+      )
+
+    low_y_bound <- min(affordability_data$affordable_home_price) * 0.9
+    
+    # Add background rectangles
+    p <- p + 
+      # Below PMI threshold - subtle red
+      geom_rect(data = subset(affordability_data, zone == "PMI"),
+                aes(xmin = min(rate_pct), xmax = max(rate_pct), 
+                    ymin = low_y_bound, ymax = Inf),
+                fill = "#FFE6E6", alpha = 0.3) +
+      # Above threshold but under budget - light gray
+      geom_rect(data = subset(affordability_data, zone == "avoid PMI"),
+                aes(xmin = min(rate_pct), xmax = max(rate_pct), 
+                    ymin = low_y_bound, ymax = Inf),
+                fill = "#F0F0F0", alpha = 0.3) +
+      # At budget - subtle green
+      geom_rect(data = subset(affordability_data, zone == "No PMI"),
+                aes(xmin = min(rate_pct), xmax = max(rate_pct), 
+                    ymin = low_y_bound, ymax = Inf),
+                fill = "#E6FFE6", alpha = 0.3)
+  }
+  
+  # Add data layers
+  p <- p +
     geom_line_interactive(size = 1, color = "black") +
     geom_point_interactive(size = 2, color = "black") +
     scale_y_continuous(labels = scales::dollar_format()) +
