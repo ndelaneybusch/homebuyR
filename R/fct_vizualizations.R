@@ -246,45 +246,63 @@ Down Payment: %s",
   # Create plot
   p <- ggplot(affordability_data, aes(x = rate_pct, y = affordable_home_price,
                                       tooltip = tooltip_text, data_id = rate_pct))
-  
+
   # Add background rectangles if down_payment_type is not "pct"
   if (down_payment_type != "pct") {
     # Calculate down payment percentage for each point
     affordability_data <- affordability_data %>%
       dplyr::mutate(
         down_payment_pct = (down_payment_value / affordable_home_price) * 100,
-        monthly_payment = (affordable_home_price - down_payment_value) * 
-                         (rate_pct/100/12) * (1 + rate_pct/100/12)^mortgage_term_months / 
+        monthly_payment = (affordable_home_price - down_payment_value) *
+                         (rate_pct/100/12) * (1 + rate_pct/100/12)^mortgage_term_months /
                          ((1 + rate_pct/100/12)^mortgage_term_months - 1) +
                          (affordable_home_price * prop_tax_rate_annual/100/12),
         zone = case_when(
           down_payment_pct < pmi_threshold_pct ~ "PMI",
-          (down_payment_value / (pmi_threshold_pct/100)) - affordable_home_price < 0.001 * affordable_home_price ~ "avoid PMI",
+          (down_payment_value / (pmi_threshold_pct/100)) - affordable_home_price < 0.001 * affordable_home_price ~ "below budget to avoid PMI",
           TRUE ~ "No PMI"
         )
       )
+    affordability_data$zone <- factor(
+      affordability_data$zone,
+      levels = c("PMI", "below budget to avoid PMI", "No PMI")
+    )
 
-    low_y_bound <- min(affordability_data$affordable_home_price) * 0.9
-    
+
     # Add background rectangles
-    p <- p + 
-      # Below PMI threshold - subtle red
-      geom_rect(data = subset(affordability_data, zone == "PMI"),
-                aes(xmin = min(rate_pct), xmax = max(rate_pct), 
-                    ymin = low_y_bound, ymax = Inf),
-                fill = "#FFE6E6", alpha = 0.3) +
-      # Above threshold but under budget - light gray
-      geom_rect(data = subset(affordability_data, zone == "avoid PMI"),
-                aes(xmin = min(rate_pct), xmax = max(rate_pct), 
-                    ymin = low_y_bound, ymax = Inf),
-                fill = "#F0F0F0", alpha = 0.3) +
-      # At budget - subtle green
-      geom_rect(data = subset(affordability_data, zone == "No PMI"),
-                aes(xmin = min(rate_pct), xmax = max(rate_pct), 
-                    ymin = low_y_bound, ymax = Inf),
-                fill = "#E6FFE6", alpha = 0.3)
+    low_y_bound <- min(affordability_data$affordable_home_price) * 0.9
+    rects <- affordability_data %>%
+      group_by(zone) %>%
+      summarise(
+        xmin = min(rate_pct),
+        xmax = max(rate_pct),
+        .groups = "drop"
+      ) %>%
+      mutate(
+        ymin = low_y_bound,
+        ymax = Inf
+      )
+    p <- p +
+      geom_rect(
+        data = rects,
+        aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = zone),
+        inherit.aes = FALSE,
+        alpha = 0.3
+      ) +
+      scale_fill_manual(
+        values = c(
+          "PMI" = "#FFCCCC",
+          "below budget to avoid PMI" = "#D9D9D9",
+          "No PMI" = "#CCFFCC"
+        ),
+        name = "PMI"
+      ) +
+      scale_colour_manual(
+        values = c("Zone A" = "black", "Zone B" = "black", "Zone C" = "black"),
+        guide = "none"  # hide color legend (it's used only for borders)
+      )
   }
-  
+
   # Add data layers
   p <- p +
     geom_line_interactive(size = 1, color = "black") +
@@ -295,13 +313,23 @@ Down Payment: %s",
       title = "Affordable Home Price vs. Annual Rate %",
       subtitle = paste("Based on a Monthly Housing Budget of", scales::dollar(monthly_housing_budget),
       "\nand a down payment of ", down_payment_value, down_payment_type),
-      x = "Annual Interest Rate (APR)",
+      x = "Annual Interest Rate",
       y = "Maximum Affordable Home Price",
       caption = paste("Assumes:", mortgage_term_months / 12, "yr term,",
                       prop_tax_rate_annual, "% Tax")
     ) +
     theme_minimal(base_size = 12) +
-    theme(plot.caption = element_text(size = 8, hjust = 0.5))
+    theme(plot.caption = element_text(size = 8, hjust = 0.5)) +
+    theme(
+      legend.position = "bottom",
+      legend.box.margin = margin(t = 10),
+      legend.title.align = 0
+    ) +
+    guides(fill = guide_legend(
+      title.position = "left",
+      title.hjust = 0,
+      override.aes = list(colour = "black")
+    ))
 
   # Convert to ggiraph object
   girafe(ggobj = p)
