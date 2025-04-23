@@ -14,15 +14,15 @@
 #' # Net income $3000, 30% housing, 40% total debt, other debts $200 -> 900
 #' housing_budget_from_dpi(net_income = 3000, max_housing_pct = 0.30, max_total_debt_pct = 0.40, other_debts = 200)
 housing_budget_from_dpi <- function(net_income, max_housing_pct = 0.30, max_total_debt_pct = 0.45, other_debts = 0) {
-  stopifnot(is.numeric(net_income), net_income >= 0,
-            is.numeric(max_housing_pct), max_housing_pct >= 0, max_housing_pct <= 1,
-            is.numeric(max_total_debt_pct), max_total_debt_pct >= 0, max_total_debt_pct <= 1,
-            is.numeric(other_debts), other_debts >= 0)
+  stopifnot(is.numeric(net_income), net_income >= 0, is.finite(net_income), !is.na(net_income),
+            is.numeric(max_housing_pct), max_housing_pct >= 0, max_housing_pct <= 1, is.finite(max_housing_pct), !is.na(max_housing_pct),
+            is.numeric(max_total_debt_pct), max_total_debt_pct >= 0, max_total_debt_pct <= 1, is.finite(max_total_debt_pct), !is.na(max_total_debt_pct),
+            is.numeric(other_debts), other_debts >= 0, is.finite(other_debts), !is.na(other_debts))
   housing_max <- net_income * max_housing_pct
   total_debt_max <- net_income * max_total_debt_pct
   remaining_for_housing <- total_debt_max - other_debts
   recommended <- min(housing_max, remaining_for_housing)
-  return(recommended)
+  return(max(0, recommended))
 }
 
 #' Compute Maximum Affordable Housing (Stressed DTI)
@@ -56,15 +56,15 @@ housing_budget_from_stressed_dti <- function(
   shock_duration_months = 6,
   max_total_dti_stress = 0.50
 ) {
-  stopifnot(is.numeric(gross_monthly_income), gross_monthly_income >= 0,
-            is.numeric(other_debts), other_debts >= 0,
-            is.numeric(non_housing_essentials), non_housing_essentials >= 0,
-            is.numeric(rate_per_month), rate_per_month >= 0,
-            is.numeric(n_payments_total), n_payments_total > 0, n_payments_total == floor(n_payments_total),
-            is.numeric(savings), savings >= 0,
-            is.numeric(income_shock_pct), income_shock_pct >= 0, income_shock_pct <= 1,
-            is.numeric(shock_duration_months), shock_duration_months > 0, shock_duration_months == floor(shock_duration_months),
-            is.numeric(max_total_dti_stress), max_total_dti_stress >= 0, max_total_dti_stress <= 1)
+  stopifnot(is.numeric(gross_monthly_income), gross_monthly_income >= 0, is.finite(gross_monthly_income), !is.na(gross_monthly_income),
+            is.numeric(other_debts), other_debts >= 0, is.finite(other_debts), !is.na(other_debts),
+            is.numeric(non_housing_essentials), non_housing_essentials >= 0, is.finite(non_housing_essentials), !is.na(non_housing_essentials),
+            is.numeric(rate_per_month), rate_per_month >= 0, is.finite(rate_per_month), !is.na(rate_per_month),
+            is.numeric(n_payments_total), n_payments_total > 0, n_payments_total == floor(n_payments_total), is.finite(n_payments_total), !is.na(n_payments_total),
+            is.numeric(savings), savings >= 0, is.finite(savings), !is.na(savings),
+            is.numeric(income_shock_pct), income_shock_pct >= 0, income_shock_pct <= 1, is.finite(income_shock_pct), !is.na(income_shock_pct),
+            is.numeric(shock_duration_months), shock_duration_months > 0, shock_duration_months == floor(shock_duration_months), is.finite(shock_duration_months), !is.na(shock_duration_months),
+            is.numeric(max_total_dti_stress), max_total_dti_stress >= 0, max_total_dti_stress <= 1, is.finite(max_total_dti_stress), !is.na(max_total_dti_stress))
   stressed_income <- (1 - income_shock_pct) * gross_monthly_income
   buffer_per_month <- savings / shock_duration_months
 
@@ -76,7 +76,7 @@ housing_budget_from_stressed_dti <- function(
 
   h_max <- min(h_affordable, h_dti)
 
-  return(h_max)
+  return(max(0, h_max))
 }
 
 #' Compute Monthly Housing Budget from Gross Income Percentage
@@ -93,7 +93,7 @@ housing_budget_from_stressed_dti <- function(
 #' # Gross $5000, 30% housing -> 1500
 #' housing_budget_from_gross_pct(5000, 30)
 housing_budget_from_gross_pct <- function(gross_monthly_income, housing_percent) {
-  stopifnot(is.numeric(gross_monthly_income), gross_monthly_income >= 0,
-            is.numeric(housing_percent), housing_percent >= 0, housing_percent <= 100)
+  stopifnot(is.numeric(gross_monthly_income), gross_monthly_income >= 0, is.finite(gross_monthly_income), !is.na(gross_monthly_income),
+            is.numeric(housing_percent), housing_percent >= 0, housing_percent <= 100, is.finite(housing_percent), !is.na(housing_percent))
   return(gross_monthly_income * (housing_percent / 100))
 }
