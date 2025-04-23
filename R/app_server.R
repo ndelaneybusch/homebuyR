@@ -133,13 +133,13 @@ app_server <- function(input, output, session) {
                   -hoa_dues_monthly,
                   monthly_mortgage_budget),
                   # Ensure negative numbers are displayed correctly with parentheses
-                  style_negative = "parens") 
+                  style_negative = "parens")
     )
 
     # Use kable and kableExtra for styling
-    shiny::HTML(kable(df, format = "html", escape = FALSE, align = 'lr', table.attr = "style='width:auto;'") %>% 
-      kable_styling(bootstrap_options = c("striped", "hover", "bordered", "condensed"), 
-                    full_width = FALSE) %>% 
+    shiny::HTML(kable(df, format = "html", escape = FALSE, align = 'lr', table.attr = "style='width:auto;'") %>%
+      kable_styling(bootstrap_options = c("striped", "hover", "bordered", "condensed"),
+                    full_width = FALSE) %>%
       row_spec(nrow(df), bold = TRUE, background = "#D6EAF8")) # Style the last row
 
   }) # Formatting options removed as they are handled by kableExtra
@@ -333,7 +333,7 @@ app_server <- function(input, output, session) {
         dp_range_low <- 0
         dp_range_high <- 40
     }
-    dp_pct_range_for_plot <- seq(dp_range_low, dp_range_high, by = 1)
+    dp_pct_range_for_plot <- seq(dp_range_low, dp_range_high, by = 0.5)
 
     # Return list of calculated values
     list(
