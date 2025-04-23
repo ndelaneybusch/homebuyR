@@ -197,23 +197,33 @@ plot_price_vs_rate <- function(monthly_housing_budget,
 
     affordable_principal <- do.call(compute_principal_with_pmi, pmi_args)
 
+    # Initialize affordable home price to zero (meaning not affordable)
     affordable_home_price <- 0
     if (affordable_principal > 0) {
-        if (down_payment_type == "pct") {
-            if (down_payment_value < 100) {
-                affordable_home_price <- affordable_principal / (1 - (down_payment_value / 100))
-            }
-        } else { # dollars
-            affordable_home_price <- affordable_principal + down_payment_value
+      if (down_payment_type == "pct") {
+        if (down_payment_value < 100) {
+          # Formula: Home Price = Principal / (1 - Down Payment Fraction)
+          affordable_home_price <- affordable_principal / (1 - (down_payment_value / 100))
+        } else {
         }
+      } else {
+        # Down payment type is "dollars"
+        affordable_home_price <- affordable_principal + down_payment_value
+      }
     }
 
-    tibble::tibble(
-      rate_pct = current_rate_pct,
-      affordable_home_price = affordable_home_price
-    )
-  }) %>%
-    dplyr::filter(affordable_home_price > 0) # Remove cases where nothing is affordable
+    if (affordable_home_price > 0) {
+      return(tibble::tibble(
+        rate_pct = current_rate_pct,
+        rate_per_month = rate_per_month,
+        affordable_home_price = affordable_home_price,
+        affordable_principal = affordable_principal
+      ))
+    } else {
+      # Return NULL if not affordable; purrr::map_dfr will automatically skip these
+      return(NULL)
+    }
+  })
 
   if (nrow(affordability_data) == 0) {
      # Return a message or empty plot if nothing is affordable in the range
@@ -224,6 +234,7 @@ plot_price_vs_rate <- function(monthly_housing_budget,
            theme_minimal()
       return(p) # Return static plot
   }
+
   # Create tooltips
   down_payment_label <- if (down_payment_type == "pct") {
       paste0(down_payment_value, "%")
@@ -231,15 +242,43 @@ plot_price_vs_rate <- function(monthly_housing_budget,
       scales::dollar(down_payment_value)
   }
 
+  affordability_data$down_payment_cash <- affordability_data$affordable_home_price - affordability_data$affordable_principal
+  affordability_data$pmi_cash <- ifelse(
+    affordability_data$down_payment_cash / affordability_data$affordable_home_price * 100 < pmi_threshold_pct,
+    (affordability_data$affordable_principal * (pmi_rate_annual / 100)) / 12,
+    0
+  )
+  affordability_data$tax_cash <- (affordability_data$affordable_home_price * (prop_tax_rate_annual / 100)) / 12
+
+
+  # Calculate monthly payment row by row to avoid vectorization issues
+  affordability_data <- affordability_data %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      monthly_mortgage_payment = compute_monthly_payment(
+        principal = affordable_principal,
+        rate_per_month = rate_per_month,
+        n_payments = mortgage_term_months
+      )
+    ) %>%
+    dplyr::ungroup()
+  affordability_data$monthly_housing_spend <- affordability_data$monthly_mortgage_payment +
+    affordability_data$pmi_cash +
+    affordability_data$tax_cash +
+    monthly_non_mortgage_costs
+
+
   affordability_data <- affordability_data %>%
     dplyr::mutate(
       tooltip_text = sprintf(
         "Price: %s
 Rate: %.2f%%
-Down Payment: %s",
+Down Payment: %s
+Monthly Housing Spend: $%.0f",
         scales::dollar(affordable_home_price),
         rate_pct,
-        down_payment_label
+        down_payment_label,
+        monthly_housing_spend
       )
     )
 
