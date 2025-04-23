@@ -65,7 +65,7 @@ app_server <- function(input, output, session) {
 
   # --- Budgeting Tab --- #
 
-  # 1) Monthly Housing Budget Calculation (if Apply button is used)
+  # Monthly Housing Budget Calculation (if Apply button is used)
   observeEvent(input$apply_budget_calc, {
     # Ensure necessary inputs are available
     req(input$income_interval, input$income_amount, input$housing_percent)
@@ -93,7 +93,7 @@ app_server <- function(input, output, session) {
                                          value = calculated_budget)
   })
 
-  # 2) Monthly Mortgage Budget Calculation Table
+  # Monthly Mortgage Budget Calculation Table
   output$mortgage_budget_table <- renderUI({
     # Req inputs to ensure they are not NULL/NA before calculating
     # Use the reactive results which already have req() inside
