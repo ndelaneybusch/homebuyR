@@ -67,30 +67,56 @@ app_server <- function(input, output, session) {
 
   # Monthly Housing Budget Calculation (if Apply button is used)
   observeEvent(input$apply_budget_calc, {
-    # Ensure necessary inputs are available
-    req(input$income_interval, input$income_amount, input$housing_percent)
+    req(input$budget_model)
+    model <- input$budget_model
+    budget <- NA
 
-    # Validate inputs
-    validate(
-      need(input$income_amount >= 0, "Income amount cannot be negative."),
-      need(input$housing_percent >= 0 & input$housing_percent <= 100, "Housing budget percentage must be between 0 and 100.")
-    )
+    # Helper to get monthly income from interval and amount
+    get_monthly_income <- function(amount, interval) {
+      switch(interval,
+        "Weekly" = amount * 52 / 12,
+        "Two Weeks" = amount * 26 / 12,
+        "Twice Monthly" = amount * 2,
+        "Monthly" = amount,
+        "Annual" = amount / 12,
+        NA)
+    }
 
-    # Calculate gross monthly income based on interval
-    gross_monthly_income <- switch(input$income_interval,
-                                   "Weekly" = input$income_amount * 52 / 12,
-                                   "Two Weeks" = input$income_amount * 26 / 12,
-                                   "Twice Monthly" = input$income_amount * 2,
-                                   "Monthly" = input$income_amount,
-                                   "Annual" = input$income_amount / 12)
+    if (model == "Income %") {
+      req(input$income_interval, input$income_amount, input$housing_percent)
+      gross_monthly_income <- get_monthly_income(input$income_amount, input$income_interval)
+      budget <- housing_budget_from_gross_pct(gross_monthly_income, input$housing_percent)
+    } else if (model == "Debt to Income Ratio") {
+      req(input$income_interval, input$take_home_income_amount, input$housing_percent, input$max_total_debt_pct, input$other_debts)
+      net_monthly_income <- get_monthly_income(input$take_home_income_amount, input$income_interval)
+      # Convert percent to fraction for housing_percent and max_total_debt_pct
+      max_housing_pct <- input$housing_percent / 100
+      max_total_debt_pct <- input$max_total_debt_pct
+      budget <- housing_budget_from_dpi(net_monthly_income, max_housing_pct, max_total_debt_pct, input$other_debts)
+    } else if (model == "Financial Stress Resilience") {
+      req(input$income_interval, input$income_amount, input$other_debts, input$non_housing_essentials, input$savings, input$income_shock_pct, input$shock_duration_months, input$max_total_dti_stress)
+      gross_monthly_income <- get_monthly_income(input$income_amount, input$income_interval)
+      rate_per_month <- if (!is.null(input$annual_rate_pct)) input$annual_rate_pct / 100 / 12 else 0
+      n_payments_total <- if (!is.null(input$mortgage_term)) as.numeric(input$mortgage_term) else 360
+      budget <- housing_budget_from_stressed_dti(
+        gross_monthly_income = gross_monthly_income,
+        other_debts = input$other_debts,
+        non_housing_essentials = input$non_housing_essentials,
+        rate_per_month = rate_per_month,
+        n_payments_total = n_payments_total,
+        savings = input$savings,
+        income_shock_pct = input$income_shock_pct,
+        shock_duration_months = input$shock_duration_months,
+        max_total_dti_stress = input$max_total_dti_stress
+      )
+    }
+    # Manual model: do nothing (user enters budget directly)
 
-    # Calculate monthly housing budget
-    calculated_budget <- gross_monthly_income * (input$housing_percent / 100)
-
-    # Update the monthly_housing_budget input field
-    shinyWidgets::updateAutonumericInput(session = session,
-                                         inputId = "monthly_housing_budget",
-                                         value = calculated_budget)
+    if (!is.na(budget)) {
+      shinyWidgets::updateAutonumericInput(session = session,
+                                           inputId = "monthly_housing_budget",
+                                           value = budget)
+    }
   })
 
   # Monthly Mortgage Budget Calculation Table

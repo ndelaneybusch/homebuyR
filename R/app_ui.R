@@ -92,48 +92,148 @@ app_ui <- function(request) {
                                                     type = "inline",
                                                     content = "Enter your target monthly budget for housing (principal, interest, taxes, insurance).",
                                                     style = "display: inline-block;"),
-
-                                   # Checkbox to compute from income
-                                   checkboxInput(inputId = "compute_budget_from_income",
-                                                 label = "Compute from income?",
-                                                 value = FALSE),
-
-                                   # Conditional panel for income inputs
+                                   # Budget Model Dropdown
+                                   selectInput(inputId = "budget_model",
+                                               label = "Budget Model",
+                                               choices = c("Manual", "Income %", "Debt to Income Ratio", "Financial Stress Resilience"),
+                                               selected = "Manual"),
                                    conditionalPanel(
-                                     condition = "input.compute_budget_from_income == true",
-                                     # Income Interval Dropdown
-                                     selectInput(inputId = "income_interval",
-                                                 label = "Income Interval",
-                                                 choices = c("Weekly", "Two Weeks", "Twice Monthly", "Monthly", "Annual"),
-                                                 selected = "Monthly"),
-                                     # Income Amount Input
-                                     shinyhelper::helper(shinyWidgets::autonumericInput(inputId = "income_amount",
-                                                                                        label = "Household Income ($)",
-                                                                                        value = NA,
-                                                                                        currencySymbol = "$",
-                                                                                        currencySymbolPlacement = "p",
-                                                                                        decimalCharacter = ".",
-                                                                                        digitGroupSeparator = ",",
-                                                                                        minimumValue = 0),
-                                                      type = "inline",
-                                                      content = "Enter your gross income for the selected interval.",
-                                                      style = "display: inline-block;"),
-                                     # Housing Percent Input
-                                     shinyhelper::helper(numericInput(inputId = "housing_percent",
-                                                                      label = "Housing Budget (% of Income)",
-                                                                      value = 28,
-                                                                      min = 0,
-                                                                      max = 100,
-                                                                      step = 0.1),
-                                                      type = "inline",
-                                                      content = "Recommended housing budget as a percentage of gross income (e.g., 28% is common).",
-                                                      style = "display: inline-block;"),
-                                     # Apply button
-                                     actionButton(inputId = "apply_budget_calc",
-                                                  label = "Apply",
-                                                  class = "btn-success",
-                                                  style="margin-top: 15px;") # Add some top margin
-                                   ) # Closes conditionalPanel
+                                       condition = "input.budget_model == 'Income %' || input.budget_model == 'Debt to Income Ratio' || input.budget_model == 'Financial Stress Resilience'",
+                                       selectInput(inputId = "income_interval",
+                                                   label = "Income Interval",
+                                                   choices = c("Weekly", "Two Weeks", "Twice Monthly", "Monthly", "Annual"),
+                                                   selected = "Monthly")
+                                   ),
+                                   conditionalPanel(
+                                       condition = "input.budget_model == 'Income %' || input.budget_model == 'Financial Stress Resilience'",
+                                       shinyhelper::helper(shinyWidgets::autonumericInput(inputId = "income_amount",
+                                                                                          label = "Household Income, before tax ($)",
+                                                                                          value = NA,
+                                                                                          currencySymbol = "$",
+                                                                                          currencySymbolPlacement = "p",
+                                                                                          decimalCharacter = ".",
+                                                                                          digitGroupSeparator = ",",
+                                                                                          minimumValue = 0),
+                                                         type = "inline",
+                                                         content = "Gross income, before taxes and deductions.",
+                                                         style = "display: inline-block;")
+                                   ),
+                                   conditionalPanel(
+                                       condition = "input.budget_model == 'Debt to Income Ratio'",
+                                       shinyhelper::helper(shinyWidgets::autonumericInput(inputId = "take_home_income_amount",
+                                                                                          label = "Take-Home Income ($)",
+                                                                                          value = 0,
+                                                                                          currencySymbol = "$",
+                                                                                          currencySymbolPlacement = "p",
+                                                                                          decimalCharacter = ".",
+                                                                                          digitGroupSeparator = ",",
+                                                                                          minimumValue = 0),
+                                                         type = "inline",
+                                                         content = "Take-home income, after taxes and withholdings.",
+                                                         style = "display: inline-block;")
+                                   ),
+                                   conditionalPanel(
+                                       condition = "input.budget_model == 'Income %' || input.budget_model == 'Debt to Income Ratio'",
+                                       shinyhelper::helper(numericInput(inputId = "housing_percent",
+                                                                        label = "Housing Budget (% of Income)",
+                                                                        value = 28,
+                                                                        min = 0,
+                                                                        max = 100,
+                                                                        step = 0.1),
+                                                         type = "inline",
+                                                         content = "Recommended housing budget as a percentage of gross income (e.g., 28% is common).",
+                                                         style = "display: inline-block;")
+                                   ),
+                                   conditionalPanel(
+                                       condition = "input.budget_model == 'Debt to Income Ratio'",
+                                       shinyhelper::helper(numericInput(inputId = "max_total_debt_pct",
+                                                                        label = "Max Total Debt Ratio",
+                                                                        value = 0.45,
+                                                                        min = 0,
+                                                                        max = 1,
+                                                                        step = 0.01),
+                                                         type = "inline",
+                                                         content = "Maximum allowable total debt-to-income ratio.",
+                                                         style = "display: inline-block;")
+                                   ),
+                                   conditionalPanel(
+                                       condition = "input.budget_model == 'Debt to Income Ratio' || input.budget_model == 'Financial Stress Resilience'",
+                                       shinyhelper::helper(shinyWidgets::autonumericInput(inputId = "other_debts",
+                                                                                          label = "Other Debts ($)",
+                                                                                          value = 0,
+                                                                                          currencySymbol = "$",
+                                                                                          currencySymbolPlacement = "p",
+                                                                                          decimalCharacter = ".",
+                                                                                          digitGroupSeparator = ",",
+                                                                                          minimumValue = 0),
+                                                         type = "inline",
+                                                         content = "Total monthly non-housing debts (e.g., auto loans, student loans).",
+                                                         style = "display: inline-block;")
+                                   ),
+                                   conditionalPanel(
+                                       condition = "input.budget_model == 'Financial Stress Resilience'",
+                                       shinyhelper::helper(numericInput(inputId = "non_housing_essentials",
+                                                                        label = "Non-Housing Essentials ($)",
+                                                                        value = 0,
+                                                                        min = 0,
+                                                                        step = 1),
+                                                         type = "inline",
+                                                         content = "Monthly essential expenses excluding housing and debts.",
+                                                         style = "display: inline-block;")
+                                   ),
+                                   conditionalPanel(
+                                       condition = "input.budget_model == 'Financial Stress Resilience'",
+                                       shinyhelper::helper(numericInput(inputId = "savings",
+                                                                        label = "Savings ($)",
+                                                                        value = 0,
+                                                                        min = 0,
+                                                                        step = 1),
+                                                         type = "inline",
+                                                         content = "Current available savings.",
+                                                         style = "display: inline-block;")
+                                   ),
+                                   conditionalPanel(
+                                       condition = "input.budget_model == 'Financial Stress Resilience'",
+                                       shinyhelper::helper(numericInput(inputId = "income_shock_pct",
+                                                                        label = "Income Shock (%)",
+                                                                        value = 0.2,
+                                                                        min = 0,
+                                                                        max = 1,
+                                                                        step = 0.05),
+                                                         type = "inline",
+                                                         content = "Expected percentage drop in income during shock.",
+                                                         style = "display: inline-block;")
+                                   ),
+                                   conditionalPanel(
+                                       condition = "input.budget_model == 'Financial Stress Resilience'",
+                                       shinyhelper::helper(numericInput(inputId = "shock_duration_months",
+                                                                        label = "Shock Duration (Months)",
+                                                                        value = 6,
+                                                                        min = 0,
+                                                                        step = 1),
+                                                         type = "inline",
+                                                         content = "Duration of income shock in months.",
+                                                         style = "display: inline-block;")
+                                   ),
+                                   conditionalPanel(
+                                       condition = "input.budget_model == 'Financial Stress Resilience'",
+                                       shinyhelper::helper(numericInput(inputId = "max_total_dti_stress",
+                                                                        label = "Max DTI Stress Ratio",
+                                                                        value = 0.5,
+                                                                        min = 0,
+                                                                        max = 1,
+                                                                        step = 0.1),
+                                                         type = "inline",
+                                                         content = "Maximum debt-to-income ratio under stress scenario.",
+                                                         style = "display: inline-block;")
+                                   ),
+                                   conditionalPanel(
+                                       condition = "input.budget_model == 'Income %' || input.budget_model == 'Debt to Income Ratio' || input.budget_model == 'Financial Stress Resilience'",
+                                       actionButton(inputId = "apply_budget_calc",
+                                                    label = "Apply",
+                                                    class = "btn-success",
+                                                    style = "margin-top: 15px;")
+                                   )
                                ), # Closes Section 1 Div (Monthly Housing Budget)
                                # Add a second box below the first one
                                div(style = "border: 2px solid #007bff; padding: 15px; border-radius: 5px; margin-top: 20px;", # Opens Section 2 Div
