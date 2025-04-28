@@ -65,6 +65,19 @@ app_server <- function(input, output, session) {
 
   # --- Budgeting Tab --- #
 
+  # Update default values for budget model inputs
+  observeEvent(input$budget_model, {
+    if (input$budget_model == "Income %") {
+      updateNumericInput(session = session,
+                         inputId = "housing_percent",
+                         value = 28)
+    } else if (input$budget_model == "Debt to Income Ratio") {
+      updateNumericInput(session = session,
+                         inputId = "housing_percent",
+                         value = 34)
+    }
+  })
+
   # Monthly Housing Budget Calculation (if Apply button is used)
   observeEvent(input$apply_budget_calc, {
     req(input$budget_model)

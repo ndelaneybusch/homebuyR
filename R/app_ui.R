@@ -141,7 +141,7 @@ app_ui <- function(request) {
                                                                         max = 100,
                                                                         step = 0.1),
                                                          type = "inline",
-                                                         content = "Recommended housing budget as a percentage of gross income (e.g., 28% is common).",
+                                                         content = "Recommended housing budget as a percentage of gross income.",
                                                          style = "display: inline-block;")
                                    ),
                                    conditionalPanel(
@@ -173,7 +173,7 @@ app_ui <- function(request) {
                                    conditionalPanel(
                                        condition = "input.budget_model == 'Financial Stress Resilience'",
                                        shinyhelper::helper(numericInput(inputId = "non_housing_essentials",
-                                                                        label = "Non-Housing Essentials ($)",
+                                                                        label = "Non-Housing Essentials ($). Includes utilities, healthcare/insurance, groceries, childcare, transportation, but not shopping or entertainment.",
                                                                         value = 0,
                                                                         min = 0,
                                                                         step = 1),
