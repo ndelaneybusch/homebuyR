@@ -185,7 +185,76 @@ app_server <- function(input, output, session) {
                     full_width = FALSE) %>%
       row_spec(nrow(df), bold = TRUE, background = "#D6EAF8")) # Style the last row
 
-  }) # Formatting options removed as they are handled by kableExtra
+  })
+
+  # Affordable Mortgage Principal Calculation
+  affordable_mortgage <- reactive({
+    # Require inputs needed for the summary sentence
+    req(input$monthly_housing_budget,
+        monthly_non_mortgage_costs_excl_tax(),
+        monthly_rate_dec(),
+        input$mortgage_term,
+        input$annual_rate_pct,
+        input$prop_tax_rate_annual)
+
+    # Get reactive values/inputs
+    monthly_non_mortgage <- monthly_non_mortgage_costs_excl_tax()
+    rate_monthly <- monthly_rate_dec()
+    term_months <- as.numeric(input$mortgage_term)
+    tax_rate_annual <- input$prop_tax_rate_annual
+    housing_budget <- input$monthly_housing_budget
+    annual_rate <- input$annual_rate_pct
+
+    # Calculate Affordable Principal
+    affordable_principal <- compute_affordable_principal(
+      monthly_housing_budget = housing_budget,
+      monthly_non_mortgage_costs = monthly_non_mortgage,
+      rate_per_month = rate_monthly,
+      n_payments_total = term_months,
+      prop_tax_rate_annual = tax_rate_annual,
+      down_payment_pct = 20 # Assuming 20% down
+    )
+
+    affordable_principal
+  })
+
+  output$affordable_mortgage_summary_text <- renderUI({
+    req(input$monthly_housing_budget,
+        affordable_mortgage(),
+        input$mortgage_term,
+        input$annual_rate_pct)
+
+    # Get reactive values/inputs
+    term_months <- as.numeric(input$mortgage_term)
+    affordable_mortgage <- affordable_mortgage()
+
+    affordable_principal_fmt <- scales::dollar(0)
+
+    if (affordable_mortgage > 0) {
+      affordable_principal_fmt <- scales::dollar(affordable_mortgage)
+    } else {
+      # If cannot afford anything, set descriptive text
+      affordable_principal_fmt <- "$0 (cannot afford)"
+    }
+
+    # Format mortgage term for display
+    term_years_map <- c("60"="5 year", "120"="10 year", "180"="15 year", "240"="20 year", "360"="30 year")
+    term_display <- term_years_map[as.character(term_months)]
+    if (is.na(term_display)) term_display <- paste(term_months, "months") # Fallback
+
+    # Construct the sentence
+    summary_sentence <- sprintf(
+      "Given a %.2f%% rate for a %s term and an estimated monthly mortgage budget of %s (from a housing budget of %s), assuming no PMI (i.e. at least 20%% down) results in an estimated affordable mortgage of %s.",
+      input$annual_rate_pct,
+      term_display,
+      scales::dollar(max(0, monthly_mortgage_budget())),
+      scales::dollar(max(0, input$monthly_housing_budget)),
+      affordable_principal_fmt
+    )
+
+    tags$p(tags$i(summary_sentence), style="color: #555;") # Display in italics and grey
+    
+  })
 
   # Monthly Housing Budget Calculation (if Apply button is used)
   observeEvent(input$apply_mortgage_calc_assume_20_pct_down, {
@@ -198,78 +267,6 @@ app_server <- function(input, output, session) {
     shinyWidgets::updateAutonumericInput(session = session,
                                         inputId = "loan_amount",
                                         value = loan_amount)
-  })
-
-  # --- 3) Money Down Summary Text ---
-  output$money_down_summary_text <- renderUI({
-    # Require inputs needed for the summary sentence
-    req(input$monthly_housing_budget,
-        estimated_monthly_tax(), # Uses 20% down assumption
-        monthly_non_mortgage_costs_excl_tax(),
-        monthly_rate_dec(),
-        input$mortgage_term,
-        input$annual_rate_pct,
-        input$prop_tax_rate_annual)
-
-    # Get reactive values/inputs
-    monthly_non_mortgage <- monthly_non_mortgage_costs_excl_tax()
-    est_monthly_tax <- estimated_monthly_tax()
-    rate_monthly <- monthly_rate_dec()
-    term_months <- as.numeric(input$mortgage_term)
-    tax_rate_annual <- input$prop_tax_rate_annual
-    housing_budget <- input$monthly_housing_budget
-    annual_rate <- input$annual_rate_pct
-
-    # Calculate Monthly Mortgage Budget (P&I) - consistent with table logic
-    # Use the estimated tax which already assumes 20% down
-    other_ins_annual <- ifelse(is.na(input$other_insurance_annual), 0, input$other_insurance_annual)
-    monthly_other_insurance <- other_ins_annual / 12
-    hoa_dues_monthly <- ifelse(is.na(input$hoa_dues_monthly), 0, input$hoa_dues_monthly)
-    monthly_home_insurance <- input$home_insurance_annual / 12 # Required input
-    total_non_mortgage_monthly <- monthly_home_insurance + monthly_other_insurance + est_monthly_tax + hoa_dues_monthly
-    monthly_mortgage_budget_calc <- housing_budget - total_non_mortgage_monthly
-
-    # Calculate affordable principal and home price assuming 20% down
-    principal_at_20_pct_down <- compute_affordable_principal(
-      monthly_housing_budget = housing_budget,
-      monthly_non_mortgage_costs = monthly_non_mortgage, # Base non-mortgage without tax
-      rate_per_month = rate_monthly,
-      n_payments_total = term_months,
-      prop_tax_rate_annual = tax_rate_annual,
-      down_payment_pct = 20
-    )
-
-    affordable_principal_fmt <- scales::dollar(0)
-    affordable_home_price_fmt <- scales::dollar(0)
-
-    if (principal_at_20_pct_down > 0) {
-      affordable_principal_fmt <- scales::dollar(principal_at_20_pct_down)
-      affordable_home_price_fmt <- scales::dollar(principal_at_20_pct_down / 0.80)
-    } else {
-      # If cannot afford anything, set descriptive text
-      affordable_principal_fmt <- "$0 (cannot afford)"
-      affordable_home_price_fmt <- "$0 (cannot afford)"
-    }
-
-    # Format mortgage term for display
-    term_years_map <- c("60"="5 year", "120"="10 year", "180"="15 year", "240"="20 year", "360"="30 year")
-    term_display <- term_years_map[as.character(term_months)]
-    if (is.na(term_display)) term_display <- paste(term_months, "months") # Fallback
-
-    # Format mortgage budget
-    mortgage_budget_fmt <- scales::dollar(max(0, monthly_mortgage_budget_calc))
-
-    # Construct the sentence
-    summary_sentence <- sprintf(
-      "Given a %.2f%% rate for a %s term and an estimated monthly mortgage budget of %s, assuming 20%% down results in an estimated affordable mortgage of %s and home price of %s.",
-      annual_rate,
-      term_display,
-      mortgage_budget_fmt,
-      affordable_principal_fmt,
-      affordable_home_price_fmt
-    )
-
-    tags$p(tags$i(summary_sentence), style="color: #555;") # Display in italics and grey
   })
 
   # --- 3) Money Down Calculation ---

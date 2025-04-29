@@ -287,16 +287,15 @@ app_ui <- function(request) {
                                    # Output table for mortgage budget calculation
                                    h4("Monthly Housing Costs Breakdown:"), # Sub-header for table
                                    tableOutput(outputId = "mortgage_budget_table"),
+                                   uiOutput(outputId = "affordable_mortgage_summary_text"),
                                    actionButton(inputId = "apply_mortgage_calc_assume_20_pct_down",
                                                     label = "Apply",
                                                     class = "btn-success",
                                                     style = "margin-top: 15px;")
                                ), # Closes Section 2 Div (Monthly Mortgage Budget)
-                               div(style = "border: 2px solid #007bff; padding: 15px; border-radius: 5px; margin-top: 20px;", # Opens Section 3 Div
+                               div(style = "border: 2px solid #007bff; padding: 15px; border-radius: 5px; margin-top: 20px;", 
                                    h3("3) Money Down"),
-                                   uiOutput(outputId = "money_down_summary_text"), # Add UI output for dynamic text
-                                   hr(), # Add separator
-                                   div(style = "display: flex; align-items: flex-end; gap: 10px;", # Use flexbox for layout
+                                   div(style = "display: flex; align-items: flex-end; gap: 10px;",
                                        # Down Payment Input
                                        div(style = "flex-grow: 1;", # Allow input to take available space
                                            shinyhelper::helper(shinyWidgets::autonumericInput(inputId = "down_payment_dollars",
@@ -318,7 +317,7 @@ app_ui <- function(request) {
                                        ) # Closes Button Div
                                    ) # Closes inner flex div
                                ), # Closes Section 3 Div (Money Down)
-                               # --- Added Plot Section --- #
+                               # Plots
                                div(style = "border: 2px solid #28a745; padding: 15px; border-radius: 5px; margin-top: 20px;", # Opens Section 4 Div
                                    h3("4) Affordability Visualizations"),
                                    hr(),
