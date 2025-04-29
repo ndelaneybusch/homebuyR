@@ -285,6 +285,10 @@ app_ui <- function(request) {
                                    # Output table for mortgage budget calculation
                                    h4("Monthly Housing Costs Breakdown:"), # Sub-header for table
                                    tableOutput(outputId = "mortgage_budget_table"),
+                                   actionButton(inputId = "apply_mortgage_calc_assume_20_pct_down",
+                                                    label = "Apply",
+                                                    class = "btn-success",
+                                                    style = "margin-top: 15px;")
                                ), # Closes Section 2 Div (Monthly Mortgage Budget)
                                div(style = "border: 2px solid #007bff; padding: 15px; border-radius: 5px; margin-top: 20px;", # Opens Section 3 Div
                                    h3("3) Money Down"),

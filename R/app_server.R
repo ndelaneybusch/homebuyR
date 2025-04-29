@@ -27,11 +27,14 @@ app_server <- function(input, output, session) {
 
   # Calculate combined monthly non-mortgage costs (excluding property tax)
   monthly_non_mortgage_costs_excl_tax <- reactive({
+    req(input$home_insurance_annual,
+       input$other_insurance_annual,
+       input$hoa_dues_monthly)
+
     # Treat NA other insurance and HOA dues as 0
     other_ins_annual <- ifelse(is.na(input$other_insurance_annual), 0, input$other_insurance_annual)
     hoa_dues_monthly <- ifelse(is.na(input$hoa_dues_monthly), 0, input$hoa_dues_monthly)
 
-    req(input$home_insurance_annual) # Home insurance is required
     monthly_home_insurance <- input$home_insurance_annual / 12
     monthly_other_insurance <- other_ins_annual / 12
 
@@ -132,30 +135,31 @@ app_server <- function(input, output, session) {
     }
   })
 
+  # Monthly Mortgage Budget Calculation
+  monthly_mortgage_budget <- reactive({
+    req(input$monthly_housing_budget,
+       estimated_monthly_tax(),
+       monthly_non_mortgage_costs_excl_tax())
+
+    # Calculate final mortgage budget
+    input$monthly_housing_budget - monthly_non_mortgage_costs_excl_tax() - estimated_monthly_tax()
+  })
+
   # Monthly Mortgage Budget Calculation Table
   output$mortgage_budget_table <- renderUI({
-    # Req inputs to ensure they are not NULL/NA before calculating
     # Use the reactive results which already have req() inside
     req(estimated_monthly_tax(),
         monthly_non_mortgage_costs_excl_tax(),
+        monthly_mortgage_budget(),
+        input$other_insurance_annual,
+        input$hoa_dues_monthly,
         input$monthly_housing_budget,
         input$home_insurance_annual) # Home insurance used directly
 
-    # Get values from reactives or inputs
-    monthly_housing_budget <- input$monthly_housing_budget
-    monthly_home_insurance <- input$home_insurance_annual / 12
     # Other insurance and HOA already handled in monthly_non_mortgage_costs_excl_tax
     # but needed individually for the table breakdown:
-    other_ins_annual <- ifelse(is.na(input$other_insurance_annual), 0, input$other_insurance_annual)
-    monthly_other_insurance <- other_ins_annual / 12
-    hoa_dues_monthly <- ifelse(is.na(input$hoa_dues_monthly), 0, input$hoa_dues_monthly)
-    est_monthly_tax <- estimated_monthly_tax()
-
-    # Calculate total non-mortgage costs using the estimated tax
-    total_non_mortgage_monthly <- monthly_home_insurance + monthly_other_insurance + est_monthly_tax + hoa_dues_monthly
-
-    # Calculate final mortgage budget
-    monthly_mortgage_budget <- monthly_housing_budget - total_non_mortgage_monthly
+    monthly_other_insurance <- ifelse(is.na(input$other_insurance_annual), 0, input$other_insurance_annual) / 12
+    monthly_hoa_dues <- ifelse(is.na(input$hoa_dues_monthly), 0, input$hoa_dues_monthly)
 
     # Create data frame for the table
     df <- data.frame(
@@ -165,12 +169,12 @@ app_server <- function(input, output, session) {
                "Less: Estimated Property Tax (Monthly, assumes 20% down)", # Updated label
                "Less: HOA Dues (Monthly)",
                "Equals: Monthly Mortgage Budget (P&I)"),
-      Amount = scales::dollar(c(monthly_housing_budget,
-                  -monthly_home_insurance,
+      Amount = scales::dollar(c(input$monthly_housing_budget,
+                  -input$home_insurance_annual / 12,
                   -monthly_other_insurance,
-                  -est_monthly_tax, # Use estimated tax
-                  -hoa_dues_monthly,
-                  monthly_mortgage_budget),
+                  -estimated_monthly_tax(), # Use estimated tax
+                  -monthly_hoa_dues,
+                  monthly_mortgage_budget()),
                   # Ensure negative numbers are displayed correctly with parentheses
                   style_negative = "parens")
     )
@@ -182,6 +186,19 @@ app_server <- function(input, output, session) {
       row_spec(nrow(df), bold = TRUE, background = "#D6EAF8")) # Style the last row
 
   }) # Formatting options removed as they are handled by kableExtra
+
+  # Monthly Housing Budget Calculation (if Apply button is used)
+  observeEvent(input$apply_mortgage_calc_assume_20_pct_down, {
+    req(monthly_mortgage_budget(),
+       monthly_rate_dec(),
+       input$mortgage_term)
+
+    # Update the monthly_housing_budget input
+    loan_amount <- compute_principal(monthly_mortgage_budget(), monthly_rate_dec(), as.numeric(input$mortgage_term))
+    shinyWidgets::updateAutonumericInput(session = session,
+                                        inputId = "loan_amount",
+                                        value = loan_amount)
+  })
 
   # --- 3) Money Down Summary Text ---
   output$money_down_summary_text <- renderUI({
