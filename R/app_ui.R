@@ -5,6 +5,7 @@
 #' @import shiny
 #' @import shinyWidgets
 #' @import shinyhelper
+#' @import lubridate
 #' @noRd
 app_ui <- function(request) {
   tagList(
@@ -348,7 +349,63 @@ app_ui <- function(request) {
                                ) # Closes Section 4 Div (Plots)
                                # --- End Added Plot Section --- #
                       ), # Closes tabPanel("Budgeting", ...)
-                      tabPanel("Paying"),
+                      tabPanel("Paying",
+                               div(style = "border: 2px solid #007bff; padding: 15px; border-radius: 5px;",
+                                   h3("Accelerate Your Mortgage Payoff"),
+                                   tags$p("Make extra payments to reduce your loan principal, save on interest, and pay off your mortgage faster. You can make regular extra monthly payments, one-time lump sum payments, or both."),
+                                   
+                                   # Extra Monthly Payment Input
+                                   shinyhelper::helper(
+                                     shinyWidgets::autonumericInput(
+                                       inputId = "extra_monthly_payment",
+                                       label = "Extra Monthly Payment ($)",
+                                       value = 0,
+                                       currencySymbol = "$",
+                                       currencySymbolPlacement = "p",
+                                       decimalCharacter = ".",
+                                       digitGroupSeparator = ",",
+                                       minimumValue = 0
+                                     ),
+                                     type = "inline",
+                                     style = "display: inline-block;",
+                                     content = "Enter the additional amount you plan to pay each month toward principal.",
+                                   ),
+                                   
+                                   # Lump Sum Payment Input
+                                   shinyhelper::helper(
+                                     shinyWidgets::autonumericInput(
+                                       inputId = "lump_sum_payment",
+                                       label = "Lump Sum Payment ($)",
+                                       value = 0,
+                                       currencySymbol = "$",
+                                       currencySymbolPlacement = "p",
+                                       decimalCharacter = ".",
+                                       digitGroupSeparator = ",",
+                                       minimumValue = 0,
+                                       content = "Enter the one-time additional amount you plan to pay toward principal.",
+                                     ),
+                                     type = "inline",
+                                     style = "display: inline-block;"
+                                   ),
+                                   
+                                   # Lump Sum Start Date Input
+                                   shinyhelper::helper(
+                                     dateInput(
+                                       inputId = "lump_sum_start_date",
+                                       label = "Start Date for Extra Principal Payments",
+                                       value = lubridate::`%m+%`(
+                                         lubridate::floor_date(base::Sys.Date(), unit = "month"),
+                                         lubridate::period(1, units = "months")
+                                       ),
+                                       format = "yyyy-mm",
+                                       startview = "year"
+                                     ),
+                                     type = "inline",
+                                     style = "display: inline-block;",
+                                     content = "Enter the start date for the initiation of extra principal payments."
+                                   )
+                               ) # Closes Extra Principal Payments Div
+                      ), # Closes Payments Tab
                       tabPanel("Refinancing")
           ) # Closes tabsetPanel
         ) # Closes mainPanel
