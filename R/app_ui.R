@@ -30,6 +30,7 @@ app_ui <- function(request) {
                                                                digitGroupSeparator = ",",
                                                                minimumValue = 0),
                            content = "Enter the total loan amount. Can be filled automatically from the budgeting tab.",
+                           style = "display: inline-block;",
                            type = "inline"),
           shinyhelper::helper(numericInput(inputId = "annual_rate_pct",
                                            label = "Annual Mortgage Rate (%)",
@@ -37,6 +38,7 @@ app_ui <- function(request) {
                                            min = 0,
                                            step = 0.01),
                            content = "Enter the annual mortgage rate for the loan (e.g., 6.5 for 6.5%).",
+                           style = "display: inline-block;",
                            type = "inline"),
           shinyhelper::helper(selectInput(inputId = "mortgage_term",
                                           label = "Mortgage Term",
@@ -47,6 +49,7 @@ app_ui <- function(request) {
                                                       "30 year" = 360),
                                           selected = 360), 
                            content = "Select the duration of the mortgage.",
+                           style = "display: inline-block;",
                            type = "inline"),
           shinyhelper::helper(dateInput(inputId = "loan_start",
                                         label = "Loan Start Date",
@@ -54,6 +57,7 @@ app_ui <- function(request) {
                                         format = "yyyy-mm",
                                         startview = "year"),
                            content = "Select the month and year the loan payments will begin.",
+                           style = "display: inline-block;",
                            type = "inline"),
           shinyWidgets::materialSwitch(inputId = "advanced_controls", label = "Advanced Controls", status = "info"),
           conditionalPanel(
@@ -64,7 +68,8 @@ app_ui <- function(request) {
                                            min = 0,
                                            max = 100,
                                            step = 1),
-                           content = "Enter the down payment percentage below which PMI is typically required (e.g., 20 for 20%).",
+                           content = "Enter the down payment percentage below which Private Mortgage Insurance (PMI) is typically required (e.g., 20 for 20%).",
+                           style = "display: inline-block;",
                            type = "inline"),
             shinyhelper::helper(numericInput(inputId = "pmi_rate_annual",
                                            label = "PMI Rate (Annual %)",
@@ -72,6 +77,7 @@ app_ui <- function(request) {
                                            min = 0,
                                            step = 0.01),
                            content = "Enter the estimated annual Private Mortgage Insurance (PMI) rate, applied if down payment is below the threshold (e.g., 0.5 for 0.5%).",
+                           style = "display: inline-block;",
                            type = "inline"),
             
           ) # Advanced controls
@@ -82,6 +88,11 @@ app_ui <- function(request) {
                       tabPanel("Budgeting",
                                div(style = "border: 2px solid #007bff; padding: 15px; border-radius: 5px;", # Opens Section 1 Div
                                    h3("1) Monthly Housing Budget"),
+                                   tags$p(tags$i("How much you can spend on housing each month. Includes principal, interest, 
+                                                 taxes, and insurance. Can be estimated on your behalf from % of your income 
+                                                 (commonly used when applying for a mortgage), total debt to income ratio 
+                                                 (also common), and financial stress resilience (most deliquencies are a 
+                                                 consequence of a financial shock).")),
                                    # Monthly Budget Input
                                    shinyhelper::helper(shinyWidgets::autonumericInput(inputId = "monthly_housing_budget",
                                                                                       label = "Monthly Housing Budget ($)",
@@ -251,6 +262,7 @@ app_ui <- function(request) {
                                                                                       decimalCharacter = ".",
                                                                                       digitGroupSeparator = ",",
                                                                                       minimumValue = 0),
+                                                    type = "inline",
                                                     content = "Enter your estimated annual home insurance premium.",
                                                     style = "display: inline-block;"),
                                    # Other Insurance Input
@@ -262,6 +274,7 @@ app_ui <- function(request) {
                                                                                       decimalCharacter = ".",
                                                                                       digitGroupSeparator = ",",
                                                                                       minimumValue = 0),
+                                                    type = "inline",
                                                     content = "Enter any additional annual insurance premiums (e.g., flood, earthquake) if applicable.",
                                                     style = "display: inline-block;"),
                                    # HOA Dues Input
@@ -273,6 +286,7 @@ app_ui <- function(request) {
                                                                                       decimalCharacter = ".",
                                                                                       digitGroupSeparator = ",",
                                                                                       minimumValue = 0),
+                                                    type = "inline",
                                                     content = "Enter any monthly Homeowners Association dues, if applicable.",
                                                     style = "display: inline-block;"),
                                    # Property Tax Input
@@ -281,6 +295,7 @@ app_ui <- function(request) {
                                                                      value = 1.2,
                                                                      min = 0,
                                                                      step = 0.01),
+                                                    type = "inline",
                                                     content = "Enter your estimated annual property tax rate as a percentage of home value (e.g., 1.2 for 1.2%). This will be used to estimate monthly tax.",
                                                     style = "display: inline-block;"),
                                    hr(), # Add separator
@@ -307,7 +322,8 @@ app_ui <- function(request) {
                                                                                       digitGroupSeparator = ",",
                                                                                       minimumValue = 0),
                                                                 content = "Enter the total dollar amount you plan to put down.",
-                                                                type = "inline")
+                                                                type = "inline",
+                                                                style = "display: inline-block;")
                                        ),
                                        # Calculate 20% Button
                                        div(style = "margin-bottom: 20px;", # Opens Button Div
