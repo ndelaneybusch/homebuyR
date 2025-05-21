@@ -463,3 +463,209 @@ test_that("compute_principal_with_pmi: dollar DP path, threshold-capped", {
   # No property tax or PMI should apply (by construction of the test)
   expect_lte(monthly_payment, args$monthly_housing_budget - args$monthly_non_mortgage_costs)
 })
+
+# --- Testing calculate_mortgage_savings ---
+
+test_that("calculate_mortgage_savings: Basic functionality with extra monthly payment works", {
+  # $100,000 loan at 6% APR for 30 years with $100 extra monthly payment
+  principal <- 100000
+  annual_rate <- 0.06
+  monthly_rate <- annual_rate / 12
+  term_years <- 30
+  n_payments <- term_years * 12
+  extra_payment <- 100
+  
+  result <- calculate_mortgage_savings(
+    principal = principal,
+    rate_per_month = monthly_rate,
+    n_payments_total = n_payments,
+    extra_monthly_payment = extra_payment
+  )
+  
+  # Basic output structure
+  expect_type(result, "list")
+  expect_named(result, c("total_interest_savings", "months_saved", "new_loan_term_months", 
+                        "original_total_interest", "new_total_interest"))
+  
+  # Should save money and pay off early with extra payments
+  expect_gt(result$total_interest_savings, 0)
+  expect_gt(result$months_saved, 0)
+  expect_lt(result$new_loan_term_months, n_payments)
+  
+  # Verify calculations
+  original_payment <- compute_monthly_payment(principal, monthly_rate, n_payments)
+  expected_original_interest <- (original_payment * n_payments) - principal
+  expect_equal(result$original_total_interest, expected_original_interest, tolerance = 0.01)
+  
+  # New total should be less than original
+  expect_lt(result$new_total_interest, result$original_total_interest)
+  
+  # Verify months saved calculation
+  expect_equal(result$months_saved, n_payments - result$new_loan_term_months)
+})
+
+test_that("calculate_mortgage_savings: Lump sum payment works", {
+  # $200,000 loan at 5% APR for 30 years with $10,000 lump sum at start
+  principal <- 200000
+  annual_rate <- 0.05
+  monthly_rate <- annual_rate / 12
+  term_years <- 30
+  n_payments <- term_years * 12
+  lump_sum <- 10000
+  
+  result <- calculate_mortgage_savings(
+    principal = principal,
+    rate_per_month = monthly_rate,
+    n_payments_total = n_payments,
+    lump_sum_payment = lump_sum,
+    payment_number_for_lump = 1
+  )
+  
+  # Should save money and pay off early with lump sum
+  expect_gt(result$total_interest_savings, 0)
+  expect_gt(result$months_saved, 0)
+  
+  # Verify the lump sum was applied correctly
+  original_balance <- principal
+  new_balance_after_lump <- original_balance - lump_sum
+  
+  # Calculate expected months to pay off with reduced balance
+  monthly_payment <- compute_monthly_payment(principal, monthly_rate, n_payments)
+  
+  # This is a simplified check - in reality would need to do full amortization
+  expect_lt(result$new_loan_term_months, n_payments)
+})
+
+test_that("calculate_mortgage_savings: Combined extra monthly and lump sum payments work", {
+  # $300,000 loan at 4% APR for 15 years with $200 extra monthly and $15,000 lump sum
+  principal <- 300000
+  annual_rate <- 0.04
+  monthly_rate <- annual_rate / 12
+  term_years <- 15
+  n_payments <- term_years * 12
+  extra_payment <- 200
+  lump_sum <- 15000
+  
+  result <- calculate_mortgage_savings(
+    principal = principal,
+    rate_per_month = monthly_rate,
+    n_payments_total = n_payments,
+    extra_monthly_payment = extra_payment,
+    lump_sum_payment = lump_sum,
+    payment_number_for_lump = 1
+  )
+  
+  # Should save money and pay off early
+  expect_gt(result$total_interest_savings, 0)
+  expect_gt(result$months_saved, 0)
+  
+  # Verify the combined effect is greater than either alone
+  result_extra_only <- calculate_mortgage_savings(
+    principal = principal,
+    rate_per_month = monthly_rate,
+    n_payments_total = n_payments,
+    extra_monthly_payment = extra_payment
+  )
+  
+  result_lump_only <- calculate_mortgage_savings(
+    principal = principal,
+    rate_per_month = monthly_rate,
+    n_payments_total = n_payments,
+    lump_sum_payment = lump_sum
+  )
+  
+  expect_gt(result$total_interest_savings, 
+             max(result_extra_only$total_interest_savings, 
+                result_lump_only$total_interest_savings))
+})
+
+test_that("calculate_mortgage_savings: Edge cases work", {
+  # Test with zero principal (should error)
+  expect_error(calculate_mortgage_savings(0, 0.005, 360))
+  
+  # Test with zero rate (interest-free loan)
+  result_zero_rate <- calculate_mortgage_savings(
+    principal = 100000,
+    rate_per_month = 0,
+    n_payments_total = 120, # 10 years
+    extra_monthly_payment = 100
+  )
+  
+  # With zero rate, extra payments should reduce term but not save interest
+  expect_equal(result_zero_rate$total_interest_savings, 0)
+  expect_gt(result_zero_rate$months_saved, 0)
+  
+  # Test with payment number beyond loan term for lump sum
+  principal <- 100000
+  monthly_rate <- 0.005
+  n_payments <- 360
+  
+  # Should error if payment number is beyond loan term
+  expect_error(calculate_mortgage_savings(
+    principal = principal,
+    rate_per_month = monthly_rate,
+    n_payments_total = n_payments,
+    lump_sum_payment = 1000,
+    payment_number_for_lump = n_payments + 1
+  ))
+  
+  # Should work with payment number equal to loan term
+  expect_silent(calculate_mortgage_savings(
+    principal = principal,
+    rate_per_month = monthly_rate,
+    n_payments_total = n_payments,
+    lump_sum_payment = 1000,
+    payment_number_for_lump = n_payments
+  ))
+})
+
+test_that("calculate_mortgage_savings: Input validation works", {
+  # Valid base call
+  valid_call <- function(...) calculate_mortgage_savings(principal = 100000, 
+                                                       rate_per_month = 0.005, 
+                                                       n_payments_total = 360, ...)
+  
+  # Test valid calls
+  expect_silent(valid_call())
+  expect_silent(valid_call(extra_monthly_payment = 100))
+  expect_silent(valid_call(lump_sum_payment = 1000, payment_number_for_lump = 1))
+  
+  # Test invalid inputs
+  expect_error(valid_call(principal = -100000))  # Negative principal
+  expect_error(valid_call(rate_per_month = -0.01))  # Negative rate
+  expect_error(valid_call(n_payments_total = 0))  # Zero payments
+  expect_error(valid_call(n_payments_total = 10.5))  # Non-integer payments
+  expect_error(valid_call(extra_monthly_payment = -100))  # Negative extra payment
+  expect_error(valid_call(lump_sum_payment = -1000))  # Negative lump sum
+  expect_error(valid_call(lump_sum_payment = 1000, payment_number_for_lump = 0))  # Invalid payment number
+  expect_error(valid_call(lump_sum_payment = 1000, payment_number_for_lump = 1.5))  # Non-integer payment number
+  
+  # Type errors
+  expect_error(calculate_mortgage_savings("100000", 0.005, 360))  # String principal
+  expect_error(calculate_mortgage_savings(100000, "0.005", 360))  # String rate
+  expect_error(calculate_mortgage_savings(100000, 0.005, "360"))  # String n_payments
+})
+
+test_that("calculate_mortgage_savings: Loan is paid off early with large payments", {
+  # $100,000 loan at 6% APR for 30 years with very large extra payments
+  principal <- 100000
+  annual_rate <- 0.06
+  monthly_rate <- annual_rate / 12
+  term_years <- 30
+  n_payments <- term_years * 12
+  
+  # With very large extra payment, loan should be paid off in 1 month
+  result <- calculate_mortgage_savings(
+    principal = principal,
+    rate_per_month = monthly_rate,
+    n_payments_total = n_payments,
+    extra_monthly_payment = principal * 2  # More than enough to pay off immediately
+  )
+  
+  expect_equal(result$new_loan_term_months, 1)
+  expect_equal(result$months_saved, n_payments - 1)
+  
+  # Total interest should be just one month's interest
+  expected_interest <- principal * monthly_rate
+  expect_equal(result$new_total_interest, expected_interest, tolerance = 0.01)
+})

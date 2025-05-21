@@ -180,13 +180,16 @@ estimate_monthly_property_tax <- function(monthly_housing_budget,
   # --- Input Validation ---
   # Validate inputs specific to this function's direct use
   stopifnot(is.numeric(prop_tax_rate_annual), prop_tax_rate_annual >= 0)
-  stopifnot(is.numeric(down_payment_pct), down_payment_pct >= 0, down_payment_pct < 100)
-  # `compute_affordable_principal` will validate the other inputs
-
-  # Handle zero tax rate case immediately
+  
+  # Handle zero tax rate case immediately - no need to validate down_payment_pct in this case
   if (prop_tax_rate_annual == 0) {
     return(0)
   }
+  
+  # Only validate down_payment_pct if we're actually going to use it
+  stopifnot(is.numeric(down_payment_pct), down_payment_pct >= 0, down_payment_pct < 100)
+  
+  # `compute_affordable_principal` will validate the other inputs
 
   # --- Calculation ---
 
@@ -439,4 +442,162 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
 
   # Ensure non-negative result
   return(max(0, affordable_principal))
+}
+
+#' Calculate Mortgage Savings from Extra Payments
+#'
+#' Computes the total cash savings and months gained by making extra principal payments
+#' on a mortgage. Extra payments can be made as a one-time lump sum, additional
+#' monthly payments, or both.
+#'
+#' @param principal Numeric. The original loan amount. Must be positive.
+#' @param rate_per_month Numeric. The monthly interest rate (annual rate / 12).
+#'   Must be non-negative.
+#' @param n_payments_total Integer. The total number of payments in the original loan term.
+#'   Must be positive.
+#' @param extra_monthly_payment Numeric. Additional amount paid toward principal each month.
+#'   Defaults to 0.
+#' @param lump_sum_payment Numeric. One-time additional payment toward principal.
+#'   Defaults to 0.
+#' @param payment_number_for_lump Integer. The payment number (1-based) when the
+#'   lump sum payment is made. Must be between 1 and n_payments_total, or NA if
+#'   no lump sum payment is made. Defaults to 1 (first payment).
+#'
+#' @return A list containing:
+#'   \item{total_interest_savings}{Total interest saved over the life of the loan}
+#'   \item{months_saved}{Number of months earlier the loan is paid off}
+#'   \item{new_loan_term_months}{The new loan term in months with extra payments}
+#'   \item{original_total_interest}{Total interest paid in the original loan}
+#'   \item{new_total_interest}{Total interest paid with extra payments}
+#' @export
+#'
+#' @examples
+#' # Example: $300,000 loan at 6% APR for 30 years
+#' principal <- 300000
+#' annual_rate <- 0.06
+#' monthly_rate <- annual_rate / 12
+#' term_years <- 30
+#' n_payments <- term_years * 12
+#'
+#' # With $200 extra monthly payment
+#' savings <- calculate_mortgage_savings(
+#'   principal = principal,
+#'   rate_per_month = monthly_rate,
+#'   n_payments_total = n_payments,
+#'   extra_monthly_payment = 200
+#' )
+#' # Should show interest savings and reduced term
+#'
+#' # With $10,000 lump sum payment at the start
+#' savings_lump <- calculate_mortgage_savings(
+#'   principal = principal,
+#'   rate_per_month = monthly_rate,
+#'   n_payments_total = n_payments,
+#'   lump_sum_payment = 10000,
+#'   payment_number_for_lump = 1
+#' )
+#'
+#' # With both extra monthly and lump sum
+#' savings_both <- calculate_mortgage_savings(
+#'   principal = principal,
+#'   rate_per_month = monthly_rate,
+#'   n_payments_total = n_payments,
+#'   extra_monthly_payment = 200,
+#'   lump_sum_payment = 10000,
+#'   payment_number_for_lump = 1
+#' )
+calculate_mortgage_savings <- function(principal,
+                                      rate_per_month,
+                                      n_payments_total,
+                                      extra_monthly_payment = 0,
+                                      lump_sum_payment = 0,
+                                      payment_number_for_lump = 1) {
+
+  # Input validation
+  stopifnot(is.numeric(principal), principal > 0)
+  stopifnot(is.numeric(rate_per_month), rate_per_month >= 0)
+  stopifnot(is.numeric(n_payments_total), n_payments_total > 0,
+            n_payments_total == floor(n_payments_total))
+  stopifnot(is.numeric(extra_monthly_payment), extra_monthly_payment >= 0)
+  stopifnot(is.numeric(lump_sum_payment), lump_sum_payment >= 0)
+
+  if (lump_sum_payment > 0) {
+    stopifnot(is.numeric(payment_number_for_lump),
+              payment_number_for_lump >= 1,
+              payment_number_for_lump <= n_payments_total,
+              payment_number_for_lump == floor(payment_number_for_lump))
+  }
+
+  # Calculate original monthly payment
+  original_payment <- compute_monthly_payment(
+    principal = principal,
+    rate_per_month = rate_per_month,
+    n_payments_total = n_payments_total
+  )
+
+  # Calculate original total interest
+  original_total_interest <- (original_payment * n_payments_total) - principal
+
+  # Initialize variables for amortization
+  remaining_principal <- principal
+  current_payment_number <- 0
+  new_total_interest <- 0
+
+  # If lump sum is at payment 1, apply it immediately
+  if (lump_sum_payment > 0 && payment_number_for_lump == 1) {
+    remaining_principal <- max(0, remaining_principal - lump_sum_payment)
+  }
+
+  # Amortize the loan with extra payments
+  while (remaining_principal > 0 && current_payment_number < n_payments_total * 2) {
+    current_payment_number <- current_payment_number + 1
+
+    # Apply lump sum if this is the payment number for it (and not already applied)
+    if (lump_sum_payment > 0 && current_payment_number == payment_number_for_lump && current_payment_number > 1) {
+      remaining_principal <- max(0, remaining_principal - lump_sum_payment)
+    }
+
+    # If loan is already paid off, break
+    if (remaining_principal <= 0) {
+      break
+    }
+
+    # Calculate interest for this period
+    interest_payment <- remaining_principal * rate_per_month
+
+    # Calculate principal payment (standard + extra)
+    principal_payment <- original_payment - interest_payment + extra_monthly_payment
+
+    # Ensure we don't overpay on the last payment
+    if (remaining_principal < principal_payment) {
+      principal_payment <- remaining_principal
+    }
+
+    # Update remaining principal and total interest
+    remaining_principal <- remaining_principal - principal_payment
+    new_total_interest <- new_total_interest + interest_payment
+
+    # If remaining principal is very small, consider it paid off
+    if (remaining_principal < 0.01) {
+      remaining_principal <- 0
+      break
+    }
+  }
+
+  # Calculate results
+  total_interest_savings <- original_total_interest - new_total_interest
+  new_loan_term_months <- current_payment_number
+  months_saved <- n_payments_total - new_loan_term_months
+
+  # Ensure we don't report negative savings (in case of calculation edge cases)
+  total_interest_savings <- max(0, total_interest_savings)
+  months_saved <- max(0, months_saved)
+
+  return(list(
+    total_interest_savings = total_interest_savings,
+    months_saved = months_saved,
+    new_loan_term_months = new_loan_term_months,
+    original_total_interest = original_total_interest,
+    new_total_interest = new_total_interest
+  ))
 }
