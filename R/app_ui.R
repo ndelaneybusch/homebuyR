@@ -348,7 +348,6 @@ app_ui <- function(request) {
                                ) # Closes Section 4 Div (Plots)
                                # --- End Added Plot Section --- #
                       ), # Closes tabPanel("Budgeting", ...)
-                      tabPanel("Buying"),
                       tabPanel("Paying"),
                       tabPanel("Refinancing")
           ) # Closes tabsetPanel
