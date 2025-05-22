@@ -403,7 +403,10 @@ app_ui <- function(request) {
                                      type = "inline",
                                      style = "display: inline-block;",
                                      content = "Enter the start date for the initiation of extra principal payments."
-                                   )
+                                   ),
+                                   
+                                   # Savings Summary Output
+                                   uiOutput(outputId = "savings_summary")
                                ) # Closes Extra Principal Payments Div
                       ), # Closes Payments Tab
                       tabPanel("Refinancing")

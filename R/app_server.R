@@ -443,6 +443,7 @@ app_server <- function(input, output, session) {
     current_rate <- req(input$annual_rate_pct)
     rate_range <- seq(max(0.1, current_rate - 3), current_rate + 3, by = 0.1)
 
+
     # Call the plotting function
     plot_price_vs_rate(
       monthly_housing_budget = input$monthly_housing_budget,
@@ -455,5 +456,62 @@ app_server <- function(input, output, session) {
       rate_pct_range = rate_range
     )
   })
-
+  
+  # Calculate mortgage savings from extra payments
+  mortgage_savings <- reactive({
+    req(input$loan_amount,
+        monthly_rate_dec(),
+        input$mortgage_term,
+        input$extra_monthly_payment >= 0,
+        input$lump_sum_payment >= 0,
+        input$loan_start,
+        input$lump_sum_start_date)
+    
+    # Calculate payment number for lump sum based on dates
+    loan_start_month <- as.Date(cut(input$loan_start, "month"))
+    lump_sum_month <- as.Date(cut(input$lump_sum_start_date, "month"))
+    
+    # Calculate number of months between loan start and lump sum payment
+    months_diff <- as.integer(
+      (lubridate::year(lump_sum_month) - lubridate::year(loan_start_month)) * 12 +
+      (lubridate::month(lump_sum_month) - lubridate::month(loan_start_month))
+    ) + 1  # Add 1 to make it 1-based
+    
+    # Ensure payment number is at least 1 and at most the loan term
+    payment_number <- max(1, min(months_diff, as.numeric(input$mortgage_term)))
+    
+    # Calculate mortgage savings
+    calculate_mortgage_savings(
+      principal = input$loan_amount,
+      rate_per_month = monthly_rate_dec(),
+      n_payments_total = as.numeric(input$mortgage_term),
+      extra_monthly_payment = input$extra_monthly_payment,
+      lump_sum_payment = input$lump_sum_payment,
+      payment_number_for_lump = payment_number
+    )
+  })
+  
+  # Render the savings summary
+  output$savings_summary <- renderUI({
+    savings <- mortgage_savings()
+    
+    # Format currency values
+    format_currency <- function(x) {
+      paste0("$", format(round(x), big.mark = ",", scientific = FALSE))
+    }
+    
+    # Create the summary text
+    tagList(
+      h4("Savings Summary"),
+      hr(),
+      p(strong("Total Interest Saved:"), format_currency(savings$total_interest_savings)),
+      p(strong("Months Saved:"), savings$months_saved, "months"),
+      p(strong("New Loan Term:"), savings$new_loan_term_months, "months", 
+        "(", savings$months_saved, " months faster)"),
+      p(strong("Original Total Interest:"), format_currency(savings$original_total_interest)),
+      p(strong("New Total Interest:"), format_currency(savings$new_total_interest)),
+      hr(),
+      p(em("Note: These calculations assume you make the extra payments as specified and keep the same monthly payment amount."))
+    )
+  })
 }
