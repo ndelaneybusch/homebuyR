@@ -65,7 +65,7 @@ compute_affordable_principal <- function(monthly_housing_budget,
   stopifnot(is.numeric(monthly_non_mortgage_costs), monthly_non_mortgage_costs >= 0)
   stopifnot(is.numeric(rate_per_month), rate_per_month >= 0)
   stopifnot(is.numeric(n_payments_total), n_payments_total > 0, n_payments_total == floor(n_payments_total))
-  
+
   # Validate prop_tax_rate_annual and down_payment_pct *if* tax rate is provided and positive
   if (!is.null(prop_tax_rate_annual)) {
     stopifnot(is.numeric(prop_tax_rate_annual), prop_tax_rate_annual >= 0)
@@ -99,10 +99,10 @@ compute_affordable_principal <- function(monthly_housing_budget,
   # Calculate present value factor for the annuity (P&I payments)
   # This uses the exported function from fct_annuity.R
   annuity_present_value_factor <- calculate_annuity_pv_factor(
-                                      rate_per_period = rate_per_month, 
+                                      rate_per_period = rate_per_month,
                                       n_periods = n_payments_total
                                     )
-                                    
+
   if (annuity_present_value_factor <= 0) {
       return(0) # Should not happen with valid inputs but good for safety
   }
@@ -180,15 +180,15 @@ estimate_monthly_property_tax <- function(monthly_housing_budget,
   # --- Input Validation ---
   # Validate inputs specific to this function's direct use
   stopifnot(is.numeric(prop_tax_rate_annual), prop_tax_rate_annual >= 0)
-  
+
   # Handle zero tax rate case immediately - no need to validate down_payment_pct in this case
   if (prop_tax_rate_annual == 0) {
     return(0)
   }
-  
+
   # Only validate down_payment_pct if we're actually going to use it
   stopifnot(is.numeric(down_payment_pct), down_payment_pct >= 0, down_payment_pct < 100)
-  
+
   # `compute_affordable_principal` will validate the other inputs
 
   # --- Calculation ---
@@ -540,7 +540,7 @@ calculate_mortgage_savings <- function(principal,
 
   # Initialize variables for amortization
   remaining_principal <- principal
-  current_payment_number <- payment_number_for_prepay_start - 1 #loop adds 1 at start
+  current_payment_number <- 0
   new_total_interest <- 0
 
   # If lump sum is at payment 1, apply it immediately
@@ -566,7 +566,12 @@ calculate_mortgage_savings <- function(principal,
     interest_payment <- remaining_principal * rate_per_month
 
     # Calculate principal payment (standard + extra)
-    principal_payment <- original_payment - interest_payment + extra_monthly_payment
+    principal_payment <- original_payment - interest_payment
+
+    # factor in extra monthly payments
+    if (current_payment_number >= payment_number_for_prepay_start) {
+      principal_payment <- principal_payment + extra_monthly_payment
+    }
 
     # Ensure we don't overpay on the last payment
     if (remaining_principal < principal_payment) {
