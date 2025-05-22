@@ -487,7 +487,7 @@ app_server <- function(input, output, session) {
       n_payments_total = as.numeric(input$mortgage_term),
       extra_monthly_payment = input$extra_monthly_payment,
       lump_sum_payment = input$lump_sum_payment,
-      payment_number_for_lump = payment_number
+      payment_number_for_prepay_start = payment_number
     )
   })
   
