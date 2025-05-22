@@ -451,7 +451,7 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
 #' monthly payments, or both.
 #'
 #' @param principal Numeric. The original loan amount. Must be positive.
-#' @param rate_per_month Numeric. The monthly interest rate (annual rate / 12).
+#' @param rate_per_month Numeric. The monthly interest rate (annual rate as decimal / 12).
 #'   Must be non-negative.
 #' @param n_payments_total Integer. The total number of payments in the original loan term.
 #'   Must be positive.
@@ -460,7 +460,7 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
 #' @param lump_sum_payment Numeric. One-time additional payment toward principal.
 #'   Defaults to 0.
 #' @param payment_number_for_prepay_start Integer. The payment number (1-based) when the
-#'   lump sum payment is made. Must be between 1 and n_payments_total, or NA if
+#'   prepayments begin. Must be between 1 and n_payments_total, or NA if
 #'   no lump sum payment is made. Defaults to 1 (first payment).
 #'
 #' @return A list containing:
@@ -587,6 +587,7 @@ calculate_mortgage_savings <- function(principal,
       remaining_principal <- 0
       break
     }
+
   }
 
   # Calculate results

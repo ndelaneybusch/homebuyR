@@ -16,7 +16,7 @@ calculate_mortgage_savings(
 \arguments{
 \item{principal}{Numeric. The original loan amount. Must be positive.}
 
-\item{rate_per_month}{Numeric. The monthly interest rate (annual rate / 12).
+\item{rate_per_month}{Numeric. The monthly interest rate (annual rate as decimal / 12).
 Must be non-negative.}
 
 \item{n_payments_total}{Integer. The total number of payments in the original loan term.
@@ -29,7 +29,7 @@ Defaults to 0.}
 Defaults to 0.}
 
 \item{payment_number_for_prepay_start}{Integer. The payment number (1-based) when the
-lump sum payment is made. Must be between 1 and n_payments_total, or NA if
+prepayments begin. Must be between 1 and n_payments_total, or NA if
 no lump sum payment is made. Defaults to 1 (first payment).}
 }
 \value{
