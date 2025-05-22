@@ -459,7 +459,7 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
 #'   Defaults to 0.
 #' @param lump_sum_payment Numeric. One-time additional payment toward principal.
 #'   Defaults to 0.
-#' @param payment_number_for_lump Integer. The payment number (1-based) when the
+#' @param payment_number_for_prepay_start Integer. The payment number (1-based) when the
 #'   lump sum payment is made. Must be between 1 and n_payments_total, or NA if
 #'   no lump sum payment is made. Defaults to 1 (first payment).
 #'
@@ -494,7 +494,7 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
 #'   rate_per_month = monthly_rate,
 #'   n_payments_total = n_payments,
 #'   lump_sum_payment = 10000,
-#'   payment_number_for_lump = 1
+#'   payment_number_for_prepay_start = 1
 #' )
 #'
 #' # With both extra monthly and lump sum
@@ -504,14 +504,14 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
 #'   n_payments_total = n_payments,
 #'   extra_monthly_payment = 200,
 #'   lump_sum_payment = 10000,
-#'   payment_number_for_lump = 1
+#'   payment_number_for_prepay_start = 1
 #' )
 calculate_mortgage_savings <- function(principal,
                                       rate_per_month,
                                       n_payments_total,
                                       extra_monthly_payment = 0,
                                       lump_sum_payment = 0,
-                                      payment_number_for_lump = 1) {
+                                      payment_number_for_prepay_start = 1) {
 
   # Input validation
   stopifnot(is.numeric(principal), principal > 0)
@@ -522,10 +522,10 @@ calculate_mortgage_savings <- function(principal,
   stopifnot(is.numeric(lump_sum_payment), lump_sum_payment >= 0)
 
   if (lump_sum_payment > 0) {
-    stopifnot(is.numeric(payment_number_for_lump),
-              payment_number_for_lump >= 1,
-              payment_number_for_lump <= n_payments_total,
-              payment_number_for_lump == floor(payment_number_for_lump))
+    stopifnot(is.numeric(payment_number_for_prepay_start),
+              payment_number_for_prepay_start >= 1,
+              payment_number_for_prepay_start <= n_payments_total,
+              payment_number_for_prepay_start == floor(payment_number_for_prepay_start))
   }
 
   # Calculate original monthly payment
@@ -540,11 +540,11 @@ calculate_mortgage_savings <- function(principal,
 
   # Initialize variables for amortization
   remaining_principal <- principal
-  current_payment_number <- 0
+  current_payment_number <- payment_number_for_prepay_start - 1 #loop adds 1 at start
   new_total_interest <- 0
 
   # If lump sum is at payment 1, apply it immediately
-  if (lump_sum_payment > 0 && payment_number_for_lump == 1) {
+  if (lump_sum_payment > 0 && payment_number_for_prepay_start == 1) {
     remaining_principal <- max(0, remaining_principal - lump_sum_payment)
   }
 
@@ -553,7 +553,7 @@ calculate_mortgage_savings <- function(principal,
     current_payment_number <- current_payment_number + 1
 
     # Apply lump sum if this is the payment number for it (and not already applied)
-    if (lump_sum_payment > 0 && current_payment_number == payment_number_for_lump && current_payment_number > 1) {
+    if (lump_sum_payment > 0 && current_payment_number == payment_number_for_prepay_start && current_payment_number > 1) {
       remaining_principal <- max(0, remaining_principal - lump_sum_payment)
     }
 

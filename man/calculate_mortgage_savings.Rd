@@ -10,7 +10,7 @@ calculate_mortgage_savings(
   n_payments_total,
   extra_monthly_payment = 0,
   lump_sum_payment = 0,
-  payment_number_for_lump = 1
+  payment_number_for_prepay_start = 1
 )
 }
 \arguments{
@@ -28,7 +28,7 @@ Defaults to 0.}
 \item{lump_sum_payment}{Numeric. One-time additional payment toward principal.
 Defaults to 0.}
 
-\item{payment_number_for_lump}{Integer. The payment number (1-based) when the
+\item{payment_number_for_prepay_start}{Integer. The payment number (1-based) when the
 lump sum payment is made. Must be between 1 and n_payments_total, or NA if
 no lump sum payment is made. Defaults to 1 (first payment).}
 }
@@ -68,7 +68,7 @@ savings_lump <- calculate_mortgage_savings(
   rate_per_month = monthly_rate,
   n_payments_total = n_payments,
   lump_sum_payment = 10000,
-  payment_number_for_lump = 1
+  payment_number_for_prepay_start = 1
 )
 
 # With both extra monthly and lump sum
@@ -78,6 +78,6 @@ savings_both <- calculate_mortgage_savings(
   n_payments_total = n_payments,
   extra_monthly_payment = 200,
   lump_sum_payment = 10000,
-  payment_number_for_lump = 1
+  payment_number_for_prepay_start = 1
 )
 }

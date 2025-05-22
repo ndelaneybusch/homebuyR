@@ -518,7 +518,7 @@ test_that("calculate_mortgage_savings: Lump sum payment works", {
     rate_per_month = monthly_rate,
     n_payments_total = n_payments,
     lump_sum_payment = lump_sum,
-    payment_number_for_lump = 1
+    payment_number_for_prepay_start = 1
   )
   
   # Should save money and pay off early with lump sum
@@ -552,7 +552,7 @@ test_that("calculate_mortgage_savings: Combined extra monthly and lump sum payme
     n_payments_total = n_payments,
     extra_monthly_payment = extra_payment,
     lump_sum_payment = lump_sum,
-    payment_number_for_lump = 1
+    payment_number_for_prepay_start = 1
   )
   
   # Should save money and pay off early
@@ -606,7 +606,7 @@ test_that("calculate_mortgage_savings: Edge cases work", {
     rate_per_month = monthly_rate,
     n_payments_total = n_payments,
     lump_sum_payment = 1000,
-    payment_number_for_lump = n_payments + 1
+    payment_number_for_prepay_start = n_payments + 1
   ))
   
   # Should work with payment number equal to loan term
@@ -615,7 +615,7 @@ test_that("calculate_mortgage_savings: Edge cases work", {
     rate_per_month = monthly_rate,
     n_payments_total = n_payments,
     lump_sum_payment = 1000,
-    payment_number_for_lump = n_payments
+    payment_number_for_prepay_start = n_payments
   ))
 })
 
@@ -628,7 +628,7 @@ test_that("calculate_mortgage_savings: Input validation works", {
   # Test valid calls
   expect_silent(valid_call())
   expect_silent(valid_call(extra_monthly_payment = 100))
-  expect_silent(valid_call(lump_sum_payment = 1000, payment_number_for_lump = 1))
+  expect_silent(valid_call(lump_sum_payment = 1000, payment_number_for_prepay_start = 1))
   
   # Test invalid inputs
   expect_error(valid_call(principal = -100000))  # Negative principal
@@ -637,8 +637,8 @@ test_that("calculate_mortgage_savings: Input validation works", {
   expect_error(valid_call(n_payments_total = 10.5))  # Non-integer payments
   expect_error(valid_call(extra_monthly_payment = -100))  # Negative extra payment
   expect_error(valid_call(lump_sum_payment = -1000))  # Negative lump sum
-  expect_error(valid_call(lump_sum_payment = 1000, payment_number_for_lump = 0))  # Invalid payment number
-  expect_error(valid_call(lump_sum_payment = 1000, payment_number_for_lump = 1.5))  # Non-integer payment number
+  expect_error(valid_call(lump_sum_payment = 1000, payment_number_for_prepay_start = 0))  # Invalid payment number
+  expect_error(valid_call(lump_sum_payment = 1000, payment_number_for_prepay_start = 1.5))  # Non-integer payment number
   
   # Type errors
   expect_error(calculate_mortgage_savings("100000", 0.005, 360))  # String principal
