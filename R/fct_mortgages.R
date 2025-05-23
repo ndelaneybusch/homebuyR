@@ -523,7 +523,6 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
 #'   payment_number_for_prepay_start = 13,
 #'   cumulative_output = TRUE
 #' )
-
 calculate_mortgage_savings <- function(principal,
                                       rate_per_month,
                                       n_payments_total,
@@ -640,7 +639,7 @@ calculate_mortgage_savings <- function(principal,
       }
       out <- rbind(out, data.frame(
         payment_number = current_payment_number,
-        original_principal_payment = original_principal_payment - original_principal_payment,
+        original_principal_payment = original_principal_payment,
         new_principal_payment = principal_payment,
         principal_payment_extra = extra_prepay_this_month,
         original_interest_payment = original_interest_payment,

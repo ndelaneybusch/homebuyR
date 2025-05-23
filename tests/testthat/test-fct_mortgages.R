@@ -697,6 +697,232 @@ valid_call <- function(...) {
   do.call(calculate_mortgage_savings, params)
 }
 
+test_that("Amortization table: Original schedule matches annuity calculations", {
+  # Test that the original amortization schedule matches calculations from fct_annuity.R
+  principal <- 100000
+  rate <- 0.005
+  term <- 360
+  
+  # Get the full amortization table
+  result <- calculate_mortgage_savings(
+    principal = principal,
+    rate_per_month = rate,
+    n_payments_total = term,
+    cumulative_output = TRUE
+  )
+  
+  # Get the original monthly payment
+  original_payment <- compute_monthly_payment(principal, rate, term)
+  
+  # Verify the first payment
+  first_payment <- result[1, ]
+  expected_interest <- principal * rate
+  expected_principal <- original_payment - expected_interest
+  
+  # Verify the principal and interest payments
+  expect_equal(first_payment$original_principal_payment, expected_principal, tolerance = 1e-10)
+  expect_equal(first_payment$new_principal_payment, expected_principal, tolerance = 1e-10)
+  expect_equal(first_payment$original_interest_payment, expected_interest, tolerance = 1e-10)
+  
+  # Verify the last payment
+  last_payment <- result[nrow(result), ]
+  
+  # The loan should be paid off at the end
+  expect_lt(tail(result$new_remaining_principal, 1), 0.01)
+  
+  # Verify the total interest paid in the new schedule
+  total_interest_paid <- tail(result$new_interest_paid, 1)
+  expected_total_interest <- (original_payment * nrow(result)) - principal
+  expect_equal(total_interest_paid, expected_total_interest, tolerance = 0.01)
+})
+
+test_that("Amortization table: Extra monthly payments affect correct payments", {
+  principal <- 100000
+  rate <- 0.005
+  term <- 360
+  extra_payment <- 100
+  start_payment <- 13  # Start extra payments after 1 year
+  
+  # Get amortization table with extra payments starting at month 13
+  result <- calculate_mortgage_savings(
+    principal = principal,
+    rate_per_month = rate,
+    n_payments_total = term,
+    extra_monthly_payment = extra_payment,
+    payment_number_for_prepay_start = start_payment,
+    cumulative_output = TRUE
+  )
+  
+  # Verify no extra payments before start_payment
+  expect_true(all(result$principal_payment_extra[1:(start_payment-1)] == 0))
+  
+  # Verify extra payments start at the right time
+  expect_equal(result$principal_payment_extra[start_payment], extra_payment)
+  
+  # Get the original monthly payment
+  original_payment <- compute_monthly_payment(principal, rate, term)
+  
+  # Calculate the expected payments with extra payments
+  remaining_principal <- principal
+  for (i in 1:nrow(result)) {
+    # Get the actual values from the result
+    actual_interest <- result$new_interest_payment[i]
+    actual_principal <- result$new_principal_payment[i]
+    
+    # Calculate the expected interest for this period
+    expected_interest <- remaining_principal * rate
+    
+    # The principal payment should be the difference between the original payment and interest
+    expected_principal <- original_payment - expected_interest
+    
+    # Add extra payment if applicable
+    if (i >= start_payment) {
+      expected_principal <- expected_principal + extra_payment
+    }
+    
+    # Ensure we don't overpay
+    if (remaining_principal < expected_principal) {
+      expected_principal <- remaining_principal
+    }
+    
+    # Update remaining principal
+    remaining_principal <- remaining_principal - expected_principal
+    
+    # Check that the calculated values match the actual values
+    expect_equal(actual_interest, expected_interest, tolerance = 1e-10)
+    expect_equal(actual_principal, expected_principal, tolerance = 1e-10)
+  }
+  
+  # Verify the loan is paid off at the end
+  expect_lt(tail(result$new_remaining_principal, 1), 0.01)
+  
+  # The loan should be paid off earlier than the original term
+  expect_lt(nrow(result), term)
+})
+
+test_that("Amortization table: Lump sum payment affects principal correctly", {
+  principal <- 100000
+  rate <- 0.005
+  term <- 360
+  lump_sum <- 20000
+  lump_sum_month <- 24  # Apply lump sum at start of month 24
+  
+  # Get amortization table with lump sum payment
+  result <- calculate_mortgage_savings(
+    principal = principal,
+    rate_per_month = rate,
+    n_payments_total = term,
+    lump_sum_payment = lump_sum,
+    payment_number_for_prepay_start = lump_sum_month,
+    cumulative_output = TRUE
+  )
+  
+  # Get the month before and after lump sum
+  before_lump <- result[lump_sum_month - 1, ]
+  lump_month <- result[lump_sum_month, ]
+  
+  # Verify the lump sum is reflected in the principal payment
+  expect_equal(
+    lump_month$principal_payment_extra,
+    lump_sum,
+    tolerance = 1e-10
+  )
+  
+  # The lump sum is applied at the start of the month, before the regular payment
+  # Calculate the remaining principal after lump sum
+  remaining_after_lump <- before_lump$new_remaining_principal - lump_sum
+  
+  # The interest for this month is calculated on the remaining principal AFTER the lump sum
+  interest_this_month <- remaining_after_lump * rate
+  
+  # Get the regular payment and calculate principal portion
+  regular_payment <- compute_monthly_payment(principal, rate, term)
+  regular_principal_payment <- regular_payment - interest_this_month
+  
+  # The new remaining principal after the regular payment
+  expected_remaining_after_payment <- remaining_after_lump - regular_principal_payment
+  
+  # Verify the new remaining principal
+  expect_equal(
+    lump_month$new_remaining_principal,
+    expected_remaining_after_payment,
+    tolerance = 1e-10
+  )
+  
+  # Verify the interest payment is calculated on the principal after lump sum
+  expect_equal(
+    lump_month$new_interest_payment,
+    interest_this_month,
+    tolerance = 1e-10
+  )
+  
+  # Verify the loan is paid off earlier with the lump sum
+  expect_lt(tail(result$new_remaining_principal, 1), 0.01)
+  expect_lt(nrow(result), term)
+})
+
+test_that("Amortization table: Combined extra payments and lump sum", {
+  principal <- 100000
+  rate <- 0.005
+  term <- 360
+  extra_payment <- 100
+  lump_sum <- 10000
+  start_month <- 6
+  
+  # Get amortization table with both extra payments and lump sum
+  result <- calculate_mortgage_savings(
+    principal = principal,
+    rate_per_month = rate,
+    n_payments_total = term,
+    extra_monthly_payment = extra_payment,
+    lump_sum_payment = lump_sum,
+    payment_number_for_prepay_start = start_month,
+    cumulative_output = TRUE
+  )
+  
+  # Verify both extra payment and lump sum are applied in the start month
+  start_month_row <- result[start_month, ]
+  expect_equal(
+    start_month_row$principal_payment_extra,
+    lump_sum + extra_payment,
+    tolerance = 1e-10
+  )
+  
+  # Verify extra payments continue in subsequent months
+  next_month_row <- result[start_month + 1, ]
+  expect_equal(
+    next_month_row$principal_payment_extra,
+    extra_payment,
+    tolerance = 1e-10
+  )
+  
+  # Verify the loan is paid off earlier than with either strategy alone
+  result_extra_only <- calculate_mortgage_savings(
+    principal = principal,
+    rate_per_month = rate,
+    n_payments_total = term,
+    extra_monthly_payment = extra_payment,
+    payment_number_for_prepay_start = start_month,
+    cumulative_output = TRUE
+  )
+  
+  result_lump_only <- calculate_mortgage_savings(
+    principal = principal,
+    rate_per_month = rate,
+    n_payments_total = term,
+    lump_sum_payment = lump_sum,
+    payment_number_for_prepay_start = start_month,
+    cumulative_output = TRUE
+  )
+  
+  combined_term <- nrow(result)
+  extra_only_term <- nrow(result_extra_only)
+  lump_only_term <- nrow(result_lump_only)
+  
+  expect_lt(combined_term, extra_only_term)
+  expect_lt(combined_term, lump_only_term)
+})
+
 test_that("Input validation for core parameters", {
   expect_error(valid_call(principal = -100000), "principal > 0 is not TRUE")
   expect_error(valid_call(principal = 0), "principal > 0 is not TRUE")
