@@ -10,7 +10,8 @@ calculate_mortgage_savings(
   n_payments_total,
   extra_monthly_payment = 0,
   lump_sum_payment = 0,
-  payment_number_for_prepay_start = 1
+  payment_number_for_prepay_start = 1,
+  cumulative_output = FALSE
 )
 }
 \arguments{
@@ -31,9 +32,12 @@ Defaults to 0.}
 \item{payment_number_for_prepay_start}{Integer. The payment number (1-based) when the
 prepayments begin. Must be between 1 and n_payments_total, or NA if
 no lump sum payment is made. Defaults to 1 (first payment).}
+
+\item{cumulative_output}{Logical. If TRUE, returns the full amortization table.
+Defaults to FALSE.}
 }
 \value{
-A list containing:
+The full amortization table if cumulative_output is TRUE, otherwise a list containing:
   \item{total_interest_savings}{Total interest saved over the life of the loan}
   \item{months_saved}{Number of months earlier the loan is paid off}
   \item{new_loan_term_months}{The new loan term in months with extra payments}
@@ -44,6 +48,12 @@ A list containing:
 Computes the total cash savings and months gained by making extra principal payments
 on a mortgage. Extra payments can be made as a one-time lump sum, additional
 monthly payments, or both.
+}
+\details{
+Lump sum payments are applied to the principal balance in advance of that month's payment 
+(decreasing the proportion of that month's payment that goes towards interest). Extra monthly 
+payments are applied to the principal balance after that month's payment (decreasing 
+the proportion of the following month's payment that goes towards interest).
 }
 \examples{
 # Example: $300,000 loan at 6\% APR for 30 years
@@ -79,5 +89,15 @@ savings_both <- calculate_mortgage_savings(
   extra_monthly_payment = 200,
   lump_sum_payment = 10000,
   payment_number_for_prepay_start = 1
+)
+
+# Return the full amortization table
+savings_table <- calculate_mortgage_savings(
+  principal = principal,
+  rate_per_month = monthly_rate,
+  n_payments_total = n_payments,
+  extra_monthly_payment = 200,
+  payment_number_for_prepay_start = 13,
+  cumulative_output = TRUE
 )
 }

@@ -449,6 +449,11 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
 #' Computes the total cash savings and months gained by making extra principal payments
 #' on a mortgage. Extra payments can be made as a one-time lump sum, additional
 #' monthly payments, or both.
+#' 
+#' Lump sum payments are applied to the principal balance in advance of that month's payment 
+#' (decreasing the proportion of that month's payment that goes towards interest). Extra monthly 
+#' payments are applied to the principal balance after that month's payment (decreasing 
+#' the proportion of the following month's payment that goes towards interest).
 #'
 #' @param principal Numeric. The original loan amount. Must be positive.
 #' @param rate_per_month Numeric. The monthly interest rate (annual rate as decimal / 12).
@@ -462,8 +467,10 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
 #' @param payment_number_for_prepay_start Integer. The payment number (1-based) when the
 #'   prepayments begin. Must be between 1 and n_payments_total, or NA if
 #'   no lump sum payment is made. Defaults to 1 (first payment).
+#' @param cumulative_output Logical. If TRUE, returns the full amortization table.
+#'   Defaults to FALSE.
 #'
-#' @return A list containing:
+#' @return The full amortization table if cumulative_output is TRUE, otherwise a list containing:
 #'   \item{total_interest_savings}{Total interest saved over the life of the loan}
 #'   \item{months_saved}{Number of months earlier the loan is paid off}
 #'   \item{new_loan_term_months}{The new loan term in months with extra payments}
@@ -506,12 +513,24 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
 #'   lump_sum_payment = 10000,
 #'   payment_number_for_prepay_start = 1
 #' )
+#' 
+#' # Return the full amortization table
+#' savings_table <- calculate_mortgage_savings(
+#'   principal = principal,
+#'   rate_per_month = monthly_rate,
+#'   n_payments_total = n_payments,
+#'   extra_monthly_payment = 200,
+#'   payment_number_for_prepay_start = 13,
+#'   cumulative_output = TRUE
+#' )
+
 calculate_mortgage_savings <- function(principal,
                                       rate_per_month,
                                       n_payments_total,
                                       extra_monthly_payment = 0,
                                       lump_sum_payment = 0,
-                                      payment_number_for_prepay_start = 1) {
+                                      payment_number_for_prepay_start = 1,
+                                      cumulative_output = FALSE) {
 
   # Input validation
   stopifnot(is.numeric(principal), principal > 0)
@@ -548,6 +567,23 @@ calculate_mortgage_savings <- function(principal,
     remaining_principal <- max(0, remaining_principal - lump_sum_payment)
   }
 
+
+  if (cumulative_output) {
+    out <- data.frame(
+      payment_number = numeric(0),
+      original_principal_payment = numeric(0),
+      new_principal_payment = numeric(0),
+      principal_payment_extra = numeric(0),
+      original_interest_payment = numeric(0),
+      new_interest_payment = numeric(0),
+      original_remaining_principal = numeric(0),
+      new_remaining_principal = numeric(0),
+      original_interest_paid = numeric(0),
+      new_interest_paid = numeric(0),
+      total_interest_saved = numeric(0)
+    )
+  }
+
   # Amortize the loan with extra payments
   while (remaining_principal > 0 && current_payment_number < n_payments_total * 2) {
     current_payment_number <- current_payment_number + 1
@@ -582,12 +618,53 @@ calculate_mortgage_savings <- function(principal,
     remaining_principal <- remaining_principal - principal_payment
     new_total_interest <- new_total_interest + interest_payment
 
-    # If remaining principal is very small, consider it paid off
-    if (remaining_principal < 0.01) {
+    if (cumulative_output) {
+      original_remaining_principal <- compute_principal_remaining(original_payment, rate_per_month, n_payments_total - current_payment_number + 1)
+      original_interest_payment <- original_remaining_principal * rate_per_month
+      original_principal_payment <- original_payment - original_interest_payment
+      if (current_payment_number == 1) {
+        cumulative_interest_paid <- original_interest_payment
+        new_interest_paid <- interest_payment
+      } else {
+        cumulative_interest_paid <- cumulative_interest_paid + original_interest_payment
+      }
+
+      if (remaining_principal > 0 && current_payment_number > 1) {
+        new_interest_paid <- new_interest_paid + interest_payment
+      }
+
+      if(current_payment_number == payment_number_for_prepay_start) {
+        extra_prepay_this_month <- lump_sum_payment + extra_monthly_payment
+      } else {
+        extra_prepay_this_month <- extra_monthly_payment
+      }
+      out <- rbind(out, data.frame(
+        payment_number = current_payment_number,
+        original_principal_payment = original_principal_payment - original_principal_payment,
+        new_principal_payment = principal_payment,
+        principal_payment_extra = extra_prepay_this_month,
+        original_interest_payment = original_interest_payment,
+        new_interest_payment = interest_payment,
+        original_remaining_principal = original_remaining_principal,
+        new_remaining_principal = remaining_principal,
+        original_interest_paid = cumulative_interest_paid,
+        new_interest_paid = new_interest_paid,
+        total_interest_saved = cumulative_interest_paid - new_interest_paid
+      ))
+
+      if (current_payment_number == n_payments_total) {
+        break
+      }
+    } else if (remaining_principal < 0.01) {
       remaining_principal <- 0
       break
     }
 
+  }
+
+  # Return the full amortization table if requested
+  if (cumulative_output) {
+    return(out)
   }
 
   # Calculate results
