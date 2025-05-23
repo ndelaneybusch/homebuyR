@@ -476,6 +476,8 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
 #'   \item{new_loan_term_months}{The new loan term in months with extra payments}
 #'   \item{original_total_interest}{Total interest paid in the original loan}
 #'   \item{new_total_interest}{Total interest paid with extra payments}
+#'   \item{annualized_rate_of_return}{The annualized internal rate of return (IRR) of the extra payments, 
+#'   representing the effective annual return earned on the extra payments made toward the mortgage}
 #' @export
 #'
 #' @examples
@@ -556,16 +558,22 @@ calculate_mortgage_savings <- function(principal,
   # Calculate original total interest
   original_total_interest <- (original_payment * n_payments_total) - principal
 
-  # Initialize variables for amortization
-  remaining_principal <- principal
+  # Initialize variables for tracking
   current_payment_number <- 0
+  remaining_principal <- principal
+  original_remaining_principal <- principal  # Track original loan balance
   new_total_interest <- 0
+  original_total_interest_paid <- 0  # Track total interest paid on original loan
+  cashflows <- numeric(0)  # For calculating IRR
+  
+  # Calculate the original payment amount
+  original_payment <- principal * (rate_per_month * (1 + rate_per_month)^n_payments_total) / 
+    ((1 + rate_per_month)^n_payments_total - 1)
 
   # If lump sum is at payment 1, apply it immediately
   if (lump_sum_payment > 0 && payment_number_for_prepay_start == 1) {
     remaining_principal <- max(0, remaining_principal - lump_sum_payment)
   }
-
 
   if (cumulative_output) {
     out <- data.frame(
@@ -579,12 +587,13 @@ calculate_mortgage_savings <- function(principal,
       new_remaining_principal = numeric(0),
       original_interest_paid = numeric(0),
       new_interest_paid = numeric(0),
-      total_interest_saved = numeric(0)
+      total_interest_saved = numeric(0),
+      annualized_rate_of_return = numeric(0)
     )
   }
 
   # Amortize the loan with extra payments
-  while (remaining_principal > 0 && current_payment_number < n_payments_total * 2) {
+  while (current_payment_number < n_payments_total) {
     current_payment_number <- current_payment_number + 1
 
     # Apply lump sum if this is the payment number for it (and not already applied)
@@ -593,7 +602,7 @@ calculate_mortgage_savings <- function(principal,
     }
 
     # If loan is already paid off, break
-    if (remaining_principal <= 0) {
+    if (remaining_principal <= 0 && !cumulative_output) {
       break
     }
 
@@ -616,10 +625,32 @@ calculate_mortgage_savings <- function(principal,
     # Update remaining principal and total interest
     remaining_principal <- remaining_principal - principal_payment
     new_total_interest <- new_total_interest + interest_payment
+    
+    # Track original loan's remaining balance and interest
+    original_interest_payment <- original_remaining_principal * rate_per_month
+    original_principal_payment <- original_payment - original_interest_payment
+    original_remaining_principal <- original_remaining_principal - original_principal_payment
+    original_total_interest_paid <- original_total_interest_paid + original_interest_payment
+
+    # Compute cashflow for IRR
+    if (current_payment_number >= payment_number_for_prepay_start) {
+      # For the first payment with extra payment, include the lump sum if applicable
+      extra_prepay <- if (current_payment_number == payment_number_for_prepay_start) {
+        lump_sum_payment + extra_monthly_payment
+      } else {
+        extra_monthly_payment
+      }
+      
+      # The cash flow is the extra payment (negative) plus the interest saved (positive)
+      # This represents the net cost/benefit of the extra payment
+      interest_savings <- original_interest_payment - interest_payment
+      cashflows <- c(cashflows, interest_savings - extra_prepay)
+    } else {
+      # No extra payment, no cash flow
+      cashflows <- c(cashflows, 0)
+    }
 
     if (cumulative_output) {
-      original_remaining_principal <- compute_principal_remaining(original_payment, rate_per_month, n_payments_total - current_payment_number + 1)
-      original_interest_payment <- original_remaining_principal * rate_per_month
       original_principal_payment <- original_payment - original_interest_payment
       if (current_payment_number == 1) {
         cumulative_interest_paid <- original_interest_payment
@@ -637,6 +668,25 @@ calculate_mortgage_savings <- function(principal,
       } else {
         extra_prepay_this_month <- extra_monthly_payment
       }
+      # For cumulative output, we need to track the running IRR
+      # We'll calculate this at the end for better performance
+      annualized_return <- NA_real_  # Will be filled in after the loop
+      
+      # Track the cash flows for this period
+      if (current_payment_number >= payment_number_for_prepay_start) {
+        # This is an extra payment period
+        if (remaining_principal <= 0) {
+          # At payoff, we get the present value of all future interest savings as a positive cash flow
+          future_interest_savings <- original_total_interest - cumulative_interest_paid - (new_total_interest - new_interest_paid)
+          cashflows <- c(cashflows, future_interest_savings)
+        } else {
+          # Regular extra payment (negative cash flow)
+          cashflows <- c(cashflows, -extra_prepay_this_month)
+        }
+      } else {
+        # No extra payment this period
+        cashflows <- c(cashflows, 0)
+      }
       out <- rbind(out, data.frame(
         payment_number = current_payment_number,
         original_principal_payment = original_principal_payment,
@@ -648,7 +698,8 @@ calculate_mortgage_savings <- function(principal,
         new_remaining_principal = remaining_principal,
         original_interest_paid = cumulative_interest_paid,
         new_interest_paid = new_interest_paid,
-        total_interest_saved = cumulative_interest_paid - new_interest_paid
+        total_interest_saved = cumulative_interest_paid - new_interest_paid,
+        annualized_rate_of_return = annualized_return
       ))
 
       if (current_payment_number == n_payments_total) {
@@ -663,6 +714,37 @@ calculate_mortgage_savings <- function(principal,
 
   # Return the full amortization table if requested
   if (cumulative_output) {
+    # Calculate IRR for each period where we have extra payments
+    extra_payment_periods <- which(out$principal_payment_extra > 0)
+    if (length(extra_payment_periods) > 0) {
+      # Only calculate IRR for periods with extra payments
+      for (i in extra_payment_periods) {
+        # Use cash flows up to this period
+        cf <- cashflows[1:i]
+        if (length(cf) > 1) {
+          # Only calculate if we have at least 2 non-zero cash flows
+          non_zero_idx <- which(cf != 0)
+          if (length(non_zero_idx) > 1) {
+            cf <- cf[non_zero_idx]
+            f <- function(r) sum(cf / ((1 + r)^(seq_along(cf))))
+            
+            # Try to find IRR
+            lower <- -0.99
+            upper <- 1.0  # 100% monthly return is already very high
+            
+            tryCatch({
+              irr_result <- uniroot(f, c(lower, upper), extendInt = "yes", maxiter = 1000)$root
+              if (is.finite(irr_result) && irr_result > lower && irr_result < upper) {
+                # Convert monthly to annual return
+                out$annualized_rate_of_return[i] <- (1 + irr_result)^12 - 1
+              }
+            }, error = function(e) {
+              # Silently ignore errors in IRR calculation
+            })
+          }
+        }
+      }
+    }
     return(out)
   }
 
@@ -674,12 +756,67 @@ calculate_mortgage_savings <- function(principal,
   # Ensure we don't report negative savings (in case of calculation edge cases)
   total_interest_savings <- max(0, total_interest_savings)
   months_saved <- max(0, months_saved)
+  
+  # Add final cash flow for the interest savings at payoff
+  if (remaining_principal <= 0 && length(cashflows) > 0) {
+    cashflows[length(cashflows)] <- cashflows[length(cashflows)] + total_interest_savings
+  }
 
+  # Calculate IRR and annualized return
+  irr_monthly <- NA_real_
+  if (length(cashflows) > 0 && any(cashflows != 0)) {
+    # Only use non-zero cash flows for IRR calculation
+    non_zero_idx <- which(cashflows != 0)
+    if (length(non_zero_idx) > 0) {
+      # Only keep the non-zero cash flows
+      cf <- cashflows[non_zero_idx]
+      
+      # If we only have one non-zero cash flow, the IRR is undefined
+      if (length(cf) > 1) {
+        f <- function(r) {
+          if (abs(1 + r) < 1e-10) return(Inf)
+          sum(cf / ((1 + r)^(seq_along(cf))))
+        }
+        
+        # Try to find a reasonable range for the root
+        lower <- -0.99  # -99% monthly return (minimum)
+        upper <- 10.0   # 1000% monthly return (maximum)
+        
+        # Check if we can find a valid range
+        f_lower <- tryCatch(f(lower), error = function(e) NA_real_)
+        f_upper <- tryCatch(f(upper), error = function(e) NA_real_)
+        
+        if (!is.na(f_lower) && !is.na(f_upper)) {
+          # Try to find the root
+          irr_result <- tryCatch({
+            uniroot(f, c(lower, upper), extendInt = "yes", maxiter = 1000)$root
+          }, error = function(e) {
+            return(NA_real_)
+          })
+          
+          if (is.numeric(irr_result) && is.finite(irr_result) && 
+              irr_result > lower && irr_result < upper) {
+            irr_monthly <- irr_result
+          }
+        }
+      }
+    }
+  }
+  
+  # Convert monthly IRR to annualized return if valid
+  annualized_rate_of_return <- if (!is.na(irr_monthly) && is.finite(irr_monthly)) {
+    (1 + irr_monthly)^12 - 1  # Convert monthly to annual return
+  } else {
+    NA_real_
+  }
+
+  # Return results
   return(list(
     total_interest_savings = total_interest_savings,
     months_saved = months_saved,
     new_loan_term_months = new_loan_term_months,
     original_total_interest = original_total_interest,
-    new_total_interest = new_total_interest
+    new_total_interest = new_total_interest,
+    annualized_rate_of_return = annualized_rate_of_return
   ))
 }

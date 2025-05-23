@@ -43,6 +43,8 @@ The full amortization table if cumulative_output is TRUE, otherwise a list conta
   \item{new_loan_term_months}{The new loan term in months with extra payments}
   \item{original_total_interest}{Total interest paid in the original loan}
   \item{new_total_interest}{Total interest paid with extra payments}
+  \item{annualized_rate_of_return}{The annualized internal rate of return (IRR) of the extra payments, 
+  representing the effective annual return earned on the extra payments made toward the mortgage}
 }
 \description{
 Computes the total cash savings and months gained by making extra principal payments
