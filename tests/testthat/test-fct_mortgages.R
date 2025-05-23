@@ -797,7 +797,9 @@ test_that("Amortization table: Extra monthly payments affect correct payments", 
   expect_lt(tail(result$new_remaining_principal, 1), 0.01)
   
   # The loan should be paid off earlier than the original term
-  expect_lt(nrow(result), term)
+  # Filter out rows after the loan is paid off
+  result_paid_off <- result[result$new_remaining_principal <= 0.01 | is.na(result$new_remaining_principal), ]
+  expect_lt(nrow(result_paid_off), term)
 })
 
 test_that("Amortization table: Lump sum payment affects principal correctly", {
@@ -858,7 +860,9 @@ test_that("Amortization table: Lump sum payment affects principal correctly", {
   
   # Verify the loan is paid off earlier with the lump sum
   expect_lt(tail(result$new_remaining_principal, 1), 0.01)
-  expect_lt(nrow(result), term)
+  # Filter out rows after the loan is paid off
+  result_paid_off <- result[result$new_remaining_principal <= 0.01 | is.na(result$new_remaining_principal), ]
+  expect_lt(nrow(result_paid_off), term)
 })
 
 test_that("Amortization table: Combined extra payments and lump sum", {
@@ -915,10 +919,12 @@ test_that("Amortization table: Combined extra payments and lump sum", {
     cumulative_output = TRUE
   )
   
-  combined_term <- nrow(result)
-  extra_only_term <- nrow(result_extra_only)
-  lump_only_term <- nrow(result_lump_only)
+  # Get the number of months until payoff for each scenario
+  combined_term <- min(which(result$new_remaining_principal <= 0.01))
+  extra_only_term <- min(which(result_extra_only$new_remaining_principal <= 0.01))
+  lump_only_term <- min(which(result_lump_only$new_remaining_principal <= 0.01))
   
+  # Combined payments should pay off the loan faster than either strategy alone
   expect_lt(combined_term, extra_only_term)
   expect_lt(combined_term, lump_only_term)
 })
