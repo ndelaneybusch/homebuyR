@@ -406,7 +406,10 @@ app_ui <- function(request) {
                                    ),
                                    
                                    # Savings Summary Output
-                                   uiOutput(outputId = "savings_summary")
+                                   uiOutput(outputId = "savings_summary"),
+                                   
+                                   # Savings Table Output
+                                   DT::dataTableOutput("savings_table")
                                ) # Closes Extra Principal Payments Div
                       ), # Closes Payments Tab
                       tabPanel("Refinancing")

@@ -490,6 +490,40 @@ app_server <- function(input, output, session) {
       payment_number_for_prepay_start = payment_number
     )
   })
+
+  mortgage_savings_table <- reactive({
+    req(input$loan_amount,
+        monthly_rate_dec(),
+        input$mortgage_term,
+        input$extra_monthly_payment >= 0,
+        input$lump_sum_payment >= 0,
+        input$loan_start,
+        input$lump_sum_start_date)
+    
+    # Calculate payment number for lump sum based on dates
+    loan_start_month <- as.Date(cut(input$loan_start, "month"))
+    lump_sum_month <- as.Date(cut(input$lump_sum_start_date, "month"))
+    
+    # Calculate number of months between loan start and lump sum payment
+    months_diff <- as.integer(
+      (lubridate::year(lump_sum_month) - lubridate::year(loan_start_month)) * 12 +
+      (lubridate::month(lump_sum_month) - lubridate::month(loan_start_month))
+    ) + 1  # Add 1 to make it 1-based
+    
+    # Ensure payment number is at least 1 and at most the loan term
+    payment_number <- max(1, min(months_diff, as.numeric(input$mortgage_term)))
+    
+    # Calculate mortgage savings
+    calculate_mortgage_savings(
+      principal = input$loan_amount,
+      rate_per_month = monthly_rate_dec(),
+      n_payments_total = as.numeric(input$mortgage_term),
+      extra_monthly_payment = input$extra_monthly_payment,
+      lump_sum_payment = input$lump_sum_payment,
+      payment_number_for_prepay_start = payment_number,
+      cumulative_output = TRUE
+    )
+  })
   
   # Render the savings summary
   output$savings_summary <- renderUI({
@@ -514,4 +548,25 @@ app_server <- function(input, output, session) {
       p(em("Note: These calculations assume you make the extra payments as specified and keep the same monthly payment amount."))
     )
   })
+
+  # Render the savings table
+  output$savings_table <- DT::renderDataTable({
+    req(mortgage_savings_table())
+    savings_table <- mortgage_savings_table()
+    savings_table %>%
+      dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~round(., 2)))
+  },
+  options = list(paging = TRUE,
+                 pageLength = 50,
+                 scrollX = TRUE,
+                 scrollY = TRUE,
+                 autoWidth = TRUE,
+                 server = FALSE,
+                 dom = 'Bfrtip',
+                 buttons = c('csv', 'excel')
+  ),
+  extensions = 'Buttons',
+  selection = 'single',
+  filter = 'bottom',
+  rownames = FALSE)
 }
