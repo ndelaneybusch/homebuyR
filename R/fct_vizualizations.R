@@ -373,3 +373,215 @@ Monthly Housing Spend: $%.0f",
   # Convert to ggiraph object
   girafe(ggobj = p)
 }
+
+
+
+
+#' Plot Remaining Principal and Interest Over Time
+#'
+#' Creates an interactive line plot showing the remaining principal and total interest paid
+#' over time for both the original loan and a paydown scenario.
+#'
+#' @param amortization_table A data frame containing the amortization schedule with columns:
+#'   \item{payment_number}{Payment number (1, 2, 3, ...)}
+#'   \item{original_remaining_principal}{Remaining principal for original loan}
+#'   \item{new_remaining_principal}{Remaining principal for paydown scenario}
+#'   \item{original_interest_paid}{Cumulative interest paid for original loan}
+#'   \item{new_interest_paid}{Cumulative interest paid for paydown scenario}
+#'
+#' @return A ggiraph object with interactive tooltips
+#' @import ggplot2 ggiraph scales dplyr
+#' @export
+#'
+#' @examples
+#' # Example using output from calculate_mortgage_savings()
+#' # amortization_table <- calculate_mortgage_savings(
+#' #   principal = 300000,
+#' #   rate_per_month = 0.005,
+#' #   n_payments_total = 360,
+#' #   extra_monthly_payment = 200,
+#' #   lump_sum_payment = 10000,
+#' #   payment_number_for_prepay_start = 1,
+#' #   cumulative_output = TRUE
+#' # )
+#' # plot_principal_interest(amortization_table)
+plot_principal_interest <- function(amortization_table) {
+  # Input validation
+  required_cols <- c(
+    "payment_number",
+    "original_remaining_principal",
+    "new_remaining_principal",
+    "original_interest_paid",
+    "new_interest_paid"
+  )
+  
+  missing_cols <- setdiff(required_cols, names(amortization_table))
+  if (length(missing_cols) > 0) {
+    stop("Input data is missing required columns: ", 
+         paste(missing_cols, collapse = ", "))
+  }
+  
+  # Prepare data for plotting
+  plot_data <- amortization_table %>%
+    dplyr::select(
+      payment_number,
+      original_remaining_principal,
+      new_remaining_principal,
+      original_interest_paid,
+      new_interest_paid
+    ) %>%
+    dplyr::mutate(
+      # Keep everything in months
+      months = payment_number,
+      x_label = as.character(payment_number),
+      # Calculate interest saved
+      interest_saved = original_interest_paid - new_interest_paid,
+      # Create tooltip text
+      tooltip_text = sprintf(
+        "Payment %s\nOriginal Principal: %s\nNew Principal: %s\n\nOriginal Interest: %s\nNew Interest: %s\nInterest Saved: %s",
+        payment_number,
+        scales::dollar(original_remaining_principal, accuracy = 1),
+        scales::dollar(new_remaining_principal, accuracy = 1),
+        scales::dollar(original_interest_paid, accuracy = 1),
+        scales::dollar(new_interest_paid, accuracy = 1),
+        scales::dollar(original_interest_paid - new_interest_paid, accuracy = 1)
+      )
+    )
+  
+  # Create the plot with factorized legends
+  p <- ggplot(plot_data) +
+    # Original principal (solid black)
+    geom_line_interactive(
+      aes(x = months, y = original_remaining_principal, 
+          color = "Original", linetype = "Principal"),
+      size = 1
+    ) +
+    # New principal (solid blue)
+    geom_line_interactive(
+      aes(x = months, y = new_remaining_principal, 
+          color = "New", linetype = "Principal"),
+      size = 1
+    ) +
+    # Original interest (dotted black)
+    geom_line_interactive(
+      aes(x = months, y = original_interest_paid, 
+          color = "Original", linetype = "Interest"),
+      size = 1
+    ) +
+    # New interest (dotted blue)
+    geom_line_interactive(
+      aes(x = months, y = new_interest_paid, 
+          color = "New", linetype = "Interest"),
+      size = 1
+    ) +
+    # Interest saved (dotted green)
+    geom_line_interactive(
+      aes(x = months, y = interest_saved, 
+          color = "Interest Saved", linetype = "Interest"),
+      size = 1
+    ) +
+    # Add points for interaction (using color for interaction only, not linetype)
+    # Points for principal lines
+    geom_point_interactive(
+      aes(x = months, y = original_remaining_principal, 
+          tooltip = tooltip_text, data_id = payment_number,
+          color = "Original"),
+      size = 1, alpha = 0.01
+    ) +
+    geom_point_interactive(
+      aes(x = months, y = new_remaining_principal, 
+          tooltip = tooltip_text, data_id = payment_number,
+          color = "New"),
+      size = 1, alpha = 0.01
+    ) +
+    # Points for interest lines
+    geom_point_interactive(
+      aes(x = months, y = original_interest_paid, 
+          tooltip = tooltip_text, data_id = payment_number,
+          color = "Original"),
+      size = 1, alpha = 0.01
+    ) +
+    geom_point_interactive(
+      aes(x = months, y = new_interest_paid, 
+          tooltip = tooltip_text, data_id = payment_number,
+          color = "New"),
+      size = 1, alpha = 0.01
+    ) +
+    # Points for interest saved line
+    geom_point_interactive(
+      aes(x = months, y = interest_saved, 
+          tooltip = tooltip_text, data_id = payment_number,
+          color = "Interest Saved"),
+      size = 1, alpha = 0.01
+    )
+  
+  # Add styling
+  p <- p +
+    # Styling
+    scale_y_continuous(
+      name = "Amount ($)",
+      labels = scales::dollar_format(),
+      expand = expansion(mult = c(0, 0.05))
+    ) +
+    scale_x_continuous(
+      name = "Payment Number",
+      breaks = pretty(plot_data$months, n = min(10, max(plot_data$payment_number))),
+      labels = function(x) round(x, 0)
+    ) +
+    # Color scale for scenarios (Original/New/Interest Saved)
+    scale_color_manual(
+      name = "Scenario",
+      values = c(
+        "Original" = "black",
+        "New" = "#0072B2",      # Blue
+        "Interest Saved" = "#009E73"    # Green
+      ),
+      guide = guide_legend(
+        order = 1,
+        override.aes = list(
+          linetype = c("solid", "solid", "dotted")
+        )
+      )
+    ) +
+    # Line type scale (Principal/Interest)
+    scale_linetype_manual(
+      name = "Metric",
+      values = c(
+        "Principal" = "solid",
+        "Interest" = "dotted"
+      ),
+      guide = guide_legend(
+        order = 2
+      )
+    ) +
+    labs(
+      title = "Loan Paydown Comparison",
+      subtitle = "Remaining Principal and Cumulative Interest Over Time"
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      legend.position = "bottom",
+      legend.box = "horizontal",
+      legend.margin = margin(),
+      legend.spacing = unit(10, "pt"),  # Space between legends
+      legend.key.width = unit(2, "lines"),
+      legend.title = element_text(face = "bold"),
+      legend.text = element_text(margin = margin(r = 10)),
+      panel.grid.minor = element_blank(),
+      plot.title = element_text(face = "bold"),
+      plot.subtitle = element_text(color = "gray50")
+    )
+  
+  # Convert to interactive plot
+  girafe(
+    ggobj = p,
+    options = list(
+      opts_tooltip(
+        opacity = 0.95,
+        css = "padding:8px;background:white;color:black;border-radius:4px;box-shadow: 2px 2px 5px rgba(0,0,0,0.1);"
+      ),
+      opts_sizing(rescale = TRUE, width = 1),
+      opts_toolbar(position = "topright")
+    )
+  )
+}

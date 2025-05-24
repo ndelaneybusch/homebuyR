@@ -534,12 +534,16 @@ app_server <- function(input, output, session) {
       paste0("$", format(round(x), big.mark = ",", scientific = FALSE))
     }
     
+    # Calculate % saved for total interest and for months
+    interest_savings_pct <- round(savings$total_interest_savings / savings$original_total_interest * 100, 2)
+    months_savings_pct <- round(savings$months_saved / savings$new_loan_term_months * 100, 2)
+    
     # Create the summary text
     tagList(
       h4("Savings Summary"),
       hr(),
-      p(strong("Total Interest Saved:"), format_currency(savings$total_interest_savings)),
-      p(strong("Months Saved:"), savings$months_saved, "months"),
+      p(strong("Total Interest Saved:"), format_currency(savings$total_interest_savings), "(", interest_savings_pct, "%)"),
+      p(strong("Months Saved:"), savings$months_saved, "months (", months_savings_pct, "%)"),
       p(strong("New Loan Term:"), savings$new_loan_term_months, "months", 
         "(", savings$months_saved, " months faster)"),
       p(strong("Original Total Interest:"), format_currency(savings$original_total_interest)),
