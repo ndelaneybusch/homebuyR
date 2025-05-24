@@ -43,8 +43,6 @@ The full amortization table if cumulative_output is TRUE, otherwise a list conta
   \item{new_loan_term_months}{The new loan term in months with extra payments}
   \item{original_total_interest}{Total interest paid in the original loan}
   \item{new_total_interest}{Total interest paid with extra payments}
-  \item{annualized_rate_of_return}{The annualized internal rate of return (IRR) of the extra payments, 
-  representing the effective annual return earned on the extra payments made toward the mortgage}
 }
 \description{
 Computes the total cash savings and months gained by making extra principal payments
@@ -52,9 +50,9 @@ on a mortgage. Extra payments can be made as a one-time lump sum, additional
 monthly payments, or both.
 }
 \details{
-Lump sum payments are applied to the principal balance in advance of that month's payment 
-(decreasing the proportion of that month's payment that goes towards interest). Extra monthly 
-payments are applied to the principal balance after that month's payment (decreasing 
+Lump sum payments are applied to the principal balance in advance of that month's payment
+(decreasing the proportion of that month's payment that goes towards interest). Extra monthly
+payments are applied to the principal balance after that month's payment (decreasing
 the proportion of the following month's payment that goes towards interest).
 }
 \examples{

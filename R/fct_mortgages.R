@@ -476,8 +476,6 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
 #'   \item{new_loan_term_months}{The new loan term in months with extra payments}
 #'   \item{original_total_interest}{Total interest paid in the original loan}
 #'   \item{new_total_interest}{Total interest paid with extra payments}
-#'   \item{annualized_rate_of_return}{The annualized internal rate of return (IRR) of the extra payments,
-#'   representing the effective annual return earned on the extra payments made toward the mortgage}
 #' @export
 #'
 #' @examples
@@ -594,8 +592,7 @@ calculate_mortgage_savings <- function(principal,
       new_remaining_principal = numeric(0),
       original_interest_paid = numeric(0),
       new_interest_paid = numeric(0),
-      total_interest_saved = numeric(0),
-      annualized_rate_of_return = numeric(0) # Will be populated after the loop
+      total_interest_saved = numeric(0)
     )
     # Initialize cumulative interest for the table rows
     cumulative_original_interest_paid <- 0
@@ -661,32 +658,6 @@ calculate_mortgage_savings <- function(principal,
       }
     }
 
-    # --- Build Cash Flows for Overall IRR (for final summary and cumulative table's final IRR) ---
-    extra_prepay_this_month_for_cf <- 0
-    if (current_payment_number >= payment_number_for_prepay_start) {
-      if (current_payment_number == payment_number_for_prepay_start) {
-        extra_prepay_this_month_for_cf <- lump_sum_payment + extra_monthly_payment
-      } else {
-        extra_prepay_this_month_for_cf <- extra_monthly_payment
-      }
-    }
-
-    # Populate final_irr_cashflows array at the correct month index
-    if (current_payment_number < payment_number_for_prepay_start) {
-      final_irr_cashflows[current_payment_number] <- 0
-    } else if (!is.na(new_loan_payoff_month) && current_payment_number > new_loan_payoff_month) {
-      # If the new loan is paid off, and we are in months *after* payoff but still within original term,
-      # the original payment is a *saved inflow*.
-      if (original_remaining_principal > 0 || original_interest_this_month > 0) { # Check if original loan was still active (not fully paid off organically)
-        final_irr_cashflows[current_payment_number] <- original_payment
-      } else {
-        final_irr_cashflows[current_payment_number] <- 0 # Original loan also paid off, no more savings
-      }
-    } else {
-      # During the extra payment period (before new loan is paid off), these are outflows.
-      final_irr_cashflows[current_payment_number] <- -extra_prepay_this_month_for_cf
-    }
-
     # --- Populate Cumulative Output Data Frame ---
     if (cumulative_output) {
       cumulative_original_interest_paid <- cumulative_original_interest_paid + original_interest_this_month
@@ -695,7 +666,7 @@ calculate_mortgage_savings <- function(principal,
       # `principal_payment_extra` for the table: actual extra principal applied this month
       extra_principal_applied_for_table <- 0
       # Only consider extra principal if within the prepayment phase and loan is not yet paid off
-      if (current_payment_number >= payment_number_for_prepay_start && 
+      if (current_payment_number >= payment_number_for_prepay_start &&
           (is.na(new_loan_payoff_month) || current_payment_number <= new_loan_payoff_month)) {
         if (current_payment_number == payment_number_for_prepay_start) {
           extra_principal_applied_for_table <- lump_sum_payment + extra_monthly_payment
@@ -715,13 +686,10 @@ calculate_mortgage_savings <- function(principal,
         new_remaining_principal = remaining_principal,
         original_interest_paid = cumulative_original_interest_paid,
         new_interest_paid = cumulative_new_interest_paid,
-        total_interest_saved = cumulative_original_interest_paid - cumulative_new_interest_paid,
-        annualized_rate_of_return = NA_real_ # Will be filled after the loop
+        total_interest_saved = cumulative_original_interest_paid - cumulative_new_interest_paid
       ))
     }
   } # End of for loop
-
-  # --- Final Calculations for both Output Types ---
 
   # If new loan wasn't fully paid off by the original term end, set payoff month to N+1
   # (This implies the new loan continues beyond the original term, though that's usually not the goal)
@@ -729,62 +697,9 @@ calculate_mortgage_savings <- function(principal,
     new_loan_payoff_month <- n_payments_total + 1
   }
 
-  # Calculate the final IRR for the entire prepayment scenario
-  irr_monthly_final <- NA_real_
-  annualized_irr_final <- NA_real_
-
-  # Find non-zero indices and their corresponding values and time points for IRR
-  non_zero_cf_idx <- which(final_irr_cashflows != 0)
-
-  if (length(non_zero_cf_idx) > 1) { # Need at least two non-zero cash flows
-    cf_values <- final_irr_cashflows[non_zero_cf_idx]
-    cf_times <- non_zero_cf_idx # These are the original time indices (months)
-
-    # Check if there are both negative (outflows) and positive (inflows) cash flows
-    if (any(cf_values < 0) && any(cf_values > 0)) {
-      f <- function(r) {
-        if (abs(1 + r) < 1e-10) return(Inf) # Avoid division by zero issues
-        # Use cf_times for correct discounting period
-        sum(cf_values / ((1 + r)^(cf_times)))
-      }
-
-      # Define a reasonable search interval for monthly rate
-      lower_bound <- -0.99 # Corresponds to -99% monthly return
-      upper_bound <- 10.0  # Corresponds to 1000% monthly return (very high, but robust)
-
-      # Check if uniroot can find a root by checking function signs at bounds
-      f_lower <- tryCatch(f(lower_bound), error = function(e) NA_real_)
-      f_upper <- tryCatch(f(upper_bound), error = function(e) NA_real_)
-
-      if (!is.na(f_lower) && !is.na(f_upper) && sign(f_lower) != sign(f_upper)) {
-        irr_result <- tryCatch({
-          uniroot(f, c(lower_bound, upper_bound), extendInt = "yes", maxiter = 1000)$root
-        }, error = function(e) {
-          return(NA_real_) # Return NA if uniroot encounters an error
-        })
-
-        # Validate the IRR result
-        if (is.numeric(irr_result) && is.finite(irr_result) &&
-            irr_result > lower_bound && irr_result < upper_bound) {
-          irr_monthly_final <- irr_result
-        }
-      }
-    }
-  }
-
-  # Convert monthly IRR to annualized return if valid
-  if (!is.na(irr_monthly_final) && is.finite(irr_monthly_final)) {
-    annualized_irr_final <- (1 + irr_monthly_final)^12 - 1
-  }
-
   # --- Return Results based on Output Type ---
 
   if (cumulative_output) {
-    # Populate annualized_rate_of_return column in the cumulative data frame
-    # It remains NA until the new loan is paid off, then shows the calculated overall IRR.
-    if (!is.na(new_loan_payoff_month)) {
-      out$annualized_rate_of_return[out$payment_number >= new_loan_payoff_month] <- annualized_irr_final
-    }
     return(out)
 
   } else { # Non-cumulative (summary) output
@@ -811,8 +726,7 @@ calculate_mortgage_savings <- function(principal,
       months_saved = months_saved,
       new_loan_term_months = new_loan_term_months,
       original_total_interest = original_total_interest,
-      new_total_interest = new_total_interest,
-      annualized_rate_of_return = annualized_irr_final
+      new_total_interest = new_total_interest
     ))
   }
 }
