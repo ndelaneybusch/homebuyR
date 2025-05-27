@@ -525,6 +525,23 @@ app_server <- function(input, output, session) {
     )
   })
   
+  # Render the principal vs interest plot
+  output$principal_interest_plot <- ggiraph::renderGirafe({
+    req(mortgage_savings_table())
+    
+    # Extract the amortization table from the savings data
+    amort_table <- mortgage_savings_table()
+    
+    # Check if we have the required columns
+    if (!all(c("payment_number", "original_remaining_principal", "new_remaining_principal", 
+              "original_interest_paid", "new_interest_paid") %in% names(amort_table))) {
+      return(NULL)
+    }
+    
+    # Create the plot
+    plot_principal_interest(amort_table)
+  })
+
   # Render the savings summary
   output$savings_summary <- renderUI({
     savings <- mortgage_savings()

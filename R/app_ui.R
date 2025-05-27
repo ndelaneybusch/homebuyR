@@ -407,6 +407,12 @@ app_ui <- function(request) {
                                    
                                    # Savings Summary Output
                                    uiOutput(outputId = "savings_summary"),
+
+                                   
+                                   # Principal vs Interest Plot
+                                   h4("Principal vs Interest Over Time"),
+                                   ggiraph::girafeOutput(outputId = "principal_interest_plot", width = "100%"),
+                                   hr(),
                                    
                                    # Savings Table Output
                                    DT::dataTableOutput("savings_table")
