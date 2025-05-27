@@ -15,14 +15,14 @@ plot_principal_interest(amortization_table)
 \item{new_interest_paid}{Cumulative interest paid for paydown scenario}}
 }
 \value{
-A ggiraph object with interactive tooltips
+A `ggiraph` object with interactive tooltips.
 }
 \description{
 Creates an interactive line plot showing the remaining principal and total interest paid
 over time for both the original loan and a paydown scenario.
 }
 \examples{
-# Example using output from calculate_mortgage_savings()
+# Example using output from a hypothetical calculate_mortgage_savings()
 # amortization_table <- calculate_mortgage_savings(
 #   principal = 300000,
 #   rate_per_month = 0.005,
@@ -30,7 +30,9 @@ over time for both the original loan and a paydown scenario.
 #   extra_monthly_payment = 200,
 #   lump_sum_payment = 10000,
 #   payment_number_for_prepay_start = 1,
-#   cumulative_output = TRUE
+#   cumulative_output = TRUE # Assuming this function populates the required columns
 # )
-# plot_principal_interest(amortization_table)
+# if (requireNamespace("ggiraph")) {
+#   plot_principal_interest(amortization_table)
+# }
 }

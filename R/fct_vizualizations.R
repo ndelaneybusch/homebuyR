@@ -389,12 +389,12 @@ Monthly Housing Spend: $%.0f",
 #'   \item{original_interest_paid}{Cumulative interest paid for original loan}
 #'   \item{new_interest_paid}{Cumulative interest paid for paydown scenario}
 #'
-#' @return A ggiraph object with interactive tooltips
-#' @import ggplot2 ggiraph scales dplyr
+#' @return A `ggiraph` object with interactive tooltips.
+#' @import ggplot2 ggiraph scales dplyr tidyr
 #' @export
 #'
 #' @examples
-#' # Example using output from calculate_mortgage_savings()
+#' # Example using output from a hypothetical calculate_mortgage_savings()
 #' # amortization_table <- calculate_mortgage_savings(
 #' #   principal = 300000,
 #' #   rate_per_month = 0.005,
@@ -402,11 +402,13 @@ Monthly Housing Spend: $%.0f",
 #' #   extra_monthly_payment = 200,
 #' #   lump_sum_payment = 10000,
 #' #   payment_number_for_prepay_start = 1,
-#' #   cumulative_output = TRUE
+#' #   cumulative_output = TRUE # Assuming this function populates the required columns
 #' # )
-#' # plot_principal_interest(amortization_table)
+#' # if (requireNamespace("ggiraph")) {
+#' #   plot_principal_interest(amortization_table)
+#' # }
 plot_principal_interest <- function(amortization_table) {
-  # Input validation
+  # --- Input Validation ---
   required_cols <- c(
     "payment_number",
     "original_remaining_principal",
@@ -421,138 +423,121 @@ plot_principal_interest <- function(amortization_table) {
          paste(missing_cols, collapse = ", "))
   }
   
-  # Prepare data for plotting
-  plot_data <- amortization_table %>%
-    dplyr::select(
-      payment_number,
-      original_remaining_principal,
-      new_remaining_principal,
-      original_interest_paid,
-      new_interest_paid
-    ) %>%
+  # --- Data Preparation ---
+  # 1. Add derived columns (months, interest_saved, tooltip_text) to the wide data.
+  #    The tooltip is created here because it needs access to multiple wide columns.
+  data_wide_prepared <- amortization_table %>%
     dplyr::mutate(
-      # Keep everything in months
       months = payment_number,
-      x_label = as.character(payment_number),
-      # Calculate interest saved
-      interest_saved = original_interest_paid - new_interest_paid,
-      # Create tooltip text
+      interest_saved = original_interest_paid - new_interest_paid, # NA if new_interest_paid is NA
       tooltip_text = sprintf(
-        "Payment %s\nOriginal Principal: %s\nNew Principal: %s\n\nOriginal Interest: %s\nNew Interest: %s\nInterest Saved: %s",
+        paste0("<b>Payment %s</b><br>",
+               "Original Principal: %s<br>",
+               "New Principal: %s<br><br>",
+               "Original Interest: %s<br>",
+               "New Interest: %s<br>",
+               "Interest Saved: %s"),
         payment_number,
-        scales::dollar(original_remaining_principal, accuracy = 1),
-        scales::dollar(new_remaining_principal, accuracy = 1),
-        scales::dollar(original_interest_paid, accuracy = 1),
-        scales::dollar(new_interest_paid, accuracy = 1),
-        scales::dollar(original_interest_paid - new_interest_paid, accuracy = 1)
+        scales::dollar(original_remaining_principal, accuracy = 0.01),
+        scales::dollar(new_remaining_principal, accuracy = 0.01),
+        scales::dollar(original_interest_paid, accuracy = 0.01),
+        scales::dollar(new_interest_paid, accuracy = 0.01),
+        scales::dollar(interest_saved, accuracy = 0.01)
       )
     )
+
+  # 2. Define series labels and their desired order for the legend and plotting.
+  #    These are the raw column names to be pivoted and their corresponding desired legend labels.
+  series_mapping <- c(
+    "original_remaining_principal" = "Original Principal",
+    "new_remaining_principal" = "New Principal",
+    "original_interest_paid" = "Original Interest Paid",
+    "new_interest_paid" = "New Interest Paid",
+    "interest_saved" = "Interest Saved"
+  )
+  # Ensure the factor levels are in a logical order for the legend
+  series_levels_ordered <- c(
+    "Original Principal", "New Principal", 
+    "Original Interest Paid", "New Interest Paid", 
+    "Interest Saved"
+  )
   
-  # Create the plot with factorized legends
-  p <- ggplot(plot_data) +
-    # Original principal (solid black)
-    geom_line_interactive(
-      aes(x = months, y = original_remaining_principal, 
-          color = "Original", linetype = "Principal"),
-      size = 1
-    ) +
-    # New principal (solid blue)
-    geom_line_interactive(
-      aes(x = months, y = new_remaining_principal, 
-          color = "New", linetype = "Principal"),
-      size = 1
-    ) +
-    # Original interest (dotted black)
-    geom_line_interactive(
-      aes(x = months, y = original_interest_paid, 
-          color = "Original", linetype = "Interest"),
-      size = 1
-    ) +
-    # New interest (dotted blue)
-    geom_line_interactive(
-      aes(x = months, y = new_interest_paid, 
-          color = "New", linetype = "Interest"),
-      size = 1
-    ) +
-    # Interest saved (dotted green)
-    geom_line_interactive(
-      aes(x = months, y = interest_saved, 
-          color = "Interest Saved", linetype = "Interest"),
-      size = 1
-    ) +
-    # Add points for interaction (using color for interaction only, not linetype)
-    # Points for principal lines
-    geom_point_interactive(
-      aes(x = months, y = original_remaining_principal, 
-          tooltip = tooltip_text, data_id = payment_number,
-          color = "Original"),
-      size = 1, alpha = 0.01
-    ) +
-    geom_point_interactive(
-      aes(x = months, y = new_remaining_principal, 
-          tooltip = tooltip_text, data_id = payment_number,
-          color = "New"),
-      size = 1, alpha = 0.01
-    ) +
-    # Points for interest lines
-    geom_point_interactive(
-      aes(x = months, y = original_interest_paid, 
-          tooltip = tooltip_text, data_id = payment_number,
-          color = "Original"),
-      size = 1, alpha = 0.01
-    ) +
-    geom_point_interactive(
-      aes(x = months, y = new_interest_paid, 
-          tooltip = tooltip_text, data_id = payment_number,
-          color = "New"),
-      size = 1, alpha = 0.01
-    ) +
-    # Points for interest saved line
-    geom_point_interactive(
-      aes(x = months, y = interest_saved, 
-          tooltip = tooltip_text, data_id = payment_number,
-          color = "Interest Saved"),
-      size = 1, alpha = 0.01
-    )
+  # 3. Pivot to long format for idiomatic ggplot2 usage.
+  #    Keep 'months' and 'tooltip_text' associated with each payment_number.
+  plot_data_long <- data_wide_prepared %>%
+    tidyr::pivot_longer(
+      cols = all_of(names(series_mapping)), 
+      names_to = "series_key_raw",
+      values_to = "amount",
+      values_drop_na = FALSE # Keep NAs; geom_line handles them by breaking lines
+    ) %>%
+    dplyr::mutate(
+      # Create the 'series_label' factor using the mapping and ordered levels
+      series_label = factor(series_mapping[series_key_raw], levels = series_levels_ordered)
+    ) %>%
+    # Filter out any rows where series_label might be NA (if a key wasn't in mapping)
+    # or where amount is NA (geom_line does this, but good for points if they were visible)
+    dplyr::filter(!is.na(series_label)) 
+    # Note: We don't filter !is.na(amount) here to allow lines to naturally break
+    # if a series ends (e.g. loan paid off). ggplot2 handles NA y-values for lines.
+
+  # --- Define Aesthetics ---
+  # Colors and linetypes for each series. Consider colorblind-friendly options.
+  series_colors <- c(
+    "Original Principal"     = "black",
+    "New Principal"          = "#0072B2", # A distinct blue
+    "Original Interest Paid" = "grey40",   # Dark grey, distinct from black
+    "New Interest Paid"      = "#56B4E9", # A lighter, distinct blue
+    "Interest Saved"         = "#009E73"  # A distinct green
+  )
   
-  # Add styling
-  p <- p +
-    # Styling
+  series_linetypes <- c(
+    "Original Principal"     = "solid",
+    "New Principal"          = "solid",
+    "Original Interest Paid" = "dotted",
+    "New Interest Paid"      = "dotted",
+    "Interest Saved"         = "dashed" 
+  )
+  
+  # --- Create Plot ---
+  p <- ggplot(plot_data_long, 
+              aes(x = months, y = amount, group = series_label,
+                  color = series_label, linetype = series_label)) +
+    geom_line_interactive(
+      aes(data_id = series_label), # data_id for potential line-specific interactivity
+      size = 1
+    ) +
+    # Add nearly invisible points for robust tooltip interaction.
+    # These points share the same comprehensive tooltip for each payment_number.
+    geom_point_interactive(
+      # Map y to 'amount' so points are correctly positioned for each series.
+      # Tooltip and data_id are consistent for a given 'months'.
+      aes(y = amount, tooltip = tooltip_text, data_id = payment_number), 
+      size = 1, 
+      alpha = 0.01, # Visually hidden, but interactive
+      show.legend = FALSE # Prevent these points from creating a legend
+    ) +
     scale_y_continuous(
       name = "Amount ($)",
-      labels = scales::dollar_format(),
-      expand = expansion(mult = c(0, 0.05))
+      labels = scales::dollar_format(accuracy = 1), # Whole dollars on axis
+      expand = expansion(mult = c(0.01, 0.05)) # Slight padding
     ) +
     scale_x_continuous(
       name = "Payment Number",
-      breaks = pretty(plot_data$months, n = min(10, max(plot_data$payment_number))),
+      breaks = scales::pretty_breaks(n = min(10, max(plot_data_long$payment_number, na.rm = TRUE) %/% 30 + 1)), # Adaptive breaks
       labels = function(x) round(x, 0)
     ) +
-    # Color scale for scenarios (Original/New/Interest Saved)
     scale_color_manual(
-      name = "Scenario",
-      values = c(
-        "Original" = "black",
-        "New" = "#0072B2",      # Blue
-        "Interest Saved" = "#009E73"    # Green
-      ),
-      guide = guide_legend(
-        order = 1,
-        override.aes = list(
-          linetype = c("solid", "solid", "dotted")
-        )
-      )
+      name = "Metric", 
+      values = series_colors,
+      labels = series_levels_ordered, # Ensures legend items match factor levels
+      breaks = series_levels_ordered  # Ensures all defined series appear
     ) +
-    # Line type scale (Principal/Interest)
     scale_linetype_manual(
       name = "Metric",
-      values = c(
-        "Principal" = "solid",
-        "Interest" = "dotted"
-      ),
-      guide = guide_legend(
-        order = 2
-      )
+      values = series_linetypes,
+      labels = series_levels_ordered,
+      breaks = series_levels_ordered
     ) +
     labs(
       title = "Loan Paydown Comparison",
@@ -562,26 +547,32 @@ plot_principal_interest <- function(amortization_table) {
     theme(
       legend.position = "bottom",
       legend.box = "horizontal",
-      legend.margin = margin(),
-      legend.spacing = unit(10, "pt"),  # Space between legends
-      legend.key.width = unit(2, "lines"),
-      legend.title = element_text(face = "bold"),
-      legend.text = element_text(margin = margin(r = 10)),
+      legend.margin = margin(t = 5, b = 5, unit = "pt"),
+      legend.key.width = unit(1.5, "lines"), 
+      legend.title = element_text(face = "bold", margin = margin(b = 5, unit = "pt")),
+      legend.text = element_text(margin = margin(r = 10, unit = "pt")),
       panel.grid.minor = element_blank(),
-      plot.title = element_text(face = "bold"),
-      plot.subtitle = element_text(color = "gray50")
+      plot.title = element_text(face = "bold", size = rel(1.2), margin = margin(b = 5, unit = "pt")),
+      plot.subtitle = element_text(color = "grey50", size = rel(1.0), margin = margin(b = 10, unit = "pt")),
+      axis.title = element_text(size = rel(1.0), face = "bold")
     )
-  
-  # Convert to interactive plot
+
+  # --- Convert to Interactive Plot ---
   girafe(
     ggobj = p,
     options = list(
       opts_tooltip(
         opacity = 0.95,
-        css = "padding:8px;background:white;color:black;border-radius:4px;box-shadow: 2px 2px 5px rgba(0,0,0,0.1);"
+        use_fill = FALSE,
+        use_stroke = TRUE, # Use aesthetics from plot for stroke
+        css = paste0("padding:8px;font-family:sans-serif;font-size:0.9em;",
+                     "background:white;color:black;",
+                     "border-radius:4px;box-shadow: 2px 2px 5px rgba(0,0,0,0.2);")
       ),
-      opts_sizing(rescale = TRUE, width = 1),
-      opts_toolbar(position = "topright")
+      opts_sizing(rescale = TRUE, width = 1), # width = 1 means 100% of container
+      opts_toolbar(position = "topright", saveaspng = TRUE),
+      opts_hover(css = "stroke-width:2px;"), # Example: thicken line on hover
+      opts_hover_inv(css = "opacity:0.3;")   # Example: fade out non-hovered lines
     )
   )
 }

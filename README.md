@@ -25,6 +25,8 @@ This is a basic example which shows you how to solve a common problem:
 
 ``` r
 library(homebuyR)
+#> Warning: replacing previous import 'purrr::discard' by 'scales::discard' when
+#> loading 'homebuyR'
 ## basic example code
 ```
 
