@@ -383,7 +383,7 @@ Monthly Housing Spend: $%.0f",
 #' over time for both the original loan and a paydown scenario.
 #'
 #' @param amortization_table A data frame containing the amortization schedule with columns:
-#'   \itemize{
+#'   \describe{
 #'     \item{payment_number}{Payment number (1, 2, 3, ...)}
 #'     \item{original_remaining_principal}{Remaining principal for original loan}
 #'     \item{new_remaining_principal}{Remaining principal for paydown scenario}
