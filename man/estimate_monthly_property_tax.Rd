@@ -18,7 +18,7 @@ estimate_monthly_property_tax(
 for all housing costs per month.}
 
 \item{monthly_non_mortgage_costs}{Numeric. The sum of fixed monthly costs
-*excluding* mortgage P&I and property taxes (e.g., home insurance,
+excluding mortgage P&I and property taxes (e.g., home insurance,
 HOA dues, other fixed monthly fees). Defaults to 0.}
 
 \item{rate_per_month}{Numeric. The interest rate per month (e.g., annual

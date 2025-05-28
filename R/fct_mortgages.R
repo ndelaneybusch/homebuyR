@@ -131,7 +131,15 @@ compute_affordable_principal <- function(monthly_housing_budget,
 #' then estimating the corresponding home value based on the down payment,
 #' and finally calculating the monthly tax based on the annual property tax rate.
 #'
-#' @inheritParams compute_affordable_principal
+#' @param monthly_housing_budget Numeric. The total maximum amount available
+#'   for all housing costs per month.
+#' @param monthly_non_mortgage_costs Numeric. The sum of fixed monthly costs
+#'   excluding mortgage P&I and property taxes (e.g., home insurance,
+#'   HOA dues, other fixed monthly fees). Defaults to 0.
+#' @param rate_per_month Numeric. The interest rate per month (e.g., annual
+#'   rate / 12 / 100). Must be non-negative.
+#' @param n_payments_total Integer. The total number of payments over the
+#'   life of the loan (e.g., 360 for 30 years). Must be positive.
 #' @param prop_tax_rate_annual Numeric. Estimated annual property tax rate as a
 #'   percentage of home value (e.g., 1.2 for 1.2\%). Must be non-negative.
 #' @param down_payment_pct Numeric. The down payment as a percentage of the
