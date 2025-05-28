@@ -383,11 +383,13 @@ Monthly Housing Spend: $%.0f",
 #' over time for both the original loan and a paydown scenario.
 #'
 #' @param amortization_table A data frame containing the amortization schedule with columns:
-#'   \item{payment_number}{Payment number (1, 2, 3, ...)}
-#'   \item{original_remaining_principal}{Remaining principal for original loan}
-#'   \item{new_remaining_principal}{Remaining principal for paydown scenario}
-#'   \item{original_interest_paid}{Cumulative interest paid for original loan}
-#'   \item{new_interest_paid}{Cumulative interest paid for paydown scenario}
+#'   \itemize{
+#'     \item{payment_number}{Payment number (1, 2, 3, ...)}
+#'     \item{original_remaining_principal}{Remaining principal for original loan}
+#'     \item{new_remaining_principal}{Remaining principal for paydown scenario}
+#'     \item{original_interest_paid}{Cumulative interest paid for original loan}
+#'     \item{new_interest_paid}{Cumulative interest paid for paydown scenario}
+#'   }
 #'
 #' @return A `ggiraph` object with interactive tooltips.
 #' @import ggplot2 ggiraph scales dplyr tidyr
