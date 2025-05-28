@@ -11,10 +11,18 @@ Imports:
     config,
     dplyr,
     ggiraph,
+    ggplot2,
     golem,
     kableExtra,
     knitr,
-    shiny
+    lubridate,
+    magrittr,
+    purrr,
+    scales,
+    shiny,
+    shinyhelper,
+    shinyWidgets,
+    tidyr
 Suggests: 
     spelling,
     testthat (>= 3.0.0)
