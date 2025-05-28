@@ -182,7 +182,7 @@ estimate_monthly_property_tax <- function(monthly_housing_budget,
                                           monthly_non_mortgage_costs = 0,
                                           rate_per_month,
                                           n_payments_total,
-                                          prop_tax_rate_annual, # Required for this function
+                                          prop_tax_rate_annual,
                                           down_payment_pct = 20) {
 
   # --- Input Validation ---
