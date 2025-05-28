@@ -8,7 +8,7 @@ plot_principal_interest(amortization_table)
 }
 \arguments{
 \item{amortization_table}{A data frame containing the amortization schedule with columns:
-\itemize{
+\describe{
   \item{payment_number}{Payment number (1, 2, 3, ...)}
   \item{original_remaining_principal}{Remaining principal for original loan}
   \item{new_remaining_principal}{Remaining principal for paydown scenario}

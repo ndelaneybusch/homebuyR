@@ -15,7 +15,8 @@
 #' @param dp_pct_range Numeric vector. Range of down payment percentages to plot (e.g., `seq(1, 30, by = 1)`).
 #'
 #' @return A ggiraph object.
-#' @import ggplot2 ggiraph scales dplyr purrr
+#' @import ggplot2 ggiraph scales dplyr purrr rlang
+#' @importFrom rlang .data
 #' @export
 plot_price_vs_down_payment <- function(monthly_housing_budget,
                                        monthly_non_mortgage_costs,
@@ -102,8 +103,8 @@ Monthly PMI: ", scales::dollar(monthly_pmi_amount)), "")
     )
 
   # Create plot
-  p <- ggplot(affordability_data, aes(x = dp_pct, y = affordable_home_price, color = pmi_applies,
-                                      tooltip = tooltip_text, data_id = dp_pct)) +
+  p <- ggplot(affordability_data, aes(x = .data$dp_pct, y = .data$affordable_home_price, color = .data$pmi_applies,
+                                      tooltip = .data$tooltip_text, data_id = .data$dp_pct)) +
     geom_line_interactive(size = 1) +
     geom_point_interactive(size = 2) +
     scale_y_continuous(labels = scales::dollar_format()) +
@@ -146,7 +147,8 @@ Monthly PMI: ", scales::dollar(monthly_pmi_amount)), "")
 #' @param rate_pct_range Numeric vector. Range of annual interest rates (percentage) to plot (e.g., `seq(3, 10, by = 0.25)`).
 #'
 #' @return A ggiraph object.
-#' @import ggplot2 ggiraph scales dplyr purrr
+#' @import ggplot2 ggiraph scales dplyr purrr rlang
+#' @importFrom rlang .data
 #' @export
 plot_price_vs_rate <- function(monthly_housing_budget,
                                monthly_non_mortgage_costs,
@@ -283,8 +285,8 @@ Monthly Housing Spend: $%.0f",
     )
 
   # Create plot
-  p <- ggplot(affordability_data, aes(x = rate_pct, y = affordable_home_price,
-                                      tooltip = tooltip_text, data_id = rate_pct))
+  p <- ggplot(affordability_data, aes(x = .data$rate_pct, y = .data$affordable_home_price,
+                                      tooltip = .data$tooltip_text, data_id = .data$rate_pct))
 
   # Add background rectangles if down_payment_type is not "pct"
   if (down_payment_type != "pct") {
@@ -311,10 +313,10 @@ Monthly Housing Spend: $%.0f",
     # Add background rectangles
     low_y_bound <- min(affordability_data$affordable_home_price) * 0.9
     rects <- affordability_data %>%
-      group_by(zone) %>%
+      group_by(.data$zone) %>%
       summarise(
-        xmin = min(rate_pct),
-        xmax = max(rate_pct),
+        xmin = min(.data$rate_pct),
+        xmax = max(.data$rate_pct),
         .groups = "drop"
       ) %>%
       mutate(
@@ -392,7 +394,8 @@ Monthly Housing Spend: $%.0f",
 #'   }
 #'
 #' @return A `ggiraph` object with interactive tooltips.
-#' @import ggplot2 ggiraph scales dplyr tidyr
+#' @import ggplot2 ggiraph scales dplyr tidyr rlang
+#' @importFrom rlang .data
 #' @export
 #'
 #' @examples
@@ -475,7 +478,7 @@ plot_principal_interest <- function(amortization_table) {
     ) %>%
     dplyr::mutate(
       # Create the 'series_label' factor using the mapping and ordered levels
-      series_label = factor(series_mapping[series_key_raw], levels = series_levels_ordered)
+      series_label = factor(series_mapping[.data$series_key_raw], levels = series_levels_ordered)
     ) %>%
     # Filter out any rows where series_label might be NA (if a key wasn't in mapping)
     # or where amount is NA (geom_line does this, but good for points if they were visible)
@@ -503,10 +506,10 @@ plot_principal_interest <- function(amortization_table) {
   
   # --- Create Plot ---
   p <- ggplot(plot_data_long, 
-              aes(x = months, y = amount, group = series_label,
-                  color = series_label, linetype = series_label)) +
+              aes(x = .data$months, y = .data$amount, group = .data$series_label,
+                  color = .data$series_label, linetype = .data$series_label)) +
     geom_line_interactive(
-      aes(data_id = series_label), # data_id for potential line-specific interactivity
+      aes(data_id = .data$series_label), # data_id for potential line-specific interactivity
       size = 1
     ) +
     # Add nearly invisible points for robust tooltip interaction.
@@ -514,7 +517,7 @@ plot_principal_interest <- function(amortization_table) {
     geom_point_interactive(
       # Map y to 'amount' so points are correctly positioned for each series.
       # Tooltip and data_id are consistent for a given 'months'.
-      aes(y = amount, tooltip = tooltip_text, data_id = payment_number), 
+      aes(y = .data$amount, tooltip = .data$tooltip_text, data_id = .data$payment_number), 
       size = 1, 
       alpha = 0.01, # Visually hidden, but interactive
       show.legend = FALSE # Prevent these points from creating a legend
