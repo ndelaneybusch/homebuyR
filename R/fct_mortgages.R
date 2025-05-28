@@ -127,20 +127,20 @@ compute_affordable_principal <- function(monthly_housing_budget,
 #' Estimate Monthly Property Tax Based on Affordability
 #'
 #' Calculates an estimated monthly property tax amount. This is done by first
-#' determining the affordable loan principal using `compute_affordable_principal`,
+#' determining the affordable loan principal using \code{compute_affordable_principal},
 #' then estimating the corresponding home value based on the down payment,
 #' and finally calculating the monthly tax based on the annual property tax rate.
 #'
 #' @inheritParams compute_affordable_principal
 #' @param prop_tax_rate_annual Numeric. Estimated annual property tax rate as a
-#'   percentage of home value (e.g., 1.2 for 1.2%). Must be non-negative.
+#'   percentage of home value (e.g., 1.2 for 1.2\%). Must be non-negative.
 #' @param down_payment_pct Numeric. The down payment as a percentage of the
-#'   home price (e.g., 20 for 20%). Must be between 0 (inclusive) and 100 (exclusive).
+#'   home price (e.g., 20 for 20\%). Must be between 0 (inclusive) and 100 (exclusive).
 #'   Defaults to 20.
 #'
 #' @return Numeric. The estimated monthly property tax. Returns 0 if the
 #'   calculated affordable principal is zero or less, or if the
-#'   `prop_tax_rate_annual` is zero.
+#'   \code{prop_tax_rate_annual} is zero.
 #' @export
 #'
 #' @examples
@@ -148,28 +148,28 @@ compute_affordable_principal <- function(monthly_housing_budget,
 #' # Expected principal was ~303637. Expected home price ~379546.
 #' # Expected monthly tax = (379546 * 0.012) / 12 = 379.55
 #' estimate_monthly_property_tax(monthly_housing_budget = 2500,
-#'                               monthly_non_mortgage_costs = 300,
-#'                               rate_per_month = 0.06 / 12,
-#'                               n_payments_total = 360,
-#'                               prop_tax_rate_annual = 1.2,
-#'                               down_payment_pct = 20)
+#'                              monthly_non_mortgage_costs = 300,
+#'                              rate_per_month = 0.06 / 12,
+#'                              n_payments_total = 360,
+#'                              prop_tax_rate_annual = 1.2,
+#'                              down_payment_pct = 20)
 #'
 #' # Example with zero tax rate
 #' estimate_monthly_property_tax(monthly_housing_budget = 2500,
-#'                               monthly_non_mortgage_costs = 300,
-#'                               rate_per_month = 0.06 / 12,
-#'                               n_payments_total = 360,
-#'                               prop_tax_rate_annual = 0,
-#'                               down_payment_pct = 20) # Should be 0
+#'                              monthly_non_mortgage_costs = 300,
+#'                              rate_per_month = 0.06 / 12,
+#'                              n_payments_total = 360,
+#'                              prop_tax_rate_annual = 0,
+#'                              down_payment_pct = 20) # Should be 0
 #'
 #' # Example where principal would be 0
 #' estimate_monthly_property_tax(monthly_housing_budget = 300,
-#'                               monthly_non_mortgage_costs = 300,
-#'                               rate_per_month = 0.06 / 12,
-#'                               n_payments_total = 360,
-#'                               prop_tax_rate_annual = 1.0,
-#'                               down_payment_pct = 20) # Should be 0
-#'
+#'                              monthly_non_mortgage_costs = 300,
+#'                              rate_per_month = 0.06 / 12,
+#'                              n_payments_total = 360,
+#'                              prop_tax_rate_annual = 1.0,
+#'                              down_payment_pct = 20) # Should be 0
+
 estimate_monthly_property_tax <- function(monthly_housing_budget,
                                           monthly_non_mortgage_costs = 0,
                                           rate_per_month,
