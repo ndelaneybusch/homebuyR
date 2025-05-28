@@ -1,0 +1,27 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/LICENSE-text.html</loc></url>
+<url><loc>/LICENSE.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/calculate_annuity_pv_factor.html</loc></url>
+<url><loc>/reference/calculate_mortgage_savings.html</loc></url>
+<url><loc>/reference/compute_affordable_principal.html</loc></url>
+<url><loc>/reference/compute_interest_paid.html</loc></url>
+<url><loc>/reference/compute_monthly_payment.html</loc></url>
+<url><loc>/reference/compute_principal.html</loc></url>
+<url><loc>/reference/compute_principal_paid.html</loc></url>
+<url><loc>/reference/compute_principal_remaining.html</loc></url>
+<url><loc>/reference/compute_principal_with_pmi.html</loc></url>
+<url><loc>/reference/compute_total_interest_remaining.html</loc></url>
+<url><loc>/reference/estimate_monthly_property_tax.html</loc></url>
+<url><loc>/reference/housing_budget_from_dpi.html</loc></url>
+<url><loc>/reference/housing_budget_from_gross_pct.html</loc></url>
+<url><loc>/reference/housing_budget_from_stressed_dti.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/plot_price_vs_down_payment.html</loc></url>
+<url><loc>/reference/plot_price_vs_rate.html</loc></url>
+<url><loc>/reference/plot_principal_interest.html</loc></url>
+<url><loc>/reference/run_app.html</loc></url>
+</urlset>
+
