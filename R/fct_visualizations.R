@@ -94,11 +94,11 @@ plot_price_vs_down_payment <- function(monthly_housing_budget,
       tooltip_text = sprintf(
         "Price: %s
 Down Payment: %.1f%% (%s)%s",
-        scales::dollar(affordable_home_price),
-        dp_pct,
-        scales::dollar(down_payment_dollars),
-        ifelse(pmi_applies, paste0("
-Monthly PMI: ", scales::dollar(monthly_pmi_amount)), "")
+        scales::dollar(.data$affordable_home_price),
+        .data$dp_pct,
+        scales::dollar(.data$down_payment_dollars),
+        ifelse(.data$pmi_applies, paste0("
+Monthly PMI: ", scales::dollar(.data$monthly_pmi_amount)), "")
       )
     )
 
@@ -277,10 +277,10 @@ plot_price_vs_rate <- function(monthly_housing_budget,
 Rate: %.2f%%
 Down Payment: %s
 Monthly Housing Spend: $%.0f",
-        scales::dollar(affordable_home_price),
-        rate_pct,
+        scales::dollar(.data$affordable_home_price),
+        .data$rate_pct,
         down_payment_label,
-        monthly_housing_spend
+        .data$monthly_housing_spend
       )
     )
 
@@ -293,14 +293,14 @@ Monthly Housing Spend: $%.0f",
     # Calculate down payment percentage for each point
     affordability_data <- affordability_data %>%
       dplyr::mutate(
-        down_payment_pct = (down_payment_value / affordable_home_price) * 100,
-        monthly_payment = (affordable_home_price - down_payment_value) *
+        down_payment_pct = (down_payment_value / .data$affordable_home_price) * 100,
+        monthly_payment = (.data$affordable_home_price - down_payment_value) *
                          (rate_pct/100/12) * (1 + rate_pct/100/12)^mortgage_term_months /
                          ((1 + rate_pct/100/12)^mortgage_term_months - 1) +
-                         (affordable_home_price * prop_tax_rate_annual/100/12),
+                         (.data$affordable_home_price * prop_tax_rate_annual/100/12),
         zone = case_when(
           down_payment_pct < pmi_threshold_pct ~ "PMI",
-          (down_payment_value / (pmi_threshold_pct/100)) - affordable_home_price < 0.001 * affordable_home_price ~ "below budget to avoid PMI",
+          (down_payment_value / (pmi_threshold_pct/100)) - .data$affordable_home_price < 0.001 * .data$affordable_home_price ~ "below budget to avoid PMI",
           TRUE ~ "No PMI"
         )
       )
@@ -326,7 +326,7 @@ Monthly Housing Spend: $%.0f",
     p <- p +
       geom_rect(
         data = rects,
-        aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = zone),
+        aes(xmin = .data$xmin, xmax = .data$xmax, ymin = .data$ymin, ymax = .data$ymax, fill = .data$zone),
         inherit.aes = FALSE,
         alpha = 0.3
       ) +
@@ -433,8 +433,8 @@ plot_principal_interest <- function(amortization_table) {
   #    The tooltip is created here because it needs access to multiple wide columns.
   data_wide_prepared <- amortization_table %>%
     dplyr::mutate(
-      months = payment_number,
-      interest_saved = original_interest_paid - new_interest_paid, # NA if new_interest_paid is NA
+      months = .data$payment_number,
+      interest_saved = .data$original_interest_paid - .data$new_interest_paid, # NA if new_interest_paid is NA
       tooltip_text = sprintf(
         paste0("<b>Payment %s</b><br>",
                "Original Principal: %s<br>",
@@ -442,12 +442,12 @@ plot_principal_interest <- function(amortization_table) {
                "Original Interest: %s<br>",
                "New Interest: %s<br>",
                "Interest Saved: %s"),
-        payment_number,
-        scales::dollar(original_remaining_principal, accuracy = 0.01),
-        scales::dollar(new_remaining_principal, accuracy = 0.01),
-        scales::dollar(original_interest_paid, accuracy = 0.01),
-        scales::dollar(new_interest_paid, accuracy = 0.01),
-        scales::dollar(interest_saved, accuracy = 0.01)
+        .data$payment_number,
+        scales::dollar(.data$original_remaining_principal, accuracy = 0.01),
+        scales::dollar(.data$new_remaining_principal, accuracy = 0.01),
+        scales::dollar(.data$original_interest_paid, accuracy = 0.01),
+        scales::dollar(.data$new_interest_paid, accuracy = 0.01),
+        scales::dollar(.data$interest_saved, accuracy = 0.01)
       )
     )
 
