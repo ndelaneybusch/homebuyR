@@ -375,11 +375,11 @@ Monthly Housing Spend: $%.0f",
       )
     ) +
     theme_minimal(base_size = 12) +
-    theme(plot.caption = element_text(size = 8, hjust = 0.5)) +
     theme(
+      plot.caption = element_text(size = 8, hjust = 0.5),
       legend.position = "bottom",
       legend.box.margin = margin(t = 10),
-      legend.title.align = 0
+      legend.title = element_text(hjust = 0.5)
     ) +
     guides(fill = guide_legend(
       title.position = "left",
