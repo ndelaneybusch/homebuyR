@@ -1,3 +1,81 @@
+# Plot plot_principal_interest tests ----------------------------------
+test_that("plot_principal_interest returns a girafe object with valid inputs", {
+  # Skip if ggiraph is not installed
+  skip_if_not_installed("ggiraph")
+  
+  # Create a sample amortization table
+  sample_data <- data.frame(
+    payment_number = 1:12,
+    original_remaining_principal = seq(300000, 289000, length.out = 12),
+    new_remaining_principal = seq(300000, 289000, length.out = 12) - 1000,
+    original_interest_paid = seq(1500, 1400, length.out = 12),
+    new_interest_paid = seq(1500, 1400, length.out = 12) - 50
+  )
+  
+  # Test with standard inputs
+  result <- plot_principal_interest(sample_data)
+  
+  # Check if the result is a ggiraph object (interactive)
+  expect_s3_class(result, "girafe")
+  expect_true("htmlwidget" %in% class(result))
+})
+
+test_that("plot_principal_interest handles missing columns gracefully", {
+  # Skip if ggiraph is not installed
+  skip_if_not_installed("ggiraph")
+  
+  # Create incomplete data
+  incomplete_data <- data.frame(
+    payment_number = 1:12,
+    original_remaining_principal = seq(300000, 289000, length.out = 12)
+    # Missing other required columns
+  )
+  
+  # Expect error with informative message about missing columns
+  expect_error(
+    plot_principal_interest(incomplete_data),
+    "Input data is missing required columns"
+  )
+})
+
+test_that("plot_principal_interest works with single payment", {
+  # Skip if ggiraph is not installed
+  skip_if_not_installed("ggiraph")
+  
+  # Create minimal valid data with just one payment
+  single_payment <- data.frame(
+    payment_number = 1,
+    original_remaining_principal = 300000,
+    new_remaining_principal = 299000,
+    original_interest_paid = 1500,
+    new_interest_paid = 1450
+  )
+  
+  # Should work with single payment
+  result <- plot_principal_interest(single_payment)
+  expect_s3_class(result, "girafe")
+})
+
+test_that("plot_principal_interest handles NA values", {
+  # Skip if ggiraph is not installed
+  skip_if_not_installed("ggiraph")
+  
+  # Create data with some NAs
+  na_data <- data.frame(
+    payment_number = 1:12,
+    original_remaining_principal = c(NA, seq(300000, 290000, length.out = 11)),
+    new_remaining_principal = c(seq(299000, 289000, length.out = 11), NA),
+    original_interest_paid = c(seq(1500, 1400, length.out = 11), NA),
+    new_interest_paid = c(NA, seq(1450, 1350, length.out = 11))
+  )
+  
+  # Should still work with NA values (suppress expected warnings about removed rows)
+  suppressWarnings({
+    result <- plot_principal_interest(na_data)
+    expect_s3_class(result, "girafe")
+  })
+})
+
 # Plot plot_price_vs_down_payment tests ----------------------------------
 test_that("plot_price_vs_down_payment returns a ggplot object with valid inputs", {
   # Test with standard inputs
