@@ -1,4 +1,3 @@
-
 #' Plot Affordable Home Price vs. Down Payment Percentage
 #'
 #' Creates an interactive line plot showing the estimated maximum affordable
@@ -26,7 +25,6 @@ plot_price_vs_down_payment <- function(monthly_housing_budget,
                                        pmi_rate_annual = 0.5, # Example default PMI rate
                                        pmi_threshold_pct = 20,
                                        dp_pct_range = seq(1, 30, by = 1)) {
-
   # Input validation (basic)
   stopifnot(is.numeric(monthly_housing_budget), monthly_housing_budget > 0)
   stopifnot(is.numeric(monthly_non_mortgage_costs), monthly_non_mortgage_costs >= 0)
@@ -40,7 +38,7 @@ plot_price_vs_down_payment <- function(monthly_housing_budget,
   rate_per_month <- annual_rate_pct / 100 / 12
 
   # Calculate affordability for each down payment percentage
-  affordability_data <- purrr::map_dfr(dp_pct_range, ~{
+  affordability_data <- purrr::map_dfr(dp_pct_range, ~ {
     current_dp_pct <- .x
 
     affordable_principal <- compute_principal_with_pmi(
@@ -55,7 +53,7 @@ plot_price_vs_down_payment <- function(monthly_housing_budget,
     )
 
     affordable_home_price <- if (affordable_principal > 0 && current_dp_pct < 100) {
-       affordable_principal / (1 - (current_dp_pct / 100))
+      affordable_principal / (1 - (current_dp_pct / 100))
     } else {
       0
     }
@@ -63,9 +61,9 @@ plot_price_vs_down_payment <- function(monthly_housing_budget,
     down_payment_dollars <- affordable_home_price * (current_dp_pct / 100)
     pmi_applies <- current_dp_pct < pmi_threshold_pct && pmi_rate_annual > 0 && affordable_principal > 0
     monthly_pmi_amount <- if (pmi_applies) {
-        (affordable_principal * (pmi_rate_annual / 100)) / 12
+      (affordable_principal * (pmi_rate_annual / 100)) / 12
     } else {
-        0
+      0
     }
 
     tibble::tibble(
@@ -79,13 +77,15 @@ plot_price_vs_down_payment <- function(monthly_housing_budget,
     dplyr::filter(affordable_home_price > 0) # Remove cases where nothing is affordable
 
   if (nrow(affordability_data) == 0) {
-     # Return a message or empty plot if nothing is affordable in the range
-     p <- ggplot() +
-          labs(title = "Affordable Home Price vs. Down Payment %",
-               subtitle = paste("Monthly Budget:", scales::dollar(monthly_housing_budget)),
-               caption = "No affordable home price found for the given inputs and down payment range.") +
-          theme_minimal()
-     return(p) # Return static plot
+    # Return a message or empty plot if nothing is affordable in the range
+    p <- ggplot() +
+      labs(
+        title = "Affordable Home Price vs. Down Payment %",
+        subtitle = paste("Monthly Budget:", scales::dollar(monthly_housing_budget)),
+        caption = "No affordable home price found for the given inputs and down payment range."
+      ) +
+      theme_minimal()
+    return(p) # Return static plot
   }
 
   # Create tooltips
@@ -103,27 +103,35 @@ Monthly PMI: ", scales::dollar(.data$monthly_pmi_amount)), "")
     )
 
   # Create plot
-  p <- ggplot(affordability_data, aes(x = .data$dp_pct, y = .data$affordable_home_price, color = .data$pmi_applies,
-                                      tooltip = .data$tooltip_text, data_id = .data$dp_pct)) +
+  p <- ggplot(affordability_data, aes(
+    x = .data$dp_pct, y = .data$affordable_home_price, color = .data$pmi_applies,
+    tooltip = .data$tooltip_text, data_id = .data$dp_pct
+  )) +
     geom_line_interactive(size = 1) +
     geom_point_interactive(size = 2) +
     scale_y_continuous(labels = scales::dollar_format()) +
     scale_x_continuous(labels = scales::percent_format(scale = 1)) +
-    scale_color_manual(values = c("FALSE" = "black", "TRUE" = "red"),
-                       labels = c(">= Threshold (No PMI)", "< Threshold (PMI likely)"),
-                       name = "Down Payment vs PMI Threshold") +
+    scale_color_manual(
+      values = c("FALSE" = "black", "TRUE" = "red"),
+      labels = c(">= Threshold (No PMI)", "< Threshold (PMI likely)"),
+      name = "Down Payment vs PMI Threshold"
+    ) +
     labs(
       title = "Affordable Home Price vs. Down Payment %",
       subtitle = paste("Based on a Monthly Housing Budget of", scales::dollar(monthly_housing_budget)),
       x = "Down Payment Percentage",
       y = "Maximum Affordable Home Price",
-      caption = paste("Assumes:", annual_rate_pct, "% APR,", mortgage_term_months / 12, "yr term,",
-                      prop_tax_rate_annual, "% Tax,", pmi_rate_annual, "% PMI rate below", pmi_threshold_pct, "% down.")
+      caption = paste(
+        "Assumes:", annual_rate_pct, "% APR,", mortgage_term_months / 12, "yr term,",
+        prop_tax_rate_annual, "% Tax,", pmi_rate_annual, "% PMI rate below", pmi_threshold_pct, "% down."
+      )
     ) +
     theme_minimal(base_size = 12) +
-    theme(legend.position = "bottom",
-          plot.caption = element_text(size = 8, hjust = 0.5),
-          axis.text.x = element_text(angle = 45, hjust = 1))
+    theme(
+      legend.position = "bottom",
+      plot.caption = element_text(size = 8, hjust = 0.5),
+      axis.text.x = element_text(angle = 45, hjust = 1)
+    )
 
   # Convert to ggiraph object
   girafe(ggobj = p)
@@ -158,7 +166,6 @@ plot_price_vs_rate <- function(monthly_housing_budget,
                                pmi_threshold_pct = 20,
                                down_payment_input, # List: pct= or dollars=
                                rate_pct_range = seq(3, 10, by = 0.25)) {
-
   # Input validation (basic)
   stopifnot(is.numeric(monthly_housing_budget), monthly_housing_budget > 0)
   stopifnot(is.numeric(monthly_non_mortgage_costs), monthly_non_mortgage_costs >= 0)
@@ -168,15 +175,15 @@ plot_price_vs_rate <- function(monthly_housing_budget,
   stopifnot(is.numeric(pmi_threshold_pct), pmi_threshold_pct > 0, pmi_threshold_pct <= 100)
   stopifnot(is.list(down_payment_input), length(down_payment_input) == 1)
   stopifnot(names(down_payment_input) %in% c("pct", "dollars"))
-  if(names(down_payment_input) == "pct") stopifnot(is.numeric(down_payment_input$pct), down_payment_input$pct >= 0, down_payment_input$pct < 100)
-  if(names(down_payment_input) == "dollars") stopifnot(is.numeric(down_payment_input$dollars), down_payment_input$dollars >= 0)
+  if (names(down_payment_input) == "pct") stopifnot(is.numeric(down_payment_input$pct), down_payment_input$pct >= 0, down_payment_input$pct < 100)
+  if (names(down_payment_input) == "dollars") stopifnot(is.numeric(down_payment_input$dollars), down_payment_input$dollars >= 0)
   stopifnot(is.numeric(rate_pct_range), all(rate_pct_range >= 0))
 
   down_payment_type <- names(down_payment_input)[1]
   down_payment_value <- down_payment_input[[1]]
 
   # Calculate affordability for each rate
-  affordability_data <- purrr::map_dfr(rate_pct_range, ~{
+  affordability_data <- purrr::map_dfr(rate_pct_range, ~ {
     current_rate_pct <- .x
     rate_per_month <- current_rate_pct / 100 / 12
 
@@ -228,20 +235,22 @@ plot_price_vs_rate <- function(monthly_housing_budget,
   })
 
   if (nrow(affordability_data) == 0) {
-     # Return a message or empty plot if nothing is affordable in the range
-      p <- ggplot() +
-           labs(title = "Affordable Home Price vs. Annual Rate %",
-                subtitle = paste("Monthly Budget:", scales::dollar(monthly_housing_budget)),
-                caption = "No affordable home price found for the given inputs and rate range.") +
-           theme_minimal()
-      return(p) # Return static plot
+    # Return a message or empty plot if nothing is affordable in the range
+    p <- ggplot() +
+      labs(
+        title = "Affordable Home Price vs. Annual Rate %",
+        subtitle = paste("Monthly Budget:", scales::dollar(monthly_housing_budget)),
+        caption = "No affordable home price found for the given inputs and rate range."
+      ) +
+      theme_minimal()
+    return(p) # Return static plot
   }
 
   # Create tooltips
   down_payment_label <- if (down_payment_type == "pct") {
-      paste0(down_payment_value, "%")
+    paste0(down_payment_value, "%")
   } else {
-      scales::dollar(down_payment_value)
+    scales::dollar(down_payment_value)
   }
 
   affordability_data$down_payment_cash <- affordability_data$affordable_home_price - affordability_data$affordable_principal
@@ -285,8 +294,10 @@ Monthly Housing Spend: $%.0f",
     )
 
   # Create plot
-  p <- ggplot(affordability_data, aes(x = .data$rate_pct, y = .data$affordable_home_price,
-                                      tooltip = .data$tooltip_text, data_id = .data$rate_pct))
+  p <- ggplot(affordability_data, aes(
+    x = .data$rate_pct, y = .data$affordable_home_price,
+    tooltip = .data$tooltip_text, data_id = .data$rate_pct
+  ))
 
   # Add background rectangles if down_payment_type is not "pct"
   if (down_payment_type != "pct") {
@@ -295,12 +306,12 @@ Monthly Housing Spend: $%.0f",
       dplyr::mutate(
         down_payment_pct = (down_payment_value / .data$affordable_home_price) * 100,
         monthly_payment = (.data$affordable_home_price - down_payment_value) *
-                         (rate_pct/100/12) * (1 + rate_pct/100/12)^mortgage_term_months /
-                         ((1 + rate_pct/100/12)^mortgage_term_months - 1) +
-                         (.data$affordable_home_price * prop_tax_rate_annual/100/12),
+          (rate_pct / 100 / 12) * (1 + rate_pct / 100 / 12)^mortgage_term_months /
+          ((1 + rate_pct / 100 / 12)^mortgage_term_months - 1) +
+          (.data$affordable_home_price * prop_tax_rate_annual / 100 / 12),
         zone = case_when(
           down_payment_pct < pmi_threshold_pct ~ "PMI",
-          (down_payment_value / (pmi_threshold_pct/100)) - .data$affordable_home_price < 0.001 * .data$affordable_home_price ~ "below budget to avoid PMI",
+          (down_payment_value / (pmi_threshold_pct / 100)) - .data$affordable_home_price < 0.001 * .data$affordable_home_price ~ "below budget to avoid PMI",
           TRUE ~ "No PMI"
         )
       )
@@ -340,7 +351,7 @@ Monthly Housing Spend: $%.0f",
       ) +
       scale_colour_manual(
         values = c("Zone A" = "black", "Zone B" = "black", "Zone C" = "black"),
-        guide = "none"  # hide color legend (it's used only for borders)
+        guide = "none" # hide color legend (it's used only for borders)
       )
   }
 
@@ -352,12 +363,16 @@ Monthly Housing Spend: $%.0f",
     scale_x_continuous(labels = scales::percent_format(scale = 1)) +
     labs(
       title = "Affordable Home Price vs. Annual Rate %",
-      subtitle = paste("Based on a Monthly Housing Budget of", scales::dollar(monthly_housing_budget),
-      "\nand a down payment of ", down_payment_value, down_payment_type),
+      subtitle = paste(
+        "Based on a Monthly Housing Budget of", scales::dollar(monthly_housing_budget),
+        "\nand a down payment of ", down_payment_value, down_payment_type
+      ),
       x = "Annual Interest Rate",
       y = "Maximum Affordable Home Price",
-      caption = paste("Assumes:", mortgage_term_months / 12, "yr term,",
-                      prop_tax_rate_annual, "% Tax")
+      caption = paste(
+        "Assumes:", mortgage_term_months / 12, "yr term,",
+        prop_tax_rate_annual, "% Tax"
+      )
     ) +
     theme_minimal(base_size = 12) +
     theme(plot.caption = element_text(size = 8, hjust = 0.5)) +
@@ -421,13 +436,15 @@ plot_principal_interest <- function(amortization_table) {
     "original_interest_paid",
     "new_interest_paid"
   )
-  
+
   missing_cols <- setdiff(required_cols, names(amortization_table))
   if (length(missing_cols) > 0) {
-    stop("Input data is missing required columns: ", 
-         paste(missing_cols, collapse = ", "))
+    stop(
+      "Input data is missing required columns: ",
+      paste(missing_cols, collapse = ", ")
+    )
   }
-  
+
   # --- Data Preparation ---
   # 1. Add derived columns (months, interest_saved, tooltip_text) to the wide data.
   #    The tooltip is created here because it needs access to multiple wide columns.
@@ -436,12 +453,14 @@ plot_principal_interest <- function(amortization_table) {
       months = .data$payment_number,
       interest_saved = .data$original_interest_paid - .data$new_interest_paid, # NA if new_interest_paid is NA
       tooltip_text = sprintf(
-        paste0("<b>Payment %s</b><br>",
-               "Original Principal: %s<br>",
-               "New Principal: %s<br><br>",
-               "Original Interest: %s<br>",
-               "New Interest: %s<br>",
-               "Interest Saved: %s"),
+        paste0(
+          "<b>Payment %s</b><br>",
+          "Original Principal: %s<br>",
+          "New Principal: %s<br><br>",
+          "Original Interest: %s<br>",
+          "New Interest: %s<br>",
+          "Interest Saved: %s"
+        ),
         .data$payment_number,
         scales::dollar(.data$original_remaining_principal, accuracy = 0.01),
         scales::dollar(.data$new_remaining_principal, accuracy = 0.01),
@@ -462,16 +481,16 @@ plot_principal_interest <- function(amortization_table) {
   )
   # Ensure the factor levels are in a logical order for the legend
   series_levels_ordered <- c(
-    "Original Principal", "New Principal", 
-    "Original Interest Paid", "New Interest Paid", 
+    "Original Principal", "New Principal",
+    "Original Interest Paid", "New Interest Paid",
     "Interest Saved"
   )
-  
+
   # 3. Pivot to long format for idiomatic ggplot2 usage.
   #    Keep 'months' and 'tooltip_text' associated with each payment_number.
   plot_data_long <- data_wide_prepared %>%
     tidyr::pivot_longer(
-      cols = all_of(names(series_mapping)), 
+      cols = all_of(names(series_mapping)),
       names_to = "series_key_raw",
       values_to = "amount",
       values_drop_na = FALSE # Keep NAs; geom_line handles them by breaking lines
@@ -482,32 +501,36 @@ plot_principal_interest <- function(amortization_table) {
     ) %>%
     # Filter out any rows where series_label might be NA (if a key wasn't in mapping)
     # or where amount is NA (geom_line does this, but good for points if they were visible)
-    dplyr::filter(!is.na(series_label)) 
-    # Note: We don't filter !is.na(amount) here to allow lines to naturally break
-    # if a series ends (e.g. loan paid off). ggplot2 handles NA y-values for lines.
+    dplyr::filter(!is.na(series_label))
+  # Note: We don't filter !is.na(amount) here to allow lines to naturally break
+  # if a series ends (e.g. loan paid off). ggplot2 handles NA y-values for lines.
 
   # --- Define Aesthetics ---
   # Colors and linetypes for each series. Consider colorblind-friendly options.
   series_colors <- c(
     "Original Principal"     = "black",
     "New Principal"          = "#0072B2", # A distinct blue
-    "Original Interest Paid" = "grey40",   # Dark grey, distinct from black
+    "Original Interest Paid" = "grey40", # Dark grey, distinct from black
     "New Interest Paid"      = "#56B4E9", # A lighter, distinct blue
-    "Interest Saved"         = "#009E73"  # A distinct green
+    "Interest Saved"         = "#009E73" # A distinct green
   )
-  
+
   series_linetypes <- c(
     "Original Principal"     = "solid",
     "New Principal"          = "solid",
     "Original Interest Paid" = "dotted",
     "New Interest Paid"      = "dotted",
-    "Interest Saved"         = "dashed" 
+    "Interest Saved"         = "dashed"
   )
-  
+
   # --- Create Plot ---
-  p <- ggplot(plot_data_long, 
-              aes(x = .data$months, y = .data$amount, group = .data$series_label,
-                  color = .data$series_label, linetype = .data$series_label)) +
+  p <- ggplot(
+    plot_data_long,
+    aes(
+      x = .data$months, y = .data$amount, group = .data$series_label,
+      color = .data$series_label, linetype = .data$series_label
+    )
+  ) +
     geom_line_interactive(
       aes(data_id = .data$series_label), # data_id for potential line-specific interactivity
       size = 1
@@ -517,8 +540,8 @@ plot_principal_interest <- function(amortization_table) {
     geom_point_interactive(
       # Map y to 'amount' so points are correctly positioned for each series.
       # Tooltip and data_id are consistent for a given 'months'.
-      aes(y = .data$amount, tooltip = .data$tooltip_text, data_id = .data$payment_number), 
-      size = 1, 
+      aes(y = .data$amount, tooltip = .data$tooltip_text, data_id = .data$payment_number),
+      size = 1,
       alpha = 0.01, # Visually hidden, but interactive
       show.legend = FALSE # Prevent these points from creating a legend
     ) +
@@ -533,10 +556,10 @@ plot_principal_interest <- function(amortization_table) {
       labels = function(x) round(x, 0)
     ) +
     scale_color_manual(
-      name = "Metric", 
+      name = "Metric",
       values = series_colors,
       labels = series_levels_ordered, # Ensures legend items match factor levels
-      breaks = series_levels_ordered  # Ensures all defined series appear
+      breaks = series_levels_ordered # Ensures all defined series appear
     ) +
     scale_linetype_manual(
       name = "Metric",
@@ -553,7 +576,7 @@ plot_principal_interest <- function(amortization_table) {
       legend.position = "bottom",
       legend.box = "horizontal",
       legend.margin = margin(t = 5, b = 5, unit = "pt"),
-      legend.key.width = unit(1.5, "lines"), 
+      legend.key.width = unit(1.5, "lines"),
       legend.title = element_text(face = "bold", margin = margin(b = 5, unit = "pt")),
       legend.text = element_text(margin = margin(r = 10, unit = "pt")),
       panel.grid.minor = element_blank(),
@@ -570,14 +593,16 @@ plot_principal_interest <- function(amortization_table) {
         opacity = 0.95,
         use_fill = FALSE,
         use_stroke = TRUE, # Use aesthetics from plot for stroke
-        css = paste0("padding:8px;font-family:sans-serif;font-size:0.9em;",
-                     "background:white;color:black;",
-                     "border-radius:4px;box-shadow: 2px 2px 5px rgba(0,0,0,0.2);")
+        css = paste0(
+          "padding:8px;font-family:sans-serif;font-size:0.9em;",
+          "background:white;color:black;",
+          "border-radius:4px;box-shadow: 2px 2px 5px rgba(0,0,0,0.2);"
+        )
       ),
       opts_sizing(rescale = TRUE, width = 1), # width = 1 means 100% of container
       opts_toolbar(position = "topright", saveaspng = TRUE),
       opts_hover(css = "stroke-width:2px;"), # Example: thicken line on hover
-      opts_hover_inv(css = "opacity:0.3;")   # Example: fade out non-hovered lines
+      opts_hover_inv(css = "opacity:0.3;") # Example: fade out non-hovered lines
     )
   )
 }

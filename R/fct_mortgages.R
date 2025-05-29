@@ -27,30 +27,36 @@
 #'
 #' @examples
 #' # Example 1: Simple case without property tax factoring
-#' compute_affordable_principal(monthly_housing_budget = 2500,
-#'                              monthly_non_mortgage_costs = 300,
-#'                              rate_per_month = 0.06 / 12,
-#'                              n_payments_total = 360)
+#' compute_affordable_principal(
+#'   monthly_housing_budget = 2500,
+#'   monthly_non_mortgage_costs = 300,
+#'   rate_per_month = 0.06 / 12,
+#'   n_payments_total = 360
+#' )
 #' # Budget for P&I = 2500 - 300 = 2200
 #' # Expected principal: compute_principal(2200, 0.005, 360) -> approx 366951
 #'
 #' # Example 2: Factoring in property tax (1.2%) and 20% down
-#' compute_affordable_principal(monthly_housing_budget = 2500,
-#'                              monthly_non_mortgage_costs = 300,
-#'                              rate_per_month = 0.06 / 12,
-#'                              n_payments_total = 360,
-#'                              prop_tax_rate_annual = 1.2,
-#'                              down_payment_pct = 20)
+#' compute_affordable_principal(
+#'   monthly_housing_budget = 2500,
+#'   monthly_non_mortgage_costs = 300,
+#'   rate_per_month = 0.06 / 12,
+#'   n_payments_total = 360,
+#'   prop_tax_rate_annual = 1.2,
+#'   down_payment_pct = 20
+#' )
 #' # Calculation is more complex, result should be lower than Ex 1.
 #' # Expected: approx 336815
 #'
 #' # Example 3: 0% interest rate, with property tax
-#' compute_affordable_principal(monthly_housing_budget = 2000,
-#'                              monthly_non_mortgage_costs = 200,
-#'                              rate_per_month = 0,
-#'                              n_payments_total = 180, # 15 years
-#'                              prop_tax_rate_annual = 1.0,
-#'                              down_payment_pct = 10)
+#' compute_affordable_principal(
+#'   monthly_housing_budget = 2000,
+#'   monthly_non_mortgage_costs = 200,
+#'   rate_per_month = 0,
+#'   n_payments_total = 180, # 15 years
+#'   prop_tax_rate_annual = 1.0,
+#'   down_payment_pct = 10
+#' )
 #' # Expected: approx 297521
 #'
 compute_affordable_principal <- function(monthly_housing_budget,
@@ -59,7 +65,6 @@ compute_affordable_principal <- function(monthly_housing_budget,
                                          n_payments_total,
                                          prop_tax_rate_annual = NULL,
                                          down_payment_pct = 20) {
-
   # --- Input Validation ---
   stopifnot(is.numeric(monthly_housing_budget), monthly_housing_budget >= 0)
   stopifnot(is.numeric(monthly_non_mortgage_costs), monthly_non_mortgage_costs >= 0)
@@ -71,7 +76,7 @@ compute_affordable_principal <- function(monthly_housing_budget,
     stopifnot(is.numeric(prop_tax_rate_annual), prop_tax_rate_annual >= 0)
     # Down payment validation only if tax rate is positive and will be used
     if (prop_tax_rate_annual > 0) {
-        stopifnot(is.numeric(down_payment_pct), down_payment_pct >= 0, down_payment_pct < 100)
+      stopifnot(is.numeric(down_payment_pct), down_payment_pct >= 0, down_payment_pct < 100)
     }
   }
 
@@ -99,12 +104,12 @@ compute_affordable_principal <- function(monthly_housing_budget,
   # Calculate present value factor for the annuity (P&I payments)
   # This uses the exported function from fct_annuity.R
   annuity_present_value_factor <- calculate_annuity_pv_factor(
-                                      rate_per_period = rate_per_month,
-                                      n_periods = n_payments_total
-                                    )
+    rate_per_period = rate_per_month,
+    n_periods = n_payments_total
+  )
 
   if (annuity_present_value_factor <= 0) {
-      return(0) # Should not happen with valid inputs but good for safety
+    return(0) # Should not happen with valid inputs but good for safety
   }
 
   # Solve for Principal (P)
@@ -114,8 +119,8 @@ compute_affordable_principal <- function(monthly_housing_budget,
   denominator_val <- 1 + (monthly_tax_rate_per_principal_dollar * annuity_present_value_factor)
 
   if (denominator_val <= 0) {
-      # This could happen theoretically if tax factor is extremely large and negative
-      return(0)
+    # This could happen theoretically if tax factor is extremely large and negative
+    return(0)
   }
 
   affordable_principal <- (budget_before_pi_tax * annuity_present_value_factor) / denominator_val
@@ -143,8 +148,8 @@ compute_affordable_principal <- function(monthly_housing_budget,
 #' @param prop_tax_rate_annual Numeric. Estimated annual property tax rate as a
 #'   percentage of home value (e.g., 1.2 for 1.2\%). Must be non-negative.
 #' @param down_payment_pct Numeric. The down payment as a percentage of the
-#'   home price (e.g., 20 for 20\%). Must be between 0 (inclusive) and 100 (exclusive).
-#'   Defaults to 20.
+#'   home price (e.g., 20 for 20\%). Must be between 0 (inclusive) and 100
+#'   (exclusive). Defaults to 20.
 #'
 #' @return Numeric. The estimated monthly property tax. Returns 0 if the
 #'   calculated affordable principal is zero or less, or if the
@@ -155,36 +160,40 @@ compute_affordable_principal <- function(monthly_housing_budget,
 #' # Example using the same inputs as Example 2 for compute_affordable_principal
 #' # Expected principal was ~303637. Expected home price ~379546.
 #' # Expected monthly tax = (379546 * 0.012) / 12 = 379.55
-#' estimate_monthly_property_tax(monthly_housing_budget = 2500,
-#'                              monthly_non_mortgage_costs = 300,
-#'                              rate_per_month = 0.06 / 12,
-#'                              n_payments_total = 360,
-#'                              prop_tax_rate_annual = 1.2,
-#'                              down_payment_pct = 20)
+#' estimate_monthly_property_tax(
+#'   monthly_housing_budget = 2500,
+#'   monthly_non_mortgage_costs = 300,
+#'   rate_per_month = 0.06 / 12,
+#'   n_payments_total = 360,
+#'   prop_tax_rate_annual = 1.2,
+#'   down_payment_pct = 20
+#' )
 #'
 #' # Example with zero tax rate
-#' estimate_monthly_property_tax(monthly_housing_budget = 2500,
-#'                              monthly_non_mortgage_costs = 300,
-#'                              rate_per_month = 0.06 / 12,
-#'                              n_payments_total = 360,
-#'                              prop_tax_rate_annual = 0,
-#'                              down_payment_pct = 20) # Should be 0
+#' estimate_monthly_property_tax(
+#'   monthly_housing_budget = 2500,
+#'   monthly_non_mortgage_costs = 300,
+#'   rate_per_month = 0.06 / 12,
+#'   n_payments_total = 360,
+#'   prop_tax_rate_annual = 0,
+#'   down_payment_pct = 20
+#' ) # Should be 0
 #'
 #' # Example where principal would be 0
-#' estimate_monthly_property_tax(monthly_housing_budget = 300,
-#'                              monthly_non_mortgage_costs = 300,
-#'                              rate_per_month = 0.06 / 12,
-#'                              n_payments_total = 360,
-#'                              prop_tax_rate_annual = 1.0,
-#'                              down_payment_pct = 20) # Should be 0
-
+#' estimate_monthly_property_tax(
+#'   monthly_housing_budget = 300,
+#'   monthly_non_mortgage_costs = 300,
+#'   rate_per_month = 0.06 / 12,
+#'   n_payments_total = 360,
+#'   prop_tax_rate_annual = 1.0,
+#'   down_payment_pct = 20
+#' ) # Should be 0
 estimate_monthly_property_tax <- function(monthly_housing_budget,
                                           monthly_non_mortgage_costs = 0,
                                           rate_per_month,
                                           n_payments_total,
                                           prop_tax_rate_annual,
                                           down_payment_pct = 20) {
-
   # --- Input Validation ---
   # Validate inputs specific to this function's direct use
   stopifnot(is.numeric(prop_tax_rate_annual), prop_tax_rate_annual >= 0)
@@ -220,8 +229,8 @@ estimate_monthly_property_tax <- function(monthly_housing_budget,
   down_payment_dec <- down_payment_pct / 100
   # Check needed to prevent division by zero if somehow dp=100 passed validation
   if (down_payment_dec >= 1) {
-      warning("Down payment percentage is 100% or more, cannot estimate home price based on principal.")
-      return(NA_real_) # Or handle error appropriately
+    warning("Down payment percentage is 100% or more, cannot estimate home price based on principal.")
+    return(NA_real_) # Or handle error appropriately
   }
   estimated_home_price <- principal / (1 - down_payment_dec)
 
@@ -261,54 +270,63 @@ estimate_monthly_property_tax <- function(monthly_housing_budget,
 #' @param pmi_threshold_pct Numeric. Optional. The down payment percentage
 #'   threshold below which PMI is applied. Defaults to 20.
 #'
-#' @return Numeric. The calculated maximum affordable loan principal, considering PMI.
+#' @return Numeric. The calculated maximum affordable loan principal,
+#'   considering PMI.
 #' @export
 #'
 #' @examples
 #' # -- Using Percentage Down Payment --
 #' # Example 1: Sufficient % down payment (20%), no PMI applied
-#' compute_principal_with_pmi(monthly_housing_budget = 2500,
-#'                              monthly_non_mortgage_costs = 300,
-#'                              rate_per_month = 0.06 / 12,
-#'                              n_payments_total = 360,
-#'                              prop_tax_rate_annual = 1.2,
-#'                              down_payment_pct = 20,
-#'                              pmi_rate_annual = 0.5)
+#' compute_principal_with_pmi(
+#'   monthly_housing_budget = 2500,
+#'   monthly_non_mortgage_costs = 300,
+#'   rate_per_month = 0.06 / 12,
+#'   n_payments_total = 360,
+#'   prop_tax_rate_annual = 1.2,
+#'   down_payment_pct = 20,
+#'   pmi_rate_annual = 0.5
+#' )
 #' # Should match compute_affordable_principal result: approx 336815
 #'
 #' # Example 2: Low % down payment (10%), PMI applied
-#' compute_principal_with_pmi(monthly_housing_budget = 2500,
-#'                              monthly_non_mortgage_costs = 300,
-#'                              rate_per_month = 0.06 / 12,
-#'                              n_payments_total = 360,
-#'                              prop_tax_rate_annual = 1.2,
-#'                              down_payment_pct = 10,
-#'                              pmi_rate_annual = 0.5)
+#' compute_principal_with_pmi(
+#'   monthly_housing_budget = 2500,
+#'   monthly_non_mortgage_costs = 300,
+#'   rate_per_month = 0.06 / 12,
+#'   n_payments_total = 360,
+#'   prop_tax_rate_annual = 1.2,
+#'   down_payment_pct = 10,
+#'   pmi_rate_annual = 0.5
+#' )
 #' # Expect result lower than Ex 1 due to PMI cost: approx 317717
 #'
 #' # -- Using Dollar Down Payment --
 #' # Example 3: Fixed $ down payment, sufficient to avoid PMI
 #' # (Down payment $50k on a hypothetical ~$400k house > 10% threshold)
-#' compute_principal_with_pmi(monthly_housing_budget = 2000,
-#'                            monthly_non_mortgage_costs = 200,
-#'                            rate_per_month = 0.07 / 12,
-#'                            n_payments_total = 360,
-#'                            prop_tax_rate_annual = 1.0,
-#'                            down_payment_dollars = 50000,
-#'                            pmi_rate_annual = 0.6,
-#'                            pmi_threshold_pct = 10)
+#' compute_principal_with_pmi(
+#'   monthly_housing_budget = 2000,
+#'   monthly_non_mortgage_costs = 200,
+#'   rate_per_month = 0.07 / 12,
+#'   n_payments_total = 360,
+#'   prop_tax_rate_annual = 1.0,
+#'   down_payment_dollars = 50000,
+#'   pmi_rate_annual = 0.6,
+#'   pmi_threshold_pct = 10
+#' )
 #' # Expected: approx 258346 (Implies HP approx 308346, DP is ~16% > 10%)
 #'
 #' # Example 4: Fixed $ down payment, insufficient to avoid PMI
 #' # (Down payment $20k on a hypothetical ~$300k house < 10% threshold)
-#' compute_principal_with_pmi(monthly_housing_budget = 2000,
-#'                            monthly_non_mortgage_costs = 200,
-#'                            rate_per_month = 0.07 / 12,
-#'                            n_payments_total = 360,
-#'                            prop_tax_rate_annual = 1.0,
-#'                            down_payment_dollars = 20000,
-#'                            pmi_rate_annual = 0.6,
-#'                            pmi_threshold_pct = 10)
+#' compute_principal_with_pmi(
+#'   monthly_housing_budget = 2000,
+#'   monthly_non_mortgage_costs = 200,
+#'   rate_per_month = 0.07 / 12,
+#'   n_payments_total = 360,
+#'   prop_tax_rate_annual = 1.0,
+#'   down_payment_dollars = 20000,
+#'   pmi_rate_annual = 0.6,
+#'   pmi_threshold_pct = 10
+#' )
 #' # Expected: approx 250516 (Implies HP approx 270516, DP is ~7.4% < 10%)
 #'
 compute_principal_with_pmi <- function(monthly_housing_budget,
@@ -320,7 +338,6 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
                                        prop_tax_rate_annual = NULL,
                                        pmi_rate_annual = NULL,
                                        pmi_threshold_pct = 20) {
-
   # --- Input Validation ---
   stopifnot(is.numeric(monthly_housing_budget), monthly_housing_budget >= 0)
   stopifnot(is.numeric(monthly_non_mortgage_costs), monthly_non_mortgage_costs >= 0)
@@ -338,10 +355,10 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
     stop("Cannot provide both 'down_payment_pct' and 'down_payment_dollars'.")
   }
   if (provided_pct) {
-      stopifnot(is.numeric(down_payment_pct), down_payment_pct >= 0, down_payment_pct < 100)
+    stopifnot(is.numeric(down_payment_pct), down_payment_pct >= 0, down_payment_pct < 100)
   }
   if (provided_dollars) {
-      stopifnot(is.numeric(down_payment_dollars), down_payment_dollars >= 0)
+    stopifnot(is.numeric(down_payment_dollars), down_payment_dollars >= 0)
   }
 
   # Validate other rates/thresholds
@@ -362,23 +379,25 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
 
   # Calculate factors that don't depend on down payment method yet
   annuity_present_value_factor <- calculate_annuity_pv_factor(
-                                      rate_per_period = rate_per_month,
-                                      n_periods = n_payments_total
-                                    )
+    rate_per_period = rate_per_month,
+    n_periods = n_payments_total
+  )
 
   if (annuity_present_value_factor <= 0) {
-      return(0)
+    return(0)
   }
 
   inv_pv_factor <- ifelse(annuity_present_value_factor == 0, 0, 1 / annuity_present_value_factor)
 
   tax_rate_monthly <- ifelse(is.null(prop_tax_rate_annual) || prop_tax_rate_annual == 0,
-                             0,
-                             (prop_tax_rate_annual / 100) / 12)
+    0,
+    (prop_tax_rate_annual / 100) / 12
+  )
 
   pmi_rate_monthly <- ifelse(is.null(pmi_rate_annual) || pmi_rate_annual == 0,
-                             0,
-                             (pmi_rate_annual / 100) / 12)
+    0,
+    (pmi_rate_annual / 100) / 12
+  )
 
   pmi_threshold_dec <- pmi_threshold_pct / 100
 
@@ -393,38 +412,37 @@ compute_principal_with_pmi <- function(monthly_housing_budget,
     # Calculate property tax factor per principal dollar
     monthly_tax_rate_per_principal_dollar <- 0
     if (tax_rate_monthly > 0) {
-       if (down_payment_dec >= 1) {
-            # Should be caught by validation, but defensively:
-            warning("Down payment is 100% or more, tax calculation invalid.")
-       } else {
-            monthly_tax_rate_per_principal_dollar <- tax_rate_monthly / (1 - down_payment_dec)
-       }
+      if (down_payment_dec >= 1) {
+        # Should be caught by validation, but defensively:
+        warning("Down payment is 100% or more, tax calculation invalid.")
+      } else {
+        monthly_tax_rate_per_principal_dollar <- tax_rate_monthly / (1 - down_payment_dec)
+      }
     }
 
     # Calculate PMI factor per principal dollar
     monthly_pmi_rate_per_principal_dollar <- 0
     if (pmi_rate_monthly > 0 && down_payment_dec < pmi_threshold_dec) {
-        monthly_pmi_rate_per_principal_dollar <- pmi_rate_monthly
+      monthly_pmi_rate_per_principal_dollar <- pmi_rate_monthly
     }
 
     # Solve for Principal (P)
     denominator_val <- 1 +
-                       (monthly_tax_rate_per_principal_dollar * annuity_present_value_factor) +
-                       (monthly_pmi_rate_per_principal_dollar * annuity_present_value_factor)
+      (monthly_tax_rate_per_principal_dollar * annuity_present_value_factor) +
+      (monthly_pmi_rate_per_principal_dollar * annuity_present_value_factor)
 
     if (denominator_val > 0) {
-        affordable_principal <- (budget_avail * annuity_present_value_factor) / denominator_val
+      affordable_principal <- (budget_avail * annuity_present_value_factor) / denominator_val
     }
-
   } else if (provided_dollars) {
-    dp_dollars      <- down_payment_dollars
+    dp_dollars <- down_payment_dollars
     # Precompute scenarios
-    denom_no_pmi    <- inv_pv_factor + tax_rate_monthly
-    hp_no_pmi       <- if (denom_no_pmi > 0) (budget_avail + dp_dollars * inv_pv_factor) / denom_no_pmi else 0
-    denom_pmi       <- inv_pv_factor + tax_rate_monthly + pmi_rate_monthly
-    hp_pmi          <- if (denom_pmi > 0) (budget_avail + dp_dollars * inv_pv_factor + dp_dollars * pmi_rate_monthly) / denom_pmi else 0
-    pmi_thresh_dec  <- pmi_threshold_pct / 100
-    H_thresh        <- dp_dollars / pmi_thresh_dec
+    denom_no_pmi <- inv_pv_factor + tax_rate_monthly
+    hp_no_pmi <- if (denom_no_pmi > 0) (budget_avail + dp_dollars * inv_pv_factor) / denom_no_pmi else 0
+    denom_pmi <- inv_pv_factor + tax_rate_monthly + pmi_rate_monthly
+    hp_pmi <- if (denom_pmi > 0) (budget_avail + dp_dollars * inv_pv_factor + dp_dollars * pmi_rate_monthly) / denom_pmi else 0
+    pmi_thresh_dec <- pmi_threshold_pct / 100
+    H_thresh <- dp_dollars / pmi_thresh_dec
     # Evaluate feasible home-price candidates
     candidates <- numeric(0)
     # 1. No-PMI scenario only if DP% ≥ threshold
@@ -538,21 +556,24 @@ calculate_mortgage_savings <- function(principal,
                                        lump_sum_payment = 0,
                                        payment_number_for_prepay_start = 1,
                                        cumulative_output = FALSE) {
-
   # Input validation
   stopifnot(is.numeric(principal), principal > 0)
   stopifnot(is.numeric(rate_per_month), rate_per_month >= 0)
-  stopifnot(is.numeric(n_payments_total), n_payments_total > 0,
-            n_payments_total == floor(n_payments_total))
+  stopifnot(
+    is.numeric(n_payments_total), n_payments_total > 0,
+    n_payments_total == floor(n_payments_total)
+  )
   stopifnot(is.numeric(extra_monthly_payment), extra_monthly_payment >= 0)
   stopifnot(is.numeric(lump_sum_payment), lump_sum_payment >= 0)
 
   # Only validate prepayment start if any prepayment is actually being made
   if (lump_sum_payment > 0 || extra_monthly_payment > 0) {
-    stopifnot(is.numeric(payment_number_for_prepay_start),
-              payment_number_for_prepay_start >= 1,
-              payment_number_for_prepay_start <= n_payments_total,
-              payment_number_for_prepay_start == floor(payment_number_for_prepay_start))
+    stopifnot(
+      is.numeric(payment_number_for_prepay_start),
+      payment_number_for_prepay_start >= 1,
+      payment_number_for_prepay_start <= n_payments_total,
+      payment_number_for_prepay_start == floor(payment_number_for_prepay_start)
+    )
   }
 
   # Calculate original monthly payment
@@ -675,7 +696,7 @@ calculate_mortgage_savings <- function(principal,
       extra_principal_applied_for_table <- 0
       # Only consider extra principal if within the prepayment phase and loan is not yet paid off
       if (current_payment_number >= payment_number_for_prepay_start &&
-          (is.na(new_loan_payoff_month) || current_payment_number <= new_loan_payoff_month)) {
+        (is.na(new_loan_payoff_month) || current_payment_number <= new_loan_payoff_month)) {
         if (current_payment_number == payment_number_for_prepay_start) {
           extra_principal_applied_for_table <- lump_sum_payment + extra_monthly_payment
         } else {
@@ -709,7 +730,6 @@ calculate_mortgage_savings <- function(principal,
 
   if (cumulative_output) {
     return(out)
-
   } else { # Non-cumulative (summary) output
     # Calculate months saved and other metrics
     if (is.na(new_loan_payoff_month)) {

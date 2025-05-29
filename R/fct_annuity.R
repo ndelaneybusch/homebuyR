@@ -54,15 +54,19 @@ calculate_annuity_pv_factor <- function(rate_per_period, n_periods) {
 #' # Calculate payment for a $300,000 loan over 30 years (360 months) at 6% APR
 #' annual_rate <- 0.06
 #' monthly_rate <- annual_rate / 12
-#' compute_monthly_payment(principal = 300000,
-#'                         rate_per_month = monthly_rate,
-#'                         n_payments_total = 360)
+#' compute_monthly_payment(
+#'   principal = 300000,
+#'   rate_per_month = monthly_rate,
+#'   n_payments_total = 360
+#' )
 #' # Expected output: approx 1798.65
 #'
 #' # Calculate payment for a 0% interest loan
-#' compute_monthly_payment(principal = 12000,
-#'                         rate_per_month = 0,
-#'                         n_payments_total = 12)
+#' compute_monthly_payment(
+#'   principal = 12000,
+#'   rate_per_month = 0,
+#'   n_payments_total = 12
+#' )
 #' # Expected output: 1000
 compute_monthly_payment <- function(principal, rate_per_month, n_payments_total) {
   stopifnot(is.numeric(principal), principal >= 0)
@@ -101,15 +105,19 @@ compute_monthly_payment <- function(principal, rate_per_month, n_payments_total)
 #' # Calculate principal for a $1800/month payment over 30 years at 6% APR
 #' annual_rate <- 0.06
 #' monthly_rate <- annual_rate / 12
-#' compute_principal(monthly_payment = 1798.65,
-#'                   rate_per_month = monthly_rate,
-#'                   n_payments_total = 360)
+#' compute_principal(
+#'   monthly_payment = 1798.65,
+#'   rate_per_month = monthly_rate,
+#'   n_payments_total = 360
+#' )
 #' # Expected output: approx 300000
 #'
 #' # Calculate principal for a 0% interest loan with $1000/month payment for 1 year
-#' compute_principal(monthly_payment = 1000,
-#'                   rate_per_month = 0,
-#'                   n_payments_total = 12)
+#' compute_principal(
+#'   monthly_payment = 1000,
+#'   rate_per_month = 0,
+#'   n_payments_total = 12
+#' )
 #' # Expected output: 12000
 compute_principal <- function(monthly_payment, rate_per_month, n_payments_total) {
   stopifnot(is.numeric(monthly_payment), monthly_payment >= 0)
@@ -146,21 +154,27 @@ compute_principal <- function(monthly_payment, rate_per_month, n_payments_total)
 #' payments_made <- 60
 #' total_payments <- 360
 #' remaining_payments <- total_payments - payments_made
-#' compute_principal_remaining(monthly_payment = payment,
-#'                             rate_per_month = monthly_rate,
-#'                             n_payments_remaining = remaining_payments)
+#' compute_principal_remaining(
+#'   monthly_payment = payment,
+#'   rate_per_month = monthly_rate,
+#'   n_payments_remaining = remaining_payments
+#' )
 #' # Expected output: approx 278719.03
 #'
 #' # Remaining principal when 0 payments remain
-#' compute_principal_remaining(monthly_payment = payment,
-#'                             rate_per_month = monthly_rate,
-#'                             n_payments_remaining = 0)
+#' compute_principal_remaining(
+#'   monthly_payment = payment,
+#'   rate_per_month = monthly_rate,
+#'   n_payments_remaining = 0
+#' )
 #' # Expected output: 0
 #'
 #' # Remaining principal on a 0% loan after some payments
-#' compute_principal_remaining(monthly_payment = 1000,
-#'                             rate_per_month = 0,
-#'                             n_payments_remaining = 6) # 6 payments left on a 12k loan
+#' compute_principal_remaining(
+#'   monthly_payment = 1000,
+#'   rate_per_month = 0,
+#'   n_payments_remaining = 6
+#' ) # 6 payments left on a 12k loan
 #' # Expected output: 6000
 compute_principal_remaining <- function(monthly_payment, rate_per_month, n_payments_remaining) {
   stopifnot(is.numeric(monthly_payment), monthly_payment >= 0)
@@ -206,17 +220,21 @@ compute_principal_remaining <- function(monthly_payment, rate_per_month, n_payme
 #' payments_made <- 60
 #' remaining_payments <- total_payments - payments_made
 #'
-#' compute_principal_paid(principal = original_principal,
-#'                        monthly_payment = payment,
-#'                        rate_per_month = monthly_rate,
-#'                        n_payments_remaining = remaining_payments)
+#' compute_principal_paid(
+#'   principal = original_principal,
+#'   monthly_payment = payment,
+#'   rate_per_month = monthly_rate,
+#'   n_payments_remaining = remaining_payments
+#' )
 #' # Expected output: approx 21280.97 (which is 300000 - 278719.03)
 #'
 #' # Principal paid on a 0% loan after 6 of 12 payments
-#' compute_principal_paid(principal = 12000,
-#'                        monthly_payment = 1000,
-#'                        rate_per_month = 0,
-#'                        n_payments_remaining = 6)
+#' compute_principal_paid(
+#'   principal = 12000,
+#'   monthly_payment = 1000,
+#'   rate_per_month = 0,
+#'   n_payments_remaining = 6
+#' )
 #' # Expected output: 6000
 compute_principal_paid <- function(principal, monthly_payment, rate_per_month, n_payments_remaining) {
   stopifnot(is.numeric(principal), principal >= 0)
@@ -261,18 +279,22 @@ compute_principal_paid <- function(principal, monthly_payment, rate_per_month, n
 #' payments_made <- 60
 #' remaining_payments <- total_payments - payments_made
 #'
-#' compute_total_interest_remaining(monthly_payment = payment,
-#'                                  rate_per_month = monthly_rate,
-#'                                  n_payments_remaining = remaining_payments)
+#' compute_total_interest_remaining(
+#'   monthly_payment = payment,
+#'   rate_per_month = monthly_rate,
+#'   n_payments_remaining = remaining_payments
+#' )
 #' # Expected output: approx 260876.89
 #' # (Total remaining payments = 1798.65 * 300 = 539595)
 #' # (Remaining principal = 278719.03)
 #' # (Interest remaining = 539595 - 278719.03 = 260875.97 - diff due to rounding in example)
 #'
 #' # Interest remaining on a 0% loan
-#' compute_total_interest_remaining(monthly_payment = 1000,
-#'                                  rate_per_month = 0,
-#'                                  n_payments_remaining = 6)
+#' compute_total_interest_remaining(
+#'   monthly_payment = 1000,
+#'   rate_per_month = 0,
+#'   n_payments_remaining = 6
+#' )
 #' # Expected output: 0
 compute_total_interest_remaining <- function(monthly_payment, rate_per_month, n_payments_remaining) {
   # Input validation happens within compute_principal_remaining
@@ -324,22 +346,26 @@ compute_total_interest_remaining <- function(monthly_payment, rate_per_month, n_
 #' payments_made <- 60
 #' remaining_payments <- total_payments - payments_made
 #'
-#' compute_interest_paid(principal = original_principal,
-#'                       monthly_payment = payment,
-#'                       rate_per_month = monthly_rate,
-#'                       n_payments_total = total_payments,
-#'                       n_payments_remaining = remaining_payments)
+#' compute_interest_paid(
+#'   principal = original_principal,
+#'   monthly_payment = payment,
+#'   rate_per_month = monthly_rate,
+#'   n_payments_total = total_payments,
+#'   n_payments_remaining = remaining_payments
+#' )
 #' # Expected output: approx 86638.33
 #' # (Total paid = 1798.65 * 60 = 107919)
 #' # (Principal paid = 21280.97)
 #' # (Interest paid = 107919 - 21280.97 = 86638.03 - diff due to rounding in example)
 #'
 #' # Interest paid on a 0% loan after 6 of 12 payments
-#' compute_interest_paid(principal = 12000,
-#'                       monthly_payment = 1000,
-#'                       rate_per_month = 0,
-#'                       n_payments_total = 12,
-#'                       n_payments_remaining = 6)
+#' compute_interest_paid(
+#'   principal = 12000,
+#'   monthly_payment = 1000,
+#'   rate_per_month = 0,
+#'   n_payments_total = 12,
+#'   n_payments_remaining = 6
+#' )
 #' # Expected output: 0
 compute_interest_paid <- function(principal, monthly_payment, rate_per_month, n_payments_total, n_payments_remaining) {
   stopifnot(is.numeric(n_payments_total), n_payments_total > 0, n_payments_total == floor(n_payments_total))
