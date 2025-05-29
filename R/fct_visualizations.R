@@ -15,7 +15,7 @@
 #' @param dp_pct_range Numeric vector. Range of down payment percentages to plot (e.g., `seq(1, 30, by = 1)`).
 #'
 #' @return A ggiraph object.
-#' @import ggplot2 ggiraph scales dplyr purrr rlang
+#' @import ggplot2 ggiraph dplyr
 #' @importFrom rlang .data
 #' @export
 plot_price_vs_down_payment <- function(monthly_housing_budget,
@@ -147,7 +147,7 @@ Monthly PMI: ", scales::dollar(.data$monthly_pmi_amount)), "")
 #' @param rate_pct_range Numeric vector. Range of annual interest rates (percentage) to plot (e.g., `seq(3, 10, by = 0.25)`).
 #'
 #' @return A ggiraph object.
-#' @import ggplot2 ggiraph scales dplyr purrr rlang
+#' @import ggplot2 ggiraph dplyr
 #' @importFrom rlang .data
 #' @export
 plot_price_vs_rate <- function(monthly_housing_budget,
@@ -394,7 +394,7 @@ Monthly Housing Spend: $%.0f",
 #'   }
 #'
 #' @return A `ggiraph` object with interactive tooltips.
-#' @import ggplot2 ggiraph scales dplyr tidyr rlang
+#' @import ggplot2 ggiraph dplyr
 #' @importFrom rlang .data
 #' @export
 #'

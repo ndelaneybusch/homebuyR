@@ -5,7 +5,6 @@
 #' @import shiny
 #' @import shinyWidgets
 #' @import shinyhelper
-#' @import lubridate
 #' @noRd
 app_ui <- function(request) {
   tagList(
