@@ -104,32 +104,38 @@ is also provided and &gt; 0. Defaults to 20.</p></dd>
     <div id="ref-examples">
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Example 1: Simple case without property tax factoring</span></span></span>
-<span class="r-in"><span><span class="fu">compute_affordable_principal</span><span class="op">(</span>monthly_housing_budget <span class="op">=</span> <span class="fl">2500</span>,</span></span>
-<span class="r-in"><span>                             monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">300</span>,</span></span>
-<span class="r-in"><span>                             rate_per_month <span class="op">=</span> <span class="fl">0.06</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
-<span class="r-in"><span>                             n_payments_total <span class="op">=</span> <span class="fl">360</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">compute_affordable_principal</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  monthly_housing_budget <span class="op">=</span> <span class="fl">2500</span>,</span></span>
+<span class="r-in"><span>  monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">300</span>,</span></span>
+<span class="r-in"><span>  rate_per_month <span class="op">=</span> <span class="fl">0.06</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
+<span class="r-in"><span>  n_payments_total <span class="op">=</span> <span class="fl">360</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 366941.6</span>
 <span class="r-in"><span><span class="co"># Budget for P&amp;I = 2500 - 300 = 2200</span></span></span>
 <span class="r-in"><span><span class="co"># Expected principal: compute_principal(2200, 0.005, 360) -&gt; approx 366951</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example 2: Factoring in property tax (1.2%) and 20% down</span></span></span>
-<span class="r-in"><span><span class="fu">compute_affordable_principal</span><span class="op">(</span>monthly_housing_budget <span class="op">=</span> <span class="fl">2500</span>,</span></span>
-<span class="r-in"><span>                             monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">300</span>,</span></span>
-<span class="r-in"><span>                             rate_per_month <span class="op">=</span> <span class="fl">0.06</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
-<span class="r-in"><span>                             n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
-<span class="r-in"><span>                             prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.2</span>,</span></span>
-<span class="r-in"><span>                             down_payment_pct <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">compute_affordable_principal</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  monthly_housing_budget <span class="op">=</span> <span class="fl">2500</span>,</span></span>
+<span class="r-in"><span>  monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">300</span>,</span></span>
+<span class="r-in"><span>  rate_per_month <span class="op">=</span> <span class="fl">0.06</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
+<span class="r-in"><span>  n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
+<span class="r-in"><span>  prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.2</span>,</span></span>
+<span class="r-in"><span>  down_payment_pct <span class="op">=</span> <span class="fl">20</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 303636.5</span>
 <span class="r-in"><span><span class="co"># Calculation is more complex, result should be lower than Ex 1.</span></span></span>
 <span class="r-in"><span><span class="co"># Expected: approx 336815</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example 3: 0% interest rate, with property tax</span></span></span>
-<span class="r-in"><span><span class="fu">compute_affordable_principal</span><span class="op">(</span>monthly_housing_budget <span class="op">=</span> <span class="fl">2000</span>,</span></span>
-<span class="r-in"><span>                             monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">200</span>,</span></span>
-<span class="r-in"><span>                             rate_per_month <span class="op">=</span> <span class="fl">0</span>,</span></span>
-<span class="r-in"><span>                             n_payments_total <span class="op">=</span> <span class="fl">180</span>, <span class="co"># 15 years</span></span></span>
-<span class="r-in"><span>                             prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.0</span>,</span></span>
-<span class="r-in"><span>                             down_payment_pct <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">compute_affordable_principal</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  monthly_housing_budget <span class="op">=</span> <span class="fl">2000</span>,</span></span>
+<span class="r-in"><span>  monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">200</span>,</span></span>
+<span class="r-in"><span>  rate_per_month <span class="op">=</span> <span class="fl">0</span>,</span></span>
+<span class="r-in"><span>  n_payments_total <span class="op">=</span> <span class="fl">180</span>, <span class="co"># 15 years</span></span></span>
+<span class="r-in"><span>  prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.0</span>,</span></span>
+<span class="r-in"><span>  down_payment_pct <span class="op">=</span> <span class="fl">10</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 277714.3</span>
 <span class="r-in"><span><span class="co"># Expected: approx 297521</span></span></span>
 <span class="r-in"><span></span></span>

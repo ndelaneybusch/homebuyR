@@ -118,7 +118,8 @@ threshold below which PMI is applied. Defaults to 20.</p></dd>
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>Numeric. The calculated maximum affordable loan principal, considering PMI.</p>
+    <p>Numeric. The calculated maximum affordable loan principal,
+  considering PMI.</p>
     </div>
     <div id="details">
     <h2>Details</h2>
@@ -133,51 +134,59 @@ threshold (e.g., 20<!-- %) and is calculated as a percentage of the loan amount.
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># -- Using Percentage Down Payment --</span></span></span>
 <span class="r-in"><span><span class="co"># Example 1: Sufficient % down payment (20%), no PMI applied</span></span></span>
-<span class="r-in"><span><span class="fu">compute_principal_with_pmi</span><span class="op">(</span>monthly_housing_budget <span class="op">=</span> <span class="fl">2500</span>,</span></span>
-<span class="r-in"><span>                             monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">300</span>,</span></span>
-<span class="r-in"><span>                             rate_per_month <span class="op">=</span> <span class="fl">0.06</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
-<span class="r-in"><span>                             n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
-<span class="r-in"><span>                             prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.2</span>,</span></span>
-<span class="r-in"><span>                             down_payment_pct <span class="op">=</span> <span class="fl">20</span>,</span></span>
-<span class="r-in"><span>                             pmi_rate_annual <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">compute_principal_with_pmi</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  monthly_housing_budget <span class="op">=</span> <span class="fl">2500</span>,</span></span>
+<span class="r-in"><span>  monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">300</span>,</span></span>
+<span class="r-in"><span>  rate_per_month <span class="op">=</span> <span class="fl">0.06</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
+<span class="r-in"><span>  n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
+<span class="r-in"><span>  prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.2</span>,</span></span>
+<span class="r-in"><span>  down_payment_pct <span class="op">=</span> <span class="fl">20</span>,</span></span>
+<span class="r-in"><span>  pmi_rate_annual <span class="op">=</span> <span class="fl">0.5</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 303636.5</span>
 <span class="r-in"><span><span class="co"># Should match compute_affordable_principal result: approx 336815</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example 2: Low % down payment (10%), PMI applied</span></span></span>
-<span class="r-in"><span><span class="fu">compute_principal_with_pmi</span><span class="op">(</span>monthly_housing_budget <span class="op">=</span> <span class="fl">2500</span>,</span></span>
-<span class="r-in"><span>                             monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">300</span>,</span></span>
-<span class="r-in"><span>                             rate_per_month <span class="op">=</span> <span class="fl">0.06</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
-<span class="r-in"><span>                             n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
-<span class="r-in"><span>                             prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.2</span>,</span></span>
-<span class="r-in"><span>                             down_payment_pct <span class="op">=</span> <span class="fl">10</span>,</span></span>
-<span class="r-in"><span>                             pmi_rate_annual <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">compute_principal_with_pmi</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  monthly_housing_budget <span class="op">=</span> <span class="fl">2500</span>,</span></span>
+<span class="r-in"><span>  monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">300</span>,</span></span>
+<span class="r-in"><span>  rate_per_month <span class="op">=</span> <span class="fl">0.06</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
+<span class="r-in"><span>  n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
+<span class="r-in"><span>  prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.2</span>,</span></span>
+<span class="r-in"><span>  down_payment_pct <span class="op">=</span> <span class="fl">10</span>,</span></span>
+<span class="r-in"><span>  pmi_rate_annual <span class="op">=</span> <span class="fl">0.5</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 292425.5</span>
 <span class="r-in"><span><span class="co"># Expect result lower than Ex 1 due to PMI cost: approx 317717</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># -- Using Dollar Down Payment --</span></span></span>
 <span class="r-in"><span><span class="co"># Example 3: Fixed $ down payment, sufficient to avoid PMI</span></span></span>
 <span class="r-in"><span><span class="co"># (Down payment $50k on a hypothetical ~$400k house &gt; 10% threshold)</span></span></span>
-<span class="r-in"><span><span class="fu">compute_principal_with_pmi</span><span class="op">(</span>monthly_housing_budget <span class="op">=</span> <span class="fl">2000</span>,</span></span>
-<span class="r-in"><span>                           monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">200</span>,</span></span>
-<span class="r-in"><span>                           rate_per_month <span class="op">=</span> <span class="fl">0.07</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
-<span class="r-in"><span>                           n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
-<span class="r-in"><span>                           prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.0</span>,</span></span>
-<span class="r-in"><span>                           down_payment_dollars <span class="op">=</span> <span class="fl">50000</span>,</span></span>
-<span class="r-in"><span>                           pmi_rate_annual <span class="op">=</span> <span class="fl">0.6</span>,</span></span>
-<span class="r-in"><span>                           pmi_threshold_pct <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">compute_principal_with_pmi</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  monthly_housing_budget <span class="op">=</span> <span class="fl">2000</span>,</span></span>
+<span class="r-in"><span>  monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">200</span>,</span></span>
+<span class="r-in"><span>  rate_per_month <span class="op">=</span> <span class="fl">0.07</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
+<span class="r-in"><span>  n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
+<span class="r-in"><span>  prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.0</span>,</span></span>
+<span class="r-in"><span>  down_payment_dollars <span class="op">=</span> <span class="fl">50000</span>,</span></span>
+<span class="r-in"><span>  pmi_rate_annual <span class="op">=</span> <span class="fl">0.6</span>,</span></span>
+<span class="r-in"><span>  pmi_threshold_pct <span class="op">=</span> <span class="fl">10</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 234871.7</span>
 <span class="r-in"><span><span class="co"># Expected: approx 258346 (Implies HP approx 308346, DP is ~16% &gt; 10%)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example 4: Fixed $ down payment, insufficient to avoid PMI</span></span></span>
 <span class="r-in"><span><span class="co"># (Down payment $20k on a hypothetical ~$300k house &lt; 10% threshold)</span></span></span>
-<span class="r-in"><span><span class="fu">compute_principal_with_pmi</span><span class="op">(</span>monthly_housing_budget <span class="op">=</span> <span class="fl">2000</span>,</span></span>
-<span class="r-in"><span>                           monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">200</span>,</span></span>
-<span class="r-in"><span>                           rate_per_month <span class="op">=</span> <span class="fl">0.07</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
-<span class="r-in"><span>                           n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
-<span class="r-in"><span>                           prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.0</span>,</span></span>
-<span class="r-in"><span>                           down_payment_dollars <span class="op">=</span> <span class="fl">20000</span>,</span></span>
-<span class="r-in"><span>                           pmi_rate_annual <span class="op">=</span> <span class="fl">0.6</span>,</span></span>
-<span class="r-in"><span>                           pmi_threshold_pct <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">compute_principal_with_pmi</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  monthly_housing_budget <span class="op">=</span> <span class="fl">2000</span>,</span></span>
+<span class="r-in"><span>  monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">200</span>,</span></span>
+<span class="r-in"><span>  rate_per_month <span class="op">=</span> <span class="fl">0.07</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
+<span class="r-in"><span>  n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
+<span class="r-in"><span>  prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.0</span>,</span></span>
+<span class="r-in"><span>  down_payment_dollars <span class="op">=</span> <span class="fl">20000</span>,</span></span>
+<span class="r-in"><span>  pmi_rate_annual <span class="op">=</span> <span class="fl">0.6</span>,</span></span>
+<span class="r-in"><span>  pmi_threshold_pct <span class="op">=</span> <span class="fl">10</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 223297.4</span>
 <span class="r-in"><span><span class="co"># Expected: approx 250516 (Implies HP approx 270516, DP is ~7.4% &lt; 10%)</span></span></span>
 <span class="r-in"><span></span></span>

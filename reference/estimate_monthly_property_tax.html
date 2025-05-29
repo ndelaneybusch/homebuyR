@@ -92,8 +92,8 @@ percentage of home value (e.g., 1.2 for 1.2%). Must be non-negative.</p></dd>
 
 <dt id="arg-down-payment-pct">down_payment_pct<a class="anchor" aria-label="anchor" href="#arg-down-payment-pct"></a></dt>
 <dd><p>Numeric. The down payment as a percentage of the
-home price (e.g., 20 for 20%). Must be between 0 (inclusive) and 100 (exclusive).
-Defaults to 20.</p></dd>
+home price (e.g., 20 for 20%). Must be between 0 (inclusive) and 100
+(exclusive). Defaults to 20.</p></dd>
 
 </dl></div>
     <div id="value">
@@ -108,30 +108,36 @@ Defaults to 20.</p></dd>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Example using the same inputs as Example 2 for compute_affordable_principal</span></span></span>
 <span class="r-in"><span><span class="co"># Expected principal was ~303637. Expected home price ~379546.</span></span></span>
 <span class="r-in"><span><span class="co"># Expected monthly tax = (379546 * 0.012) / 12 = 379.55</span></span></span>
-<span class="r-in"><span><span class="fu">estimate_monthly_property_tax</span><span class="op">(</span>monthly_housing_budget <span class="op">=</span> <span class="fl">2500</span>,</span></span>
-<span class="r-in"><span>                             monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">300</span>,</span></span>
-<span class="r-in"><span>                             rate_per_month <span class="op">=</span> <span class="fl">0.06</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
-<span class="r-in"><span>                             n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
-<span class="r-in"><span>                             prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.2</span>,</span></span>
-<span class="r-in"><span>                             down_payment_pct <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">estimate_monthly_property_tax</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  monthly_housing_budget <span class="op">=</span> <span class="fl">2500</span>,</span></span>
+<span class="r-in"><span>  monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">300</span>,</span></span>
+<span class="r-in"><span>  rate_per_month <span class="op">=</span> <span class="fl">0.06</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
+<span class="r-in"><span>  n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
+<span class="r-in"><span>  prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.2</span>,</span></span>
+<span class="r-in"><span>  down_payment_pct <span class="op">=</span> <span class="fl">20</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 379.5456</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example with zero tax rate</span></span></span>
-<span class="r-in"><span><span class="fu">estimate_monthly_property_tax</span><span class="op">(</span>monthly_housing_budget <span class="op">=</span> <span class="fl">2500</span>,</span></span>
-<span class="r-in"><span>                             monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">300</span>,</span></span>
-<span class="r-in"><span>                             rate_per_month <span class="op">=</span> <span class="fl">0.06</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
-<span class="r-in"><span>                             n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
-<span class="r-in"><span>                             prop_tax_rate_annual <span class="op">=</span> <span class="fl">0</span>,</span></span>
-<span class="r-in"><span>                             down_payment_pct <span class="op">=</span> <span class="fl">20</span><span class="op">)</span> <span class="co"># Should be 0</span></span></span>
+<span class="r-in"><span><span class="fu">estimate_monthly_property_tax</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  monthly_housing_budget <span class="op">=</span> <span class="fl">2500</span>,</span></span>
+<span class="r-in"><span>  monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">300</span>,</span></span>
+<span class="r-in"><span>  rate_per_month <span class="op">=</span> <span class="fl">0.06</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
+<span class="r-in"><span>  n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
+<span class="r-in"><span>  prop_tax_rate_annual <span class="op">=</span> <span class="fl">0</span>,</span></span>
+<span class="r-in"><span>  down_payment_pct <span class="op">=</span> <span class="fl">20</span></span></span>
+<span class="r-in"><span><span class="op">)</span> <span class="co"># Should be 0</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example where principal would be 0</span></span></span>
-<span class="r-in"><span><span class="fu">estimate_monthly_property_tax</span><span class="op">(</span>monthly_housing_budget <span class="op">=</span> <span class="fl">300</span>,</span></span>
-<span class="r-in"><span>                             monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">300</span>,</span></span>
-<span class="r-in"><span>                             rate_per_month <span class="op">=</span> <span class="fl">0.06</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
-<span class="r-in"><span>                             n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
-<span class="r-in"><span>                             prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.0</span>,</span></span>
-<span class="r-in"><span>                             down_payment_pct <span class="op">=</span> <span class="fl">20</span><span class="op">)</span> <span class="co"># Should be 0</span></span></span>
+<span class="r-in"><span><span class="fu">estimate_monthly_property_tax</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  monthly_housing_budget <span class="op">=</span> <span class="fl">300</span>,</span></span>
+<span class="r-in"><span>  monthly_non_mortgage_costs <span class="op">=</span> <span class="fl">300</span>,</span></span>
+<span class="r-in"><span>  rate_per_month <span class="op">=</span> <span class="fl">0.06</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
+<span class="r-in"><span>  n_payments_total <span class="op">=</span> <span class="fl">360</span>,</span></span>
+<span class="r-in"><span>  prop_tax_rate_annual <span class="op">=</span> <span class="fl">1.0</span>,</span></span>
+<span class="r-in"><span>  down_payment_pct <span class="op">=</span> <span class="fl">20</span></span></span>
+<span class="r-in"><span><span class="op">)</span> <span class="co"># Should be 0</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
 </code></pre></div>
     </div>

@@ -88,23 +88,29 @@ on the loan. Must be non-negative.</p></dd>
 <span class="r-in"><span><span class="va">payments_made</span> <span class="op">&lt;-</span> <span class="fl">60</span></span></span>
 <span class="r-in"><span><span class="va">total_payments</span> <span class="op">&lt;-</span> <span class="fl">360</span></span></span>
 <span class="r-in"><span><span class="va">remaining_payments</span> <span class="op">&lt;-</span> <span class="va">total_payments</span> <span class="op">-</span> <span class="va">payments_made</span></span></span>
-<span class="r-in"><span><span class="fu">compute_principal_remaining</span><span class="op">(</span>monthly_payment <span class="op">=</span> <span class="va">payment</span>,</span></span>
-<span class="r-in"><span>                            rate_per_month <span class="op">=</span> <span class="va">monthly_rate</span>,</span></span>
-<span class="r-in"><span>                            n_payments_remaining <span class="op">=</span> <span class="va">remaining_payments</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">compute_principal_remaining</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  monthly_payment <span class="op">=</span> <span class="va">payment</span>,</span></span>
+<span class="r-in"><span>  rate_per_month <span class="op">=</span> <span class="va">monthly_rate</span>,</span></span>
+<span class="r-in"><span>  n_payments_remaining <span class="op">=</span> <span class="va">remaining_payments</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 279163.1</span>
 <span class="r-in"><span><span class="co"># Expected output: approx 278719.03</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Remaining principal when 0 payments remain</span></span></span>
-<span class="r-in"><span><span class="fu">compute_principal_remaining</span><span class="op">(</span>monthly_payment <span class="op">=</span> <span class="va">payment</span>,</span></span>
-<span class="r-in"><span>                            rate_per_month <span class="op">=</span> <span class="va">monthly_rate</span>,</span></span>
-<span class="r-in"><span>                            n_payments_remaining <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">compute_principal_remaining</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  monthly_payment <span class="op">=</span> <span class="va">payment</span>,</span></span>
+<span class="r-in"><span>  rate_per_month <span class="op">=</span> <span class="va">monthly_rate</span>,</span></span>
+<span class="r-in"><span>  n_payments_remaining <span class="op">=</span> <span class="fl">0</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
 <span class="r-in"><span><span class="co"># Expected output: 0</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Remaining principal on a 0% loan after some payments</span></span></span>
-<span class="r-in"><span><span class="fu">compute_principal_remaining</span><span class="op">(</span>monthly_payment <span class="op">=</span> <span class="fl">1000</span>,</span></span>
-<span class="r-in"><span>                            rate_per_month <span class="op">=</span> <span class="fl">0</span>,</span></span>
-<span class="r-in"><span>                            n_payments_remaining <span class="op">=</span> <span class="fl">6</span><span class="op">)</span> <span class="co"># 6 payments left on a 12k loan</span></span></span>
+<span class="r-in"><span><span class="fu">compute_principal_remaining</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  monthly_payment <span class="op">=</span> <span class="fl">1000</span>,</span></span>
+<span class="r-in"><span>  rate_per_month <span class="op">=</span> <span class="fl">0</span>,</span></span>
+<span class="r-in"><span>  n_payments_remaining <span class="op">=</span> <span class="fl">6</span></span></span>
+<span class="r-in"><span><span class="op">)</span> <span class="co"># 6 payments left on a 12k loan</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 6000</span>
 <span class="r-in"><span><span class="co"># Expected output: 6000</span></span></span>
 </code></pre></div>
