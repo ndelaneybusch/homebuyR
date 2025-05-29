@@ -28,14 +28,18 @@ This uses the standard annuity formula.
 # Calculate payment for a $300,000 loan over 30 years (360 months) at 6\% APR
 annual_rate <- 0.06
 monthly_rate <- annual_rate / 12
-compute_monthly_payment(principal = 300000,
-                        rate_per_month = monthly_rate,
-                        n_payments_total = 360)
+compute_monthly_payment(
+  principal = 300000,
+  rate_per_month = monthly_rate,
+  n_payments_total = 360
+)
 # Expected output: approx 1798.65
 
 # Calculate payment for a 0\% interest loan
-compute_monthly_payment(principal = 12000,
-                        rate_per_month = 0,
-                        n_payments_total = 12)
+compute_monthly_payment(
+  principal = 12000,
+  rate_per_month = 0,
+  n_payments_total = 12
+)
 # Expected output: 1000
 }

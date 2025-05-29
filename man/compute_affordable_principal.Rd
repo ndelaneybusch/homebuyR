@@ -46,30 +46,36 @@ factoring in estimated property taxes based on the derived home price.
 }
 \examples{
 # Example 1: Simple case without property tax factoring
-compute_affordable_principal(monthly_housing_budget = 2500,
-                             monthly_non_mortgage_costs = 300,
-                             rate_per_month = 0.06 / 12,
-                             n_payments_total = 360)
+compute_affordable_principal(
+  monthly_housing_budget = 2500,
+  monthly_non_mortgage_costs = 300,
+  rate_per_month = 0.06 / 12,
+  n_payments_total = 360
+)
 # Budget for P&I = 2500 - 300 = 2200
 # Expected principal: compute_principal(2200, 0.005, 360) -> approx 366951
 
 # Example 2: Factoring in property tax (1.2\%) and 20\% down
-compute_affordable_principal(monthly_housing_budget = 2500,
-                             monthly_non_mortgage_costs = 300,
-                             rate_per_month = 0.06 / 12,
-                             n_payments_total = 360,
-                             prop_tax_rate_annual = 1.2,
-                             down_payment_pct = 20)
+compute_affordable_principal(
+  monthly_housing_budget = 2500,
+  monthly_non_mortgage_costs = 300,
+  rate_per_month = 0.06 / 12,
+  n_payments_total = 360,
+  prop_tax_rate_annual = 1.2,
+  down_payment_pct = 20
+)
 # Calculation is more complex, result should be lower than Ex 1.
 # Expected: approx 336815
 
 # Example 3: 0\% interest rate, with property tax
-compute_affordable_principal(monthly_housing_budget = 2000,
-                             monthly_non_mortgage_costs = 200,
-                             rate_per_month = 0,
-                             n_payments_total = 180, # 15 years
-                             prop_tax_rate_annual = 1.0,
-                             down_payment_pct = 10)
+compute_affordable_principal(
+  monthly_housing_budget = 2000,
+  monthly_non_mortgage_costs = 200,
+  rate_per_month = 0,
+  n_payments_total = 180, # 15 years
+  prop_tax_rate_annual = 1.0,
+  down_payment_pct = 10
+)
 # Expected: approx 297521
 
 }

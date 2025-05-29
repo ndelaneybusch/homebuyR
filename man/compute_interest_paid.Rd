@@ -45,21 +45,25 @@ payment <- compute_monthly_payment(original_principal, monthly_rate, total_payme
 payments_made <- 60
 remaining_payments <- total_payments - payments_made
 
-compute_interest_paid(principal = original_principal,
-                      monthly_payment = payment,
-                      rate_per_month = monthly_rate,
-                      n_payments_total = total_payments,
-                      n_payments_remaining = remaining_payments)
+compute_interest_paid(
+  principal = original_principal,
+  monthly_payment = payment,
+  rate_per_month = monthly_rate,
+  n_payments_total = total_payments,
+  n_payments_remaining = remaining_payments
+)
 # Expected output: approx 86638.33
 # (Total paid = 1798.65 * 60 = 107919)
 # (Principal paid = 21280.97)
 # (Interest paid = 107919 - 21280.97 = 86638.03 - diff due to rounding in example)
 
 # Interest paid on a 0\% loan after 6 of 12 payments
-compute_interest_paid(principal = 12000,
-                      monthly_payment = 1000,
-                      rate_per_month = 0,
-                      n_payments_total = 12,
-                      n_payments_remaining = 6)
+compute_interest_paid(
+  principal = 12000,
+  monthly_payment = 1000,
+  rate_per_month = 0,
+  n_payments_total = 12,
+  n_payments_remaining = 6
+)
 # Expected output: 0
 }
