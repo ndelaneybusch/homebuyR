@@ -41,16 +41,20 @@ payment <- compute_monthly_payment(original_principal, monthly_rate, total_payme
 payments_made <- 60
 remaining_payments <- total_payments - payments_made
 
-compute_principal_paid(principal = original_principal,
-                       monthly_payment = payment,
-                       rate_per_month = monthly_rate,
-                       n_payments_remaining = remaining_payments)
+compute_principal_paid(
+  principal = original_principal,
+  monthly_payment = payment,
+  rate_per_month = monthly_rate,
+  n_payments_remaining = remaining_payments
+)
 # Expected output: approx 21280.97 (which is 300000 - 278719.03)
 
 # Principal paid on a 0\% loan after 6 of 12 payments
-compute_principal_paid(principal = 12000,
-                       monthly_payment = 1000,
-                       rate_per_month = 0,
-                       n_payments_remaining = 6)
+compute_principal_paid(
+  principal = 12000,
+  monthly_payment = 1000,
+  rate_per_month = 0,
+  n_payments_remaining = 6
+)
 # Expected output: 6000
 }

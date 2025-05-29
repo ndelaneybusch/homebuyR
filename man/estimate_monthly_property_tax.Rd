@@ -31,8 +31,8 @@ life of the loan (e.g., 360 for 30 years). Must be positive.}
 percentage of home value (e.g., 1.2 for 1.2\%). Must be non-negative.}
 
 \item{down_payment_pct}{Numeric. The down payment as a percentage of the
-home price (e.g., 20 for 20\%). Must be between 0 (inclusive) and 100 (exclusive).
-Defaults to 20.}
+home price (e.g., 20 for 20\%). Must be between 0 (inclusive) and 100
+(exclusive). Defaults to 20.}
 }
 \value{
 Numeric. The estimated monthly property tax. Returns 0 if the
@@ -49,26 +49,32 @@ and finally calculating the monthly tax based on the annual property tax rate.
 # Example using the same inputs as Example 2 for compute_affordable_principal
 # Expected principal was ~303637. Expected home price ~379546.
 # Expected monthly tax = (379546 * 0.012) / 12 = 379.55
-estimate_monthly_property_tax(monthly_housing_budget = 2500,
-                             monthly_non_mortgage_costs = 300,
-                             rate_per_month = 0.06 / 12,
-                             n_payments_total = 360,
-                             prop_tax_rate_annual = 1.2,
-                             down_payment_pct = 20)
+estimate_monthly_property_tax(
+  monthly_housing_budget = 2500,
+  monthly_non_mortgage_costs = 300,
+  rate_per_month = 0.06 / 12,
+  n_payments_total = 360,
+  prop_tax_rate_annual = 1.2,
+  down_payment_pct = 20
+)
 
 # Example with zero tax rate
-estimate_monthly_property_tax(monthly_housing_budget = 2500,
-                             monthly_non_mortgage_costs = 300,
-                             rate_per_month = 0.06 / 12,
-                             n_payments_total = 360,
-                             prop_tax_rate_annual = 0,
-                             down_payment_pct = 20) # Should be 0
+estimate_monthly_property_tax(
+  monthly_housing_budget = 2500,
+  monthly_non_mortgage_costs = 300,
+  rate_per_month = 0.06 / 12,
+  n_payments_total = 360,
+  prop_tax_rate_annual = 0,
+  down_payment_pct = 20
+) # Should be 0
 
 # Example where principal would be 0
-estimate_monthly_property_tax(monthly_housing_budget = 300,
-                             monthly_non_mortgage_costs = 300,
-                             rate_per_month = 0.06 / 12,
-                             n_payments_total = 360,
-                             prop_tax_rate_annual = 1.0,
-                             down_payment_pct = 20) # Should be 0
+estimate_monthly_property_tax(
+  monthly_housing_budget = 300,
+  monthly_non_mortgage_costs = 300,
+  rate_per_month = 0.06 / 12,
+  n_payments_total = 360,
+  prop_tax_rate_annual = 1.0,
+  down_payment_pct = 20
+) # Should be 0
 }

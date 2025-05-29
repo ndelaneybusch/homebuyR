@@ -36,20 +36,26 @@ payment <- compute_monthly_payment(300000, monthly_rate, 360) # approx 1798.65
 payments_made <- 60
 total_payments <- 360
 remaining_payments <- total_payments - payments_made
-compute_principal_remaining(monthly_payment = payment,
-                            rate_per_month = monthly_rate,
-                            n_payments_remaining = remaining_payments)
+compute_principal_remaining(
+  monthly_payment = payment,
+  rate_per_month = monthly_rate,
+  n_payments_remaining = remaining_payments
+)
 # Expected output: approx 278719.03
 
 # Remaining principal when 0 payments remain
-compute_principal_remaining(monthly_payment = payment,
-                            rate_per_month = monthly_rate,
-                            n_payments_remaining = 0)
+compute_principal_remaining(
+  monthly_payment = payment,
+  rate_per_month = monthly_rate,
+  n_payments_remaining = 0
+)
 # Expected output: 0
 
 # Remaining principal on a 0\% loan after some payments
-compute_principal_remaining(monthly_payment = 1000,
-                            rate_per_month = 0,
-                            n_payments_remaining = 6) # 6 payments left on a 12k loan
+compute_principal_remaining(
+  monthly_payment = 1000,
+  rate_per_month = 0,
+  n_payments_remaining = 6
+) # 6 payments left on a 12k loan
 # Expected output: 6000
 }

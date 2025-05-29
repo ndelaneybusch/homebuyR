@@ -38,17 +38,21 @@ payment <- compute_monthly_payment(original_principal, monthly_rate, total_payme
 payments_made <- 60
 remaining_payments <- total_payments - payments_made
 
-compute_total_interest_remaining(monthly_payment = payment,
-                                 rate_per_month = monthly_rate,
-                                 n_payments_remaining = remaining_payments)
+compute_total_interest_remaining(
+  monthly_payment = payment,
+  rate_per_month = monthly_rate,
+  n_payments_remaining = remaining_payments
+)
 # Expected output: approx 260876.89
 # (Total remaining payments = 1798.65 * 300 = 539595)
 # (Remaining principal = 278719.03)
 # (Interest remaining = 539595 - 278719.03 = 260875.97 - diff due to rounding in example)
 
 # Interest remaining on a 0\% loan
-compute_total_interest_remaining(monthly_payment = 1000,
-                                 rate_per_month = 0,
-                                 n_payments_remaining = 6)
+compute_total_interest_remaining(
+  monthly_payment = 1000,
+  rate_per_month = 0,
+  n_payments_remaining = 6
+)
 # Expected output: 0
 }

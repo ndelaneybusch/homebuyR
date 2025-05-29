@@ -51,7 +51,8 @@ not factored in unless down payment is below `pmi_threshold_pct`).}
 threshold below which PMI is applied. Defaults to 20.}
 }
 \value{
-Numeric. The calculated maximum affordable loan principal, considering PMI.
+Numeric. The calculated maximum affordable loan principal,
+  considering PMI.
 }
 \description{
 Calculates the maximum affordable loan principal based on a total monthly
@@ -69,48 +70,56 @@ threshold (e.g., 20%) and is calculated as a percentage of the loan amount.
 \examples{
 # -- Using Percentage Down Payment --
 # Example 1: Sufficient \% down payment (20\%), no PMI applied
-compute_principal_with_pmi(monthly_housing_budget = 2500,
-                             monthly_non_mortgage_costs = 300,
-                             rate_per_month = 0.06 / 12,
-                             n_payments_total = 360,
-                             prop_tax_rate_annual = 1.2,
-                             down_payment_pct = 20,
-                             pmi_rate_annual = 0.5)
+compute_principal_with_pmi(
+  monthly_housing_budget = 2500,
+  monthly_non_mortgage_costs = 300,
+  rate_per_month = 0.06 / 12,
+  n_payments_total = 360,
+  prop_tax_rate_annual = 1.2,
+  down_payment_pct = 20,
+  pmi_rate_annual = 0.5
+)
 # Should match compute_affordable_principal result: approx 336815
 
 # Example 2: Low \% down payment (10\%), PMI applied
-compute_principal_with_pmi(monthly_housing_budget = 2500,
-                             monthly_non_mortgage_costs = 300,
-                             rate_per_month = 0.06 / 12,
-                             n_payments_total = 360,
-                             prop_tax_rate_annual = 1.2,
-                             down_payment_pct = 10,
-                             pmi_rate_annual = 0.5)
+compute_principal_with_pmi(
+  monthly_housing_budget = 2500,
+  monthly_non_mortgage_costs = 300,
+  rate_per_month = 0.06 / 12,
+  n_payments_total = 360,
+  prop_tax_rate_annual = 1.2,
+  down_payment_pct = 10,
+  pmi_rate_annual = 0.5
+)
 # Expect result lower than Ex 1 due to PMI cost: approx 317717
 
 # -- Using Dollar Down Payment --
 # Example 3: Fixed $ down payment, sufficient to avoid PMI
 # (Down payment $50k on a hypothetical ~$400k house > 10\% threshold)
-compute_principal_with_pmi(monthly_housing_budget = 2000,
-                           monthly_non_mortgage_costs = 200,
-                           rate_per_month = 0.07 / 12,
-                           n_payments_total = 360,
-                           prop_tax_rate_annual = 1.0,
-                           down_payment_dollars = 50000,
-                           pmi_rate_annual = 0.6,
-                           pmi_threshold_pct = 10)
+compute_principal_with_pmi(
+  monthly_housing_budget = 2000,
+  monthly_non_mortgage_costs = 200,
+  rate_per_month = 0.07 / 12,
+  n_payments_total = 360,
+  prop_tax_rate_annual = 1.0,
+  down_payment_dollars = 50000,
+  pmi_rate_annual = 0.6,
+  pmi_threshold_pct = 10
+)
 # Expected: approx 258346 (Implies HP approx 308346, DP is ~16\% > 10\%)
 
 # Example 4: Fixed $ down payment, insufficient to avoid PMI
 # (Down payment $20k on a hypothetical ~$300k house < 10\% threshold)
-compute_principal_with_pmi(monthly_housing_budget = 2000,
-                           monthly_non_mortgage_costs = 200,
-                           rate_per_month = 0.07 / 12,
-                           n_payments_total = 360,
-                           prop_tax_rate_annual = 1.0,
-                           down_payment_dollars = 20000,
-                           pmi_rate_annual = 0.6,
-                           pmi_threshold_pct = 10)
+compute_principal_with_pmi(
+  monthly_housing_budget = 2000,
+  monthly_non_mortgage_costs = 200,
+  rate_per_month = 0.07 / 12,
+  n_payments_total = 360,
+  prop_tax_rate_annual = 1.0,
+  down_payment_dollars = 20000,
+  pmi_rate_annual = 0.6,
+  pmi_threshold_pct = 10
+)
 # Expected: approx 250516 (Implies HP approx 270516, DP is ~7.4\% < 10\%)
 
 }

@@ -28,14 +28,18 @@ This uses the standard annuity formula (present value of an annuity).
 # Calculate principal for a $1800/month payment over 30 years at 6\% APR
 annual_rate <- 0.06
 monthly_rate <- annual_rate / 12
-compute_principal(monthly_payment = 1798.65,
-                  rate_per_month = monthly_rate,
-                  n_payments_total = 360)
+compute_principal(
+  monthly_payment = 1798.65,
+  rate_per_month = monthly_rate,
+  n_payments_total = 360
+)
 # Expected output: approx 300000
 
 # Calculate principal for a 0\% interest loan with $1000/month payment for 1 year
-compute_principal(monthly_payment = 1000,
-                  rate_per_month = 0,
-                  n_payments_total = 12)
+compute_principal(
+  monthly_payment = 1000,
+  rate_per_month = 0,
+  n_payments_total = 12
+)
 # Expected output: 12000
 }
