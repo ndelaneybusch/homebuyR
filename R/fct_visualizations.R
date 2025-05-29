@@ -74,7 +74,7 @@ plot_price_vs_down_payment <- function(monthly_housing_budget,
       monthly_pmi_amount = monthly_pmi_amount
     )
   }) %>%
-    dplyr::filter(affordable_home_price > 0) # Remove cases where nothing is affordable
+    dplyr::filter(.data$affordable_home_price > 0) # Remove cases where nothing is affordable
 
   if (nrow(affordability_data) == 0) {
     # Return a message or empty plot if nothing is affordable in the range
@@ -267,8 +267,8 @@ plot_price_vs_rate <- function(monthly_housing_budget,
     dplyr::rowwise() %>%
     dplyr::mutate(
       monthly_mortgage_payment = compute_monthly_payment(
-        principal = affordable_principal,
-        rate_per_month = rate_per_month,
+        principal = .data$affordable_principal,
+        rate_per_month = .data$rate_per_month,
         n_payments = mortgage_term_months
       )
     ) %>%
