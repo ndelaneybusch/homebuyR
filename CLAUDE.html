@@ -72,6 +72,8 @@
 <li>
 <code>fct_mortgages.R</code>: Mortgage affordability and PMI calculations</li>
 <li>
+<code>fct_refinance.R</code>: Refinance benefit analysis with investment and tax considerations</li>
+<li>
 <code>fct_visualizations.R</code>: Interactive plotting functions</li>
 </ul></li>
 <li>
@@ -108,8 +110,12 @@
 <p><strong>Purpose</strong>: Advanced affordability calculations including taxes and PMI - <code><a href="reference/compute_affordable_principal.html">compute_affordable_principal()</a></code>: Core affordability with optional property tax integration - <code><a href="reference/estimate_monthly_property_tax.html">estimate_monthly_property_tax()</a></code>: Property tax estimation based on affordable home price - <code><a href="reference/compute_principal_with_pmi.html">compute_principal_with_pmi()</a></code>: PMI-aware affordability calculations - <code><a href="reference/calculate_mortgage_savings.html">calculate_mortgage_savings()</a></code>: Extra payment analysis with detailed amortization</p>
 </div>
 <div class="section level3">
-<h3 id="id_4-visualizations-fct_visualizationsr">4. Visualizations (<code>fct_visualizations.R</code>)<a class="anchor" aria-label="anchor" href="#id_4-visualizations-fct_visualizationsr"></a></h3>
-<p><strong>Purpose</strong>: Interactive plots for exploring mortgage scenarios - <code><a href="reference/plot_price_vs_down_payment.html">plot_price_vs_down_payment()</a></code>: Affordability vs. down payment percentage - <code><a href="reference/plot_price_vs_rate.html">plot_price_vs_rate()</a></code>: Affordability vs. interest rate with PMI zones - <code><a href="reference/plot_principal_interest.html">plot_principal_interest()</a></code>: Loan paydown comparison over time</p>
+<h3 id="id_4-refinance-analysis-fct_refinancer">4. Refinance Analysis (<code>fct_refinance.R</code>)<a class="anchor" aria-label="anchor" href="#id_4-refinance-analysis-fct_refinancer"></a></h3>
+<p><strong>Purpose</strong>: Comprehensive refinance benefit analysis with investment and tax considerations - <code><a href="reference/calculate_refinance_benefit_curve.html">calculate_refinance_benefit_curve()</a></code>: Month-by-month refinance benefit calculation including investment returns, tax savings, and equity tracking - <code><a href="reference/calculate_invested_savings_fv.html">calculate_invested_savings_fv()</a></code>: Future value calculations for invested payment savings with zero-rate handling - <code><a href="reference/calculate_tax_savings_differential.html">calculate_tax_savings_differential()</a></code>: Mortgage interest deduction differential accounting for IRS limits</p>
+</div>
+<div class="section level3">
+<h3 id="id_5-visualizations-fct_visualizationsr">5. Visualizations (<code>fct_visualizations.R</code>)<a class="anchor" aria-label="anchor" href="#id_5-visualizations-fct_visualizationsr"></a></h3>
+<p><strong>Purpose</strong>: Interactive plots for exploring mortgage scenarios - <code><a href="reference/plot_price_vs_down_payment.html">plot_price_vs_down_payment()</a></code>: Affordability vs. down payment percentage - <code><a href="reference/plot_price_vs_rate.html">plot_price_vs_rate()</a></code>: Affordability vs. interest rate with PMI zones - <code><a href="reference/plot_principal_interest.html">plot_principal_interest()</a></code>: Loan paydown comparison over time - <code><a href="reference/plot_refinance_benefit.html">plot_refinance_benefit()</a></code>: Interactive refinance benefit curve with dual-line visualization for cash vs. wealth benefits</p>
 </div>
 </div>
 <div class="section level2">
