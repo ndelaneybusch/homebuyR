@@ -31,6 +31,7 @@
   - `fct_annuity.R`: Core mortgage payment calculations
   - `fct_budgeting.R`: Budget calculation functions
   - `fct_mortgages.R`: Mortgage affordability and PMI calculations
+  - `fct_refinance.R`: Refinance benefit analysis with investment and tax considerations
   - `fct_visualizations.R`: Interactive plotting functions
 - **App Structure**: Standard Golem naming (`app_ui.R`, `app_server.R`, `run_app.R`)
 - **Tests**: Mirror function file structure (`test-fct_*.R`)
@@ -65,11 +66,18 @@
 - `compute_principal_with_pmi()`: PMI-aware affordability calculations
 - `calculate_mortgage_savings()`: Extra payment analysis with detailed amortization
 
-### 4. Visualizations (`fct_visualizations.R`)
+### 4. Refinance Analysis (`fct_refinance.R`)
+**Purpose**: Comprehensive refinance benefit analysis with investment and tax considerations
+- `calculate_refinance_benefit_curve()`: Month-by-month refinance benefit calculation including investment returns, tax savings, and equity tracking
+- `calculate_invested_savings_fv()`: Future value calculations for invested payment savings with zero-rate handling
+- `calculate_tax_savings_differential()`: Mortgage interest deduction differential accounting for IRS limits
+
+### 5. Visualizations (`fct_visualizations.R`)
 **Purpose**: Interactive plots for exploring mortgage scenarios
 - `plot_price_vs_down_payment()`: Affordability vs. down payment percentage
 - `plot_price_vs_rate()`: Affordability vs. interest rate with PMI zones
 - `plot_principal_interest()`: Loan paydown comparison over time
+- `plot_refinance_benefit()`: Interactive refinance benefit curve with dual-line visualization for cash vs. wealth benefits
 
 ## UI Design & Layout
 
