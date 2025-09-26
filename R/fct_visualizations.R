@@ -606,3 +606,214 @@ plot_principal_interest <- function(amortization_table) {
     )
   )
 }
+
+
+#' Plot Refinance Benefit Curve
+#'
+#' Creates an interactive plot showing the cumulative net benefit of refinancing
+#' over time, with breakeven point highlighting and hover details.
+#'
+#' @param refinance_data List returned by calculate_refinance_benefit_curve() containing:
+#'   \describe{
+#'     \item{months}{Vector of evaluation months (1 to max_eval_months)}
+#'     \item{net_benefits}{Vector of cumulative net benefits for each month}
+#'     \item{breakeven_month}{First month where benefit > 0 (NA if none)}
+#'     \item{old_payment}{Monthly payment on existing loan}
+#'     \item{new_payment}{Monthly payment on refinance loan}
+#'     \item{monthly_savings}{Difference in monthly payments}
+#'   }
+#' @param title Character. Optional plot title (default: "Refinance Benefit Over Time")
+#' @param show_breakeven Logical. Whether to highlight breakeven point (default: TRUE)
+#'
+#' @return A ggiraph object with interactive tooltips.
+#' @import ggplot2 ggiraph dplyr
+#' @importFrom rlang .data
+#' @export
+#'
+#' @examples
+#' # Example using output from calculate_refinance_benefit_curve()
+#' # refinance_data <- calculate_refinance_benefit_curve(
+#' #   principal = 300000,
+#' #   rate_per_month_old = 0.0041667,  # 5% annual
+#' #   rate_per_month_new = 0.0033333,  # 4% annual
+#' #   n_payments_remaining = 240,
+#' #   closing_costs = 5000,
+#' #   tax_rate = 0.25,
+#' #   investment_return_annual = 0.05
+#' # )
+#' # if (requireNamespace("ggiraph")) {
+#' #   plot_refinance_benefit(refinance_data)
+#' # }
+plot_refinance_benefit <- function(refinance_data,
+                                 title = "Refinance Benefit Over Time",
+                                 show_breakeven = TRUE) {
+  # --- Input Validation ---
+  required_fields <- c("months", "net_benefits", "breakeven_month",
+                      "old_payment", "new_payment", "monthly_savings")
+  missing_fields <- setdiff(required_fields, names(refinance_data))
+
+  if (length(missing_fields) > 0) {
+    stop(
+      "refinance_data is missing required fields: ",
+      paste(missing_fields, collapse = ", ")
+    )
+  }
+
+  stopifnot(is.character(title), length(title) == 1)
+  stopifnot(is.logical(show_breakeven), length(show_breakeven) == 1)
+
+  # Validate that months and net_benefits have same length
+  if (length(refinance_data$months) != length(refinance_data$net_benefits)) {
+    stop("months and net_benefits must have the same length")
+  }
+
+  # --- Data Preparation ---
+  plot_data <- tibble::tibble(
+    months = refinance_data$months,
+    net_benefit = refinance_data$net_benefits,
+    benefit_positive = .data$net_benefit > 0,
+    tooltip_text = sprintf(
+      paste0(
+        "<b>Month %d</b><br>",
+        "Net Benefit: %s<br><br>",
+        "Old Payment: %s<br>",
+        "New Payment: %s<br>",
+        "Monthly Savings: %s"
+      ),
+      .data$months,
+      scales::dollar(.data$net_benefit, accuracy = 1),
+      scales::dollar(refinance_data$old_payment, accuracy = 1),
+      scales::dollar(refinance_data$new_payment, accuracy = 1),
+      scales::dollar(refinance_data$monthly_savings, accuracy = 1)
+    )
+  )
+
+  # --- Create Base Plot ---
+  p <- ggplot(
+    plot_data,
+    aes(x = .data$months, y = .data$net_benefit)
+  ) +
+    # Add horizontal line at y=0
+    geom_hline(yintercept = 0, color = "grey50", linetype = "solid", size = 0.5) +
+    # Main benefit curve
+    geom_line_interactive(
+      aes(tooltip = .data$tooltip_text, data_id = .data$months),
+      color = "steelblue",
+      size = 1.2
+    ) +
+    # Interactive points for better tooltip interaction
+    geom_point_interactive(
+      aes(
+        tooltip = .data$tooltip_text,
+        data_id = .data$months,
+        color = .data$benefit_positive
+      ),
+      size = 2,
+      alpha = 0.8
+    ) +
+    scale_color_manual(
+      values = c("FALSE" = "#d73027", "TRUE" = "#1a9850"),
+      labels = c("FALSE" = "Net Cost", "TRUE" = "Net Benefit"),
+      name = "Refinance Impact"
+    ) +
+    scale_y_continuous(
+      name = "Cumulative Net Benefit ($)",
+      labels = scales::dollar_format(accuracy = 1),
+      expand = expansion(mult = c(0.05, 0.05))
+    ) +
+    scale_x_continuous(
+      name = "Months Since Refinance",
+      breaks = scales::pretty_breaks(n = 8),
+      expand = expansion(mult = c(0.01, 0.01))
+    ) +
+    labs(
+      title = title,
+      subtitle = paste0(
+        "Monthly Payment: ", scales::dollar(refinance_data$old_payment), " → ",
+        scales::dollar(refinance_data$new_payment), " (",
+        ifelse(refinance_data$monthly_savings > 0, "saves ", "costs "),
+        scales::dollar(abs(refinance_data$monthly_savings)), ")"
+      ),
+      caption = "Hover over points for detailed information"
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      legend.position = "bottom",
+      legend.title = element_text(face = "bold", size = rel(0.9)),
+      legend.text = element_text(size = rel(0.8)),
+      panel.grid.minor = element_blank(),
+      plot.title = element_text(face = "bold", size = rel(1.2), margin = margin(b = 5)),
+      plot.subtitle = element_text(color = "grey50", size = rel(1.0), margin = margin(b = 10)),
+      plot.caption = element_text(size = 8, hjust = 0.5, color = "grey50"),
+      axis.title = element_text(face = "bold")
+    )
+
+  # --- Add Breakeven Point Highlighting ---
+  if (show_breakeven && !is.na(refinance_data$breakeven_month)) {
+    breakeven_benefit <- refinance_data$net_benefits[refinance_data$breakeven_month]
+
+    # Add vertical line at breakeven point
+    p <- p +
+      geom_vline(
+        xintercept = refinance_data$breakeven_month,
+        color = "#e31a1c",
+        linetype = "dashed",
+        size = 0.8
+      ) +
+      # Add breakeven point annotation
+      geom_point(
+        aes(x = refinance_data$breakeven_month, y = breakeven_benefit),
+        color = "#e31a1c",
+        size = 4,
+        shape = 21,
+        fill = "white",
+        stroke = 2
+      ) +
+      # Add breakeven text annotation
+      annotate(
+        "text",
+        x = refinance_data$breakeven_month,
+        y = max(plot_data$net_benefit) * 0.9,
+        label = paste0("Breakeven:\n", refinance_data$breakeven_month, " months"),
+        color = "#e31a1c",
+        fontface = "bold",
+        size = 3.5,
+        hjust = ifelse(refinance_data$breakeven_month > max(plot_data$months) * 0.7, 1.1, -0.1)
+      )
+  } else if (show_breakeven && is.na(refinance_data$breakeven_month)) {
+    # Add annotation indicating no breakeven within timeframe
+    p <- p +
+      annotate(
+        "text",
+        x = max(plot_data$months) * 0.75,
+        y = max(plot_data$net_benefit) * 0.9,
+        label = "No breakeven\nwithin timeframe",
+        color = "#d73027",
+        fontface = "bold",
+        size = 3.5,
+        hjust = 0.5
+      )
+  }
+
+  # --- Convert to Interactive Plot ---
+  girafe(
+    ggobj = p,
+    options = list(
+      opts_tooltip(
+        opacity = 0.95,
+        use_fill = FALSE,
+        use_stroke = TRUE,
+        css = paste0(
+          "padding:10px;font-family:sans-serif;font-size:0.9em;",
+          "background:white;color:black;",
+          "border-radius:6px;box-shadow: 3px 3px 8px rgba(0,0,0,0.3);",
+          "border:1px solid #cccccc;"
+        )
+      ),
+      opts_sizing(rescale = TRUE, width = 1), # width = 1 means 100% of container
+      opts_toolbar(position = "topright", saveaspng = TRUE),
+      opts_hover(css = "stroke-width:3px;r:4px;"),
+      opts_hover_inv(css = "opacity:0.4;")
+    )
+  )
+}
