@@ -204,6 +204,14 @@ calculate_refinance_benefit_curve <- function(principal,
   net_benefits <- numeric(max_eval_months)
   net_cash_benefits <- numeric(max_eval_months)
   equity_differences <- numeric(max_eval_months)
+  cumulative_investments <- numeric(max_eval_months)
+  fv_savings_track <- numeric(max_eval_months)
+  tax_savings_diffs <- numeric(max_eval_months)
+
+  # Initialize cumulative calculations (incremental approach)
+  cumulative_investment <- 0
+  cumulative_deductible_interest_old <- 0
+  cumulative_deductible_interest_new <- 0
 
   # Calculate net benefit for each month
   for (k in months) {
@@ -215,63 +223,36 @@ calculate_refinance_benefit_curve <- function(principal,
     new_balance <- compute_principal_remaining(new_payment, rate_per_month_new,
                                              max(0, n_payments_new - k))
 
-    # Calculate future value of investment savings using a piecewise approach
-    # Phase 1: Both loans active (months 1 to min(k, n_payments_remaining))
-    # Phase 2: Only new loan active (months n_payments_remaining+1 to k, if k > n_payments_remaining)
+    # Calculate current month's cash flow difference
+    current_old_payment <- if (k <= n_payments_remaining) old_payment else 0
+    current_new_payment <- if (k <= n_payments_new) new_payment else 0
+    current_monthly_savings <- current_old_payment - current_new_payment
 
-    if (k <= n_payments_remaining) {
-      # Both loans still active - use original monthly savings for all k months
-      if (monthly_savings >= 0) {
-        fv_savings <- calculate_invested_savings_fv(monthly_savings, investment_rate_per_month, k)
-      } else {
-        fv_savings <- -calculate_invested_savings_fv(-monthly_savings, investment_rate_per_month, k)
-      }
-    } else {
-      # Old loan is paid off - split the calculation into two phases
-      # Phase 1: Both loans active (first n_payments_remaining months)
-      if (monthly_savings >= 0) {
-        fv_phase1 <- calculate_invested_savings_fv(monthly_savings, investment_rate_per_month, n_payments_remaining)
-      } else {
-        fv_phase1 <- -calculate_invested_savings_fv(-monthly_savings, investment_rate_per_month, n_payments_remaining)
-      }
-
-      # Phase 2: Only new loan active (remaining months - paying new_payment, no old payment savings)
-      remaining_months <- k - n_payments_remaining
-      # Grow the phase 1 amount by the remaining months at investment rate
-      fv_phase1_grown <- fv_phase1 * (1 + investment_rate_per_month)^remaining_months
-
-      # Add the cost of continuing to pay the new loan (negative savings)
-      if (k <= n_payments_new) {
-        # New loan still active - we're paying -new_payment each month in phase 2
-        phase2_monthly_cost <- -new_payment
-        if (phase2_monthly_cost >= 0) {
-          fv_phase2 <- calculate_invested_savings_fv(phase2_monthly_cost, investment_rate_per_month, remaining_months)
-        } else {
-          fv_phase2 <- -calculate_invested_savings_fv(-phase2_monthly_cost, investment_rate_per_month, remaining_months)
-        }
-      } else {
-        # New loan also paid off - no additional costs in phase 2
-        fv_phase2 <- 0
-      }
-
-      fv_savings <- fv_phase1_grown + fv_phase2
-    }
+    # Update cumulative investment value incrementally
+    # Grow previous investment by one month, then add current month's cash flow
+    cumulative_investment <- cumulative_investment * (1 + investment_rate_per_month) + current_monthly_savings
+    fv_savings <- cumulative_investment
 
     # Calculate equity difference (additional equity in new loan from lump sum paydown)
     equity_diff <- old_balance - new_balance
 
-    # Calculate cumulative interest paid for tax deduction analysis
-    # Old loan: cumulative interest from original terms
-    old_interest_paid <- compute_interest_paid(principal, old_payment, rate_per_month_old,
-                                             n_payments_remaining, max(0, n_payments_remaining - k))
-    # New loan: cumulative interest from new loan terms (starts fresh)
-    new_interest_paid <- compute_interest_paid(new_principal, new_payment, rate_per_month_new,
-                                             n_payments_new, max(0, n_payments_new - k))
+    # Update cumulative deductible interest incrementally (like Python code)
+    # Old loan: add this month's deductible interest if balance > 0
+    if (old_balance > 0.005) {
+      monthly_interest_old <- old_balance * rate_per_month_old
+      deductible_factor_old <- if (old_balance <= mid_limit) 1.0 else (mid_limit / old_balance)
+      cumulative_deductible_interest_old <- cumulative_deductible_interest_old + (monthly_interest_old * deductible_factor_old)
+    }
 
-    # Calculate tax savings differential
-    tax_savings_diff <- calculate_tax_savings_differential(old_interest_paid, new_interest_paid,
-                                                         old_balance, new_balance,
-                                                         tax_rate, mid_limit)
+    # New loan: add this month's deductible interest if balance > 0
+    if (new_balance > 0.005) {
+      monthly_interest_new <- new_balance * rate_per_month_new
+      deductible_factor_new <- if (new_balance <= mid_limit) 1.0 else (mid_limit / new_balance)
+      cumulative_deductible_interest_new <- cumulative_deductible_interest_new + (monthly_interest_new * deductible_factor_new)
+    }
+
+    # Calculate tax savings differential using cumulative deductible interest
+    tax_savings_diff <- tax_rate * (cumulative_deductible_interest_new - cumulative_deductible_interest_old)
 
     # Calculate cash benefit (excludes equity differences)
     net_cash_benefits[k] <- fv_savings - closing_costs + tax_savings_diff
@@ -281,6 +262,9 @@ calculate_refinance_benefit_curve <- function(principal,
 
     # Store equity difference for plotting
     equity_differences[k] <- equity_diff
+    cumulative_investments[k] <- cumulative_investment
+    fv_savings_track[k] <- fv_savings
+    tax_savings_diffs[k] <- tax_savings_diff
   }
 
   # Find breakeven months
