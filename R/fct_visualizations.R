@@ -698,19 +698,44 @@ plot_refinance_benefit <- function(refinance_data,
           if ("n_payments_remaining" %in% names(refinance_data)) {
             if (k <= refinance_data$n_payments_remaining) refinance_data$old_payment else 0
           } else {
-            # Estimate based on dynamic savings
+            # Estimate based on dynamic savings pattern
             old_pay <- refinance_data$old_payment
             new_pay <- refinance_data$new_payment
-            if (length(dynamic_savings) >= k && dynamic_savings[k] == -new_pay) 0 else old_pay
+            static_savings <- old_pay - new_pay
+
+            if (length(dynamic_savings) >= k) {
+              current_savings <- dynamic_savings[k]
+              # If dynamic savings equals -new_payment, old loan is paid off
+              if (abs(current_savings + new_pay) < 0.01) return(0)
+              # If dynamic savings equals old_payment, new loan is paid off, old continues
+              if (abs(current_savings - old_pay) < 0.01) return(old_pay)
+              # If dynamic savings equals static savings, both loans continue
+              if (abs(current_savings - static_savings) < 0.01) return(old_pay)
+            }
+            # Default: assume old loan continues
+            old_pay
           }
         }),
         dynamic_new_payment = sapply(.data$months, function(k) {
           if ("n_payments_new" %in% names(refinance_data)) {
             if (k <= refinance_data$n_payments_new) refinance_data$new_payment else 0
           } else {
-            # Estimate based on dynamic savings
+            # Estimate based on dynamic savings pattern
+            old_pay <- refinance_data$old_payment
             new_pay <- refinance_data$new_payment
-            if (length(dynamic_savings) >= k && abs(dynamic_savings[k]) < new_pay * 0.01) 0 else new_pay
+            static_savings <- old_pay - new_pay
+
+            if (length(dynamic_savings) >= k) {
+              current_savings <- dynamic_savings[k]
+              # If dynamic savings equals old_payment, new loan is paid off
+              if (abs(current_savings - old_pay) < 0.01) return(0)
+              # If dynamic savings equals -new_payment, old loan is paid off, new continues
+              if (abs(current_savings + new_pay) < 0.01) return(new_pay)
+              # If dynamic savings equals static savings, both loans continue
+              if (abs(current_savings - static_savings) < 0.01) return(new_pay)
+            }
+            # Default: assume new loan continues
+            new_pay
           }
         }),
         tooltip_text = sprintf(
@@ -778,19 +803,44 @@ plot_refinance_benefit <- function(refinance_data,
           if ("n_payments_remaining" %in% names(refinance_data)) {
             if (k <= refinance_data$n_payments_remaining) refinance_data$old_payment else 0
           } else {
-            # Estimate based on dynamic savings
+            # Estimate based on dynamic savings pattern
             old_pay <- refinance_data$old_payment
             new_pay <- refinance_data$new_payment
-            if (length(dynamic_savings) >= k && dynamic_savings[k] == -new_pay) 0 else old_pay
+            static_savings <- old_pay - new_pay
+
+            if (length(dynamic_savings) >= k) {
+              current_savings <- dynamic_savings[k]
+              # If dynamic savings equals -new_payment, old loan is paid off
+              if (abs(current_savings + new_pay) < 0.01) return(0)
+              # If dynamic savings equals old_payment, new loan is paid off, old continues
+              if (abs(current_savings - old_pay) < 0.01) return(old_pay)
+              # If dynamic savings equals static savings, both loans continue
+              if (abs(current_savings - static_savings) < 0.01) return(old_pay)
+            }
+            # Default: assume old loan continues
+            old_pay
           }
         }),
         dynamic_new_payment = sapply(.data$months, function(k) {
           if ("n_payments_new" %in% names(refinance_data)) {
             if (k <= refinance_data$n_payments_new) refinance_data$new_payment else 0
           } else {
-            # Estimate based on dynamic savings
+            # Estimate based on dynamic savings pattern
+            old_pay <- refinance_data$old_payment
             new_pay <- refinance_data$new_payment
-            if (length(dynamic_savings) >= k && abs(dynamic_savings[k]) < new_pay * 0.01) 0 else new_pay
+            static_savings <- old_pay - new_pay
+
+            if (length(dynamic_savings) >= k) {
+              current_savings <- dynamic_savings[k]
+              # If dynamic savings equals old_payment, new loan is paid off
+              if (abs(current_savings - old_pay) < 0.01) return(0)
+              # If dynamic savings equals -new_payment, old loan is paid off, new continues
+              if (abs(current_savings + new_pay) < 0.01) return(new_pay)
+              # If dynamic savings equals static savings, both loans continue
+              if (abs(current_savings - static_savings) < 0.01) return(new_pay)
+            }
+            # Default: assume new loan continues
+            new_pay
           }
         }),
         tooltip_text = sprintf(
