@@ -563,6 +563,7 @@ test_that("plot_refinance_benefit works with realistic calculate_refinance_benef
     rate_per_month_new = 0.045 / 12,      # 4.5% annual -> monthly
     n_payments_remaining = 240,            # 20 years remaining
     closing_costs = 8000,                  # $8K closing costs
+    n_payments_new = 30*12,
     tax_rate = 0.24,                       # 24% marginal tax rate
     investment_return_annual = 0.01,       # 1% annual investment return
     lump_sum_paydown = 0,                  # No extra paydown
@@ -614,6 +615,7 @@ test_that("plot_refinance_benefit works with realistic calculate_refinance_benef
     rate_per_month_new = 0.035 / 12,      # 3.5% annual -> monthly (smaller benefit)
     n_payments_remaining = 60,             # Only 5 years remaining
     closing_costs = 15000,                 # Very high closing costs
+    n_payments_new = 15*12,                # New 15-year
     tax_rate = 0.22,                       # 22% marginal tax rate
     investment_return_annual = 0.04,       # Lower investment return
     lump_sum_paydown = 0,
@@ -637,6 +639,7 @@ test_that("plot_refinance_benefit handles equity differences with lump sum paydo
     rate_per_month_new = 0.04 / 12,       # 4.0% annual -> monthly
     n_payments_remaining = 180,            # 15 years remaining
     closing_costs = 6000,                  # $6K closing costs
+    n_payments_new = 30*12,                # New 30-year
     tax_rate = 0.25,                       # 25% marginal tax rate
     investment_return_annual = 0.05,       # 5% annual investment return
     lump_sum_paydown = 50000,             # $50K lump sum paydown

@@ -207,14 +207,6 @@ calculate_refinance_benefit_curve <- function(principal,
 
   # Calculate net benefit for each month
   for (k in months) {
-    # Calculate future value of investment savings (handle negative savings)
-    if (monthly_savings >= 0) {
-      fv_savings <- calculate_invested_savings_fv(monthly_savings, investment_rate_per_month, k)
-    } else {
-      # Negative savings means additional costs - calculate future value of additional payments
-      fv_savings <- -calculate_invested_savings_fv(-monthly_savings, investment_rate_per_month, k)
-    }
-
     # Calculate remaining balances for both scenarios
     # Old loan: continues with remaining term, reduced by months elapsed
     old_balance <- compute_principal_remaining(old_payment, rate_per_month_old,
@@ -222,6 +214,48 @@ calculate_refinance_benefit_curve <- function(principal,
     # New loan: starts fresh with new term, reduced by months elapsed since refinance
     new_balance <- compute_principal_remaining(new_payment, rate_per_month_new,
                                              max(0, n_payments_new - k))
+
+    # Calculate future value of investment savings using a piecewise approach
+    # Phase 1: Both loans active (months 1 to min(k, n_payments_remaining))
+    # Phase 2: Only new loan active (months n_payments_remaining+1 to k, if k > n_payments_remaining)
+
+    if (k <= n_payments_remaining) {
+      # Both loans still active - use original monthly savings for all k months
+      if (monthly_savings >= 0) {
+        fv_savings <- calculate_invested_savings_fv(monthly_savings, investment_rate_per_month, k)
+      } else {
+        fv_savings <- -calculate_invested_savings_fv(-monthly_savings, investment_rate_per_month, k)
+      }
+    } else {
+      # Old loan is paid off - split the calculation into two phases
+      # Phase 1: Both loans active (first n_payments_remaining months)
+      if (monthly_savings >= 0) {
+        fv_phase1 <- calculate_invested_savings_fv(monthly_savings, investment_rate_per_month, n_payments_remaining)
+      } else {
+        fv_phase1 <- -calculate_invested_savings_fv(-monthly_savings, investment_rate_per_month, n_payments_remaining)
+      }
+
+      # Phase 2: Only new loan active (remaining months - paying new_payment, no old payment savings)
+      remaining_months <- k - n_payments_remaining
+      # Grow the phase 1 amount by the remaining months at investment rate
+      fv_phase1_grown <- fv_phase1 * (1 + investment_rate_per_month)^remaining_months
+
+      # Add the cost of continuing to pay the new loan (negative savings)
+      if (k <= n_payments_new) {
+        # New loan still active - we're paying -new_payment each month in phase 2
+        phase2_monthly_cost <- -new_payment
+        if (phase2_monthly_cost >= 0) {
+          fv_phase2 <- calculate_invested_savings_fv(phase2_monthly_cost, investment_rate_per_month, remaining_months)
+        } else {
+          fv_phase2 <- -calculate_invested_savings_fv(-phase2_monthly_cost, investment_rate_per_month, remaining_months)
+        }
+      } else {
+        # New loan also paid off - no additional costs in phase 2
+        fv_phase2 <- 0
+      }
+
+      fv_savings <- fv_phase1_grown + fv_phase2
+    }
 
     # Calculate equity difference (additional equity in new loan from lump sum paydown)
     equity_diff <- old_balance - new_balance
@@ -260,6 +294,13 @@ calculate_refinance_benefit_curve <- function(principal,
     cash_breakeven_month <- NA
   }
 
+  # Calculate dynamic monthly savings for display purposes
+  dynamic_monthly_savings <- sapply(months, function(k) {
+    current_old_payment <- if (k <= n_payments_remaining) old_payment else 0
+    current_new_payment <- if (k <= n_payments_new) new_payment else 0
+    current_old_payment - current_new_payment
+  })
+
   return(list(
     months = months,
     net_benefits = net_benefits,
@@ -269,6 +310,7 @@ calculate_refinance_benefit_curve <- function(principal,
     cash_breakeven_month = cash_breakeven_month,
     old_payment = old_payment,
     new_payment = new_payment,
-    monthly_savings = monthly_savings
+    monthly_savings = monthly_savings,
+    dynamic_monthly_savings = dynamic_monthly_savings
   ))
 }
