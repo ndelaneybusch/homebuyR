@@ -325,8 +325,6 @@ test_that("tax calculations handle MID limit edge cases precisely", {
   expect_false(result1 == result2)
 })
 
-# --- Test Realistic Scenarios ---
-
 test_that("refinance scenarios match real-world expectations", {
   # Scenario: Good refinance (2% rate drop, reasonable closing costs)
   good_refi <- calculate_refinance_benefit_curve(

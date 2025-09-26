@@ -550,3 +550,61 @@ test_that("plot_refinance_benefit custom title and breakeven options work", {
   )
   expect_s3_class(result_no_breakeven, "girafe")
 })
+
+test_that("plot_refinance_benefit works with realistic calculate_refinance_benefit_curve data", {
+  # Skip if ggiraph is not installed
+  skip_if_not_installed("ggiraph")
+
+  # Create realistic refinance scenario using actual calculation function
+  # Scenario: $400K mortgage, 5% -> 3.5%, 20 years remaining, $8K closing costs
+  realistic_refinance_data <- calculate_refinance_benefit_curve(
+    principal = 400000,                    # $400K remaining balance
+    rate_per_month_old = 0.05 / 12,       # 5.0% annual -> monthly
+    rate_per_month_new = 0.035 / 12,      # 3.5% annual -> monthly
+    n_payments_remaining = 240,            # 20 years remaining
+    closing_costs = 8000,                  # $8K closing costs
+    tax_rate = 0.24,                       # 24% marginal tax rate
+    investment_return_annual = 0.06,       # 6% annual investment return
+    lump_sum_paydown = 0,                  # No extra paydown
+    mid_limit = 750000,                    # Standard MID limit
+    max_eval_months = 120                  # Evaluate 10 years
+  )
+
+  # Verify the calculation worked and returned expected structure
+  expect_true(is.list(realistic_refinance_data))
+  expect_true(all(c("months", "net_benefits", "breakeven_month",
+                   "old_payment", "new_payment", "monthly_savings") %in%
+                  names(realistic_refinance_data)))
+
+  # Test that the plot function works with real calculation output
+  result <- plot_refinance_benefit(realistic_refinance_data)
+
+  # Verify we get a proper ggiraph object
+  expect_s3_class(result, "girafe")
+  expect_true("htmlwidget" %in% class(result))
+
+  # Verify the scenario makes financial sense
+  expect_true(realistic_refinance_data$old_payment > realistic_refinance_data$new_payment)
+  expect_true(realistic_refinance_data$monthly_savings > 0)
+  expect_true(!is.na(realistic_refinance_data$breakeven_month))
+  expect_true(realistic_refinance_data$breakeven_month > 0)
+  expect_true(realistic_refinance_data$breakeven_month <= 120)
+
+  # Test with different scenario parameters - higher closing costs, no breakeven
+  expensive_refi_data <- calculate_refinance_benefit_curve(
+    principal = 200000,                    # Smaller mortgage
+    rate_per_month_old = 0.04 / 12,       # 4.0% annual -> monthly
+    rate_per_month_new = 0.035 / 12,      # 3.5% annual -> monthly (smaller benefit)
+    n_payments_remaining = 60,             # Only 5 years remaining
+    closing_costs = 15000,                 # Very high closing costs
+    tax_rate = 0.22,                       # 22% marginal tax rate
+    investment_return_annual = 0.04,       # Lower investment return
+    lump_sum_paydown = 0,
+    mid_limit = 750000,
+    max_eval_months = 60                   # Short evaluation period
+  )
+
+  # This scenario might not break even - test the plot handles it
+  result_expensive <- plot_refinance_benefit(expensive_refi_data)
+  expect_s3_class(result_expensive, "girafe")
+})
