@@ -683,9 +683,36 @@ plot_refinance_benefit <- function(refinance_data,
       equity_difference = refinance_data$equity_differences
     )
 
-    # Create comprehensive tooltips
+    # Get dynamic monthly savings if available, otherwise use static value
+    dynamic_savings <- if ("dynamic_monthly_savings" %in% names(refinance_data)) {
+      refinance_data$dynamic_monthly_savings
+    } else {
+      rep(refinance_data$monthly_savings, length(refinance_data$months))
+    }
+
+    # Create comprehensive tooltips with dynamic values
     plot_data_wide <- plot_data_wide %>%
       dplyr::mutate(
+        # Calculate dynamic old and new payments based on loan terms
+        dynamic_old_payment = sapply(.data$months, function(k) {
+          if ("n_payments_remaining" %in% names(refinance_data)) {
+            if (k <= refinance_data$n_payments_remaining) refinance_data$old_payment else 0
+          } else {
+            # Estimate based on dynamic savings
+            old_pay <- refinance_data$old_payment
+            new_pay <- refinance_data$new_payment
+            if (length(dynamic_savings) >= k && dynamic_savings[k] == -new_pay) 0 else old_pay
+          }
+        }),
+        dynamic_new_payment = sapply(.data$months, function(k) {
+          if ("n_payments_new" %in% names(refinance_data)) {
+            if (k <= refinance_data$n_payments_new) refinance_data$new_payment else 0
+          } else {
+            # Estimate based on dynamic savings
+            new_pay <- refinance_data$new_payment
+            if (length(dynamic_savings) >= k && abs(dynamic_savings[k]) < new_pay * 0.01) 0 else new_pay
+          }
+        }),
         tooltip_text = sprintf(
           paste0(
             "<b>Month %d</b><br>",
@@ -700,9 +727,9 @@ plot_refinance_benefit <- function(refinance_data,
           scales::dollar(.data$net_cash_benefit, accuracy = 1),
           scales::dollar(.data$net_wealth_benefit, accuracy = 1),
           scales::dollar(.data$equity_difference, accuracy = 1),
-          scales::dollar(refinance_data$old_payment, accuracy = 1),
-          scales::dollar(refinance_data$new_payment, accuracy = 1),
-          scales::dollar(refinance_data$monthly_savings, accuracy = 1)
+          scales::dollar(.data$dynamic_old_payment, accuracy = 1),
+          scales::dollar(.data$dynamic_new_payment, accuracy = 1),
+          scales::dollar(dynamic_savings[.data$months], accuracy = 1)
         )
       )
 
@@ -734,24 +761,53 @@ plot_refinance_benefit <- function(refinance_data,
 
   } else {
     # Legacy format - single line
+    # Get dynamic monthly savings if available, otherwise use static value
+    dynamic_savings <- if ("dynamic_monthly_savings" %in% names(refinance_data)) {
+      refinance_data$dynamic_monthly_savings
+    } else {
+      rep(refinance_data$monthly_savings, length(refinance_data$months))
+    }
+
     plot_data_wide <- tibble::tibble(
       months = refinance_data$months,
-      net_wealth_benefit = refinance_data$net_benefits,
-      tooltip_text = sprintf(
-        paste0(
-          "<b>Month %d</b><br>",
-          "Net Benefit: %s<br><br>",
-          "Old Payment: %s<br>",
-          "New Payment: %s<br>",
-          "Monthly Savings: %s"
-        ),
-        .data$months,
-        scales::dollar(.data$net_wealth_benefit, accuracy = 1),
-        scales::dollar(refinance_data$old_payment, accuracy = 1),
-        scales::dollar(refinance_data$new_payment, accuracy = 1),
-        scales::dollar(refinance_data$monthly_savings, accuracy = 1)
+      net_wealth_benefit = refinance_data$net_benefits
+    ) %>%
+      dplyr::mutate(
+        # Calculate dynamic old and new payments based on loan terms
+        dynamic_old_payment = sapply(.data$months, function(k) {
+          if ("n_payments_remaining" %in% names(refinance_data)) {
+            if (k <= refinance_data$n_payments_remaining) refinance_data$old_payment else 0
+          } else {
+            # Estimate based on dynamic savings
+            old_pay <- refinance_data$old_payment
+            new_pay <- refinance_data$new_payment
+            if (length(dynamic_savings) >= k && dynamic_savings[k] == -new_pay) 0 else old_pay
+          }
+        }),
+        dynamic_new_payment = sapply(.data$months, function(k) {
+          if ("n_payments_new" %in% names(refinance_data)) {
+            if (k <= refinance_data$n_payments_new) refinance_data$new_payment else 0
+          } else {
+            # Estimate based on dynamic savings
+            new_pay <- refinance_data$new_payment
+            if (length(dynamic_savings) >= k && abs(dynamic_savings[k]) < new_pay * 0.01) 0 else new_pay
+          }
+        }),
+        tooltip_text = sprintf(
+          paste0(
+            "<b>Month %d</b><br>",
+            "Net Benefit: %s<br><br>",
+            "Old Payment: %s<br>",
+            "New Payment: %s<br>",
+            "Monthly Savings: %s"
+          ),
+          .data$months,
+          scales::dollar(.data$net_wealth_benefit, accuracy = 1),
+          scales::dollar(.data$dynamic_old_payment, accuracy = 1),
+          scales::dollar(.data$dynamic_new_payment, accuracy = 1),
+          scales::dollar(dynamic_savings[.data$months], accuracy = 1)
+        )
       )
-    )
 
     plot_data_long <- plot_data_wide %>%
       tidyr::pivot_longer(
