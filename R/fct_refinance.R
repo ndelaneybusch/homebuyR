@@ -102,8 +102,21 @@ calculate_tax_savings_differential <- function(old_interest_paid,
 #'
 #' Computes the cumulative net benefit of refinancing vs. keeping existing loan
 #' for each month of a specified holding period. Handles both beneficial refinances
-#' (rate reductions) and detrimental refinances (rate increases) by properly
-#' accounting for investment opportunities or additional costs.
+#' (rate reductions) and detrimental refinances (rate increases).
+#' 
+#' Includes consideration of tax savings if tax_rate > 0. The tax savings come from
+#' the mortgage interest deduction limit (MID), and assumes your deductions are itemized 
+#' and that the relevant tax bracket for the deductions is fixed.
+#' 
+#' Also includes consideration of investment returns on the monthly savings from the 
+#' refinance if investment_return_annual > 0. This assumes the returns are reinvested 
+#' and compounded monthly.
+#' 
+#' The two primary bottom-line metrics are:
+#' - `cash_benefits`: The cumulative cash benefit of refinancing vs. keeping the existing loan
+#' - `net_benefits`: The cumulative net benefit of refinancing vs. keeping the existing loan 
+#'   (includes changes in equity). This is useful if you plan to sell the home before the 
+#'   end of the holding period (because equity would convert to cash).
 #'
 #' @param principal Numeric. Remaining principal on existing loan.
 #'   Must be positive.
@@ -116,7 +129,7 @@ calculate_tax_savings_differential <- function(old_interest_paid,
 #' @param closing_costs Numeric. Total cost of refinancing.
 #'   Must be non-negative.
 #' @param n_payments_new Integer. Term of new refinanced loan in months.
-#'   Must be positive. Default: n_payments_remaining (keep same term).
+#'   Must be positive. Default: 360 (30 years).
 #' @param tax_rate Numeric. Marginal tax rate for interest deduction (as decimal).
 #'   Must be between 0 and 1. Default: 0.25.
 #' @param investment_return_annual Numeric. After-tax annual return rate for investing savings (as decimal).
@@ -126,13 +139,16 @@ calculate_tax_savings_differential <- function(old_interest_paid,
 #' @param mid_limit Numeric. Mortgage interest deduction limit.
 #'   Must be non-negative. Default: 750000.
 #' @param max_eval_months Integer. Maximum months to evaluate.
-#'   Must be positive. Default: n_payments_remaining.
+#'   Must be positive. Default: 360 (30 years).
 #'
 #' @return List containing:
 #'   - months: Vector of evaluation months (1 to max_eval_months)
 #'   - net_benefits: Vector of cumulative net benefits for each month (total wealth impact)
 #'   - net_cash_benefits: Vector of cumulative cash benefits for each month (excluding equity)
 #'   - equity_differences: Vector of equity differences for each month (old_balance - new_balance)
+#'   - cumulative_investments: Vector of cumulative investment returns for each month
+#'   - cumulative_fv_savings: Vector of cumulative future value of savings for each month
+#'   - cumulative_tax_savings: Vector of cumulative tax savings for each month
 #'   - breakeven_month: First month where total benefit > 0 (NA if none)
 #'   - cash_breakeven_month: First month where cash benefit > 0 (NA if none)
 #'   - old_payment: Monthly payment on existing loan
