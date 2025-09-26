@@ -115,6 +115,8 @@ calculate_tax_savings_differential <- function(old_interest_paid,
 #'   Must be positive.
 #' @param closing_costs Numeric. Total cost of refinancing.
 #'   Must be non-negative.
+#' @param n_payments_new Integer. Term of new refinanced loan in months.
+#'   Must be positive. Default: n_payments_remaining (keep same term).
 #' @param tax_rate Numeric. Marginal tax rate for interest deduction (as decimal).
 #'   Must be between 0 and 1. Default: 0.25.
 #' @param investment_return_annual Numeric. After-tax annual return rate for investing savings (as decimal).
@@ -128,8 +130,11 @@ calculate_tax_savings_differential <- function(old_interest_paid,
 #'
 #' @return List containing:
 #'   - months: Vector of evaluation months (1 to max_eval_months)
-#'   - net_benefits: Vector of cumulative net benefits for each month
-#'   - breakeven_month: First month where benefit > 0 (NA if none)
+#'   - net_benefits: Vector of cumulative net benefits for each month (total wealth impact)
+#'   - net_cash_benefits: Vector of cumulative cash benefits for each month (excluding equity)
+#'   - equity_differences: Vector of equity differences for each month (old_balance - new_balance)
+#'   - breakeven_month: First month where total benefit > 0 (NA if none)
+#'   - cash_breakeven_month: First month where cash benefit > 0 (NA if none)
 #'   - old_payment: Monthly payment on existing loan
 #'   - new_payment: Monthly payment on refinance loan
 #'   - monthly_savings: Difference in monthly payments
@@ -161,6 +166,7 @@ calculate_refinance_benefit_curve <- function(principal,
                                             rate_per_month_new,
                                             n_payments_remaining,
                                             closing_costs,
+                                            n_payments_new = 12 * 30,
                                             tax_rate = 0.25,
                                             investment_return_annual = 0.0,
                                             lump_sum_paydown = 0,
@@ -171,6 +177,7 @@ calculate_refinance_benefit_curve <- function(principal,
   stopifnot(is.numeric(rate_per_month_old), rate_per_month_old >= 0)
   stopifnot(is.numeric(rate_per_month_new), rate_per_month_new >= 0)
   stopifnot(is.numeric(n_payments_remaining), n_payments_remaining > 0, n_payments_remaining == floor(n_payments_remaining))
+  stopifnot(is.numeric(n_payments_new), n_payments_new > 0, n_payments_new == floor(n_payments_new))
   stopifnot(is.numeric(closing_costs), closing_costs >= 0)
   stopifnot(is.numeric(tax_rate), tax_rate >= 0, tax_rate <= 1)
   stopifnot(is.numeric(investment_return_annual), investment_return_annual >= 0)
@@ -187,7 +194,7 @@ calculate_refinance_benefit_curve <- function(principal,
   # Calculate monthly payments for both scenarios
   old_payment <- compute_monthly_payment(principal, rate_per_month_old, n_payments_remaining)
   new_principal <- principal - lump_sum_paydown
-  new_payment <- compute_monthly_payment(new_principal, rate_per_month_new, n_payments_remaining)
+  new_payment <- compute_monthly_payment(new_principal, rate_per_month_new, n_payments_new)
 
   # Calculate monthly payment savings
   monthly_savings <- old_payment - new_payment
@@ -195,6 +202,8 @@ calculate_refinance_benefit_curve <- function(principal,
   # Initialize result vectors
   months <- seq_len(max_eval_months)
   net_benefits <- numeric(max_eval_months)
+  net_cash_benefits <- numeric(max_eval_months)
+  equity_differences <- numeric(max_eval_months)
 
   # Calculate net benefit for each month
   for (k in months) {
@@ -207,39 +216,57 @@ calculate_refinance_benefit_curve <- function(principal,
     }
 
     # Calculate remaining balances for both scenarios
+    # Old loan: continues with remaining term, reduced by months elapsed
     old_balance <- compute_principal_remaining(old_payment, rate_per_month_old,
                                              max(0, n_payments_remaining - k))
+    # New loan: starts fresh with new term, reduced by months elapsed since refinance
     new_balance <- compute_principal_remaining(new_payment, rate_per_month_new,
-                                             max(0, n_payments_remaining - k))
+                                             max(0, n_payments_new - k))
 
-    # Calculate equity difference (additional equity in new loan from lump sum)
+    # Calculate equity difference (additional equity in new loan from lump sum paydown)
     equity_diff <- old_balance - new_balance
 
     # Calculate cumulative interest paid for tax deduction analysis
+    # Old loan: cumulative interest from original terms
     old_interest_paid <- compute_interest_paid(principal, old_payment, rate_per_month_old,
                                              n_payments_remaining, max(0, n_payments_remaining - k))
+    # New loan: cumulative interest from new loan terms (starts fresh)
     new_interest_paid <- compute_interest_paid(new_principal, new_payment, rate_per_month_new,
-                                             n_payments_remaining, max(0, n_payments_remaining - k))
+                                             n_payments_new, max(0, n_payments_new - k))
 
     # Calculate tax savings differential
     tax_savings_diff <- calculate_tax_savings_differential(old_interest_paid, new_interest_paid,
                                                          old_balance, new_balance,
                                                          tax_rate, mid_limit)
 
-    # Calculate net benefit
-    net_benefits[k] <- fv_savings - closing_costs + equity_diff + tax_savings_diff
+    # Calculate cash benefit (excludes equity differences)
+    net_cash_benefits[k] <- fv_savings - closing_costs + tax_savings_diff
+
+    # Calculate total benefit (includes equity differences - total wealth impact)
+    net_benefits[k] <- net_cash_benefits[k] + equity_diff
+
+    # Store equity difference for plotting
+    equity_differences[k] <- equity_diff
   }
 
-  # Find breakeven month (first month with positive benefit)
+  # Find breakeven months
   breakeven_month <- which(net_benefits > 0)[1]
   if (length(breakeven_month) == 0) {
     breakeven_month <- NA
   }
 
+  cash_breakeven_month <- which(net_cash_benefits > 0)[1]
+  if (length(cash_breakeven_month) == 0) {
+    cash_breakeven_month <- NA
+  }
+
   return(list(
     months = months,
     net_benefits = net_benefits,
+    net_cash_benefits = net_cash_benefits,
+    equity_differences = equity_differences,
     breakeven_month = breakeven_month,
+    cash_breakeven_month = cash_breakeven_month,
     old_payment = old_payment,
     new_payment = new_payment,
     monthly_savings = monthly_savings

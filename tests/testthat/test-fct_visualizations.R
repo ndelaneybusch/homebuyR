@@ -556,18 +556,18 @@ test_that("plot_refinance_benefit works with realistic calculate_refinance_benef
   skip_if_not_installed("ggiraph")
 
   # Create realistic refinance scenario using actual calculation function
-  # Scenario: $400K mortgage, 5% -> 3.5%, 20 years remaining, $8K closing costs
+  # Scenario: $700K mortgage, 5% -> 4.5%, 20 years remaining, $8K closing costs
   realistic_refinance_data <- calculate_refinance_benefit_curve(
-    principal = 400000,                    # $400K remaining balance
+    principal = 700000,                    # $700K remaining balance
     rate_per_month_old = 0.05 / 12,       # 5.0% annual -> monthly
-    rate_per_month_new = 0.035 / 12,      # 3.5% annual -> monthly
+    rate_per_month_new = 0.045 / 12,      # 4.5% annual -> monthly
     n_payments_remaining = 240,            # 20 years remaining
     closing_costs = 8000,                  # $8K closing costs
     tax_rate = 0.24,                       # 24% marginal tax rate
-    investment_return_annual = 0.06,       # 6% annual investment return
+    investment_return_annual = 0.01,       # 1% annual investment return
     lump_sum_paydown = 0,                  # No extra paydown
     mid_limit = 750000,                    # Standard MID limit
-    max_eval_months = 120                  # Evaluate 10 years
+    max_eval_months = 30*12                  # Evaluate full limit
   )
 
   # Verify the calculation worked and returned expected structure
@@ -590,6 +590,23 @@ test_that("plot_refinance_benefit works with realistic calculate_refinance_benef
   expect_true(realistic_refinance_data$breakeven_month > 0)
   expect_true(realistic_refinance_data$breakeven_month <= 120)
 
+  # Verify new equity fields are present and make sense
+  expect_true("net_cash_benefits" %in% names(realistic_refinance_data))
+  expect_true("equity_differences" %in% names(realistic_refinance_data))
+  expect_true("cash_breakeven_month" %in% names(realistic_refinance_data))
+
+  # Cash breakeven should typically be later than wealth breakeven (or same/earlier if no lump sum)
+  if (!is.na(realistic_refinance_data$cash_breakeven_month)) {
+    expect_true(realistic_refinance_data$cash_breakeven_month > 0)
+    expect_true(realistic_refinance_data$cash_breakeven_month <= 120)
+  }
+
+  # Verify mathematical relationship: net_benefits = net_cash_benefits + equity_differences
+  for (i in 1:length(realistic_refinance_data$months)) {
+    expected_total <- realistic_refinance_data$net_cash_benefits[i] + realistic_refinance_data$equity_differences[i]
+    expect_equal(realistic_refinance_data$net_benefits[i], expected_total, tolerance = 0.01)
+  }
+
   # Test with different scenario parameters - higher closing costs, no breakeven
   expensive_refi_data <- calculate_refinance_benefit_curve(
     principal = 200000,                    # Smaller mortgage
@@ -607,4 +624,56 @@ test_that("plot_refinance_benefit works with realistic calculate_refinance_benef
   # This scenario might not break even - test the plot handles it
   result_expensive <- plot_refinance_benefit(expensive_refi_data)
   expect_s3_class(result_expensive, "girafe")
+})
+
+test_that("plot_refinance_benefit handles equity differences with lump sum paydown correctly", {
+  # Skip if ggiraph is not installed
+  skip_if_not_installed("ggiraph")
+
+  # Create scenario with significant lump sum paydown to test equity tracking
+  lump_sum_scenario <- calculate_refinance_benefit_curve(
+    principal = 300000,                    # $300K remaining balance
+    rate_per_month_old = 0.06 / 12,       # 6.0% annual -> monthly
+    rate_per_month_new = 0.04 / 12,       # 4.0% annual -> monthly
+    n_payments_remaining = 180,            # 15 years remaining
+    closing_costs = 6000,                  # $6K closing costs
+    tax_rate = 0.25,                       # 25% marginal tax rate
+    investment_return_annual = 0.05,       # 5% annual investment return
+    lump_sum_paydown = 50000,             # $50K lump sum paydown
+    mid_limit = 750000,                    # Standard MID limit
+    max_eval_months = 60                   # Evaluate 5 years
+  )
+
+  # Verify structure with new fields
+  expect_true(all(c("net_cash_benefits", "equity_differences", "cash_breakeven_month") %in%
+                  names(lump_sum_scenario)))
+
+  # With a lump sum paydown, equity differences should be significant
+  expect_true(all(lump_sum_scenario$equity_differences > 0)) # Should always be positive due to lump sum
+
+  # Cash benefit should be lower than total benefit due to equity differences
+  expect_true(all(lump_sum_scenario$net_benefits >= lump_sum_scenario$net_cash_benefits))
+
+  # Cash breakeven should typically be later than wealth breakeven with lump sum
+  if (!is.na(lump_sum_scenario$cash_breakeven_month) && !is.na(lump_sum_scenario$breakeven_month)) {
+    expect_true(lump_sum_scenario$cash_breakeven_month >= lump_sum_scenario$breakeven_month)
+  }
+
+  # Test plotting with new format
+  result_lump_sum <- plot_refinance_benefit(lump_sum_scenario)
+  expect_s3_class(result_lump_sum, "girafe")
+
+  # Test backward compatibility by plotting data that looks like old format
+  legacy_format_data <- list(
+    months = 1:36,
+    net_benefits = seq(-8000, 12000, length.out = 36),
+    breakeven_month = 24,
+    old_payment = 2400,
+    new_payment = 2100,
+    monthly_savings = 300
+    # Missing new fields: net_cash_benefits, equity_differences, cash_breakeven_month
+  )
+
+  result_legacy <- plot_refinance_benefit(legacy_format_data)
+  expect_s3_class(result_legacy, "girafe")
 })

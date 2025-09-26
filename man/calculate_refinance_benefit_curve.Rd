@@ -10,6 +10,7 @@ calculate_refinance_benefit_curve(
   rate_per_month_new,
   n_payments_remaining,
   closing_costs,
+  n_payments_new = 12 * 30,
   tax_rate = 0.25,
   investment_return_annual = 0,
   lump_sum_paydown = 0,
@@ -33,6 +34,9 @@ Must be positive.}
 \item{closing_costs}{Numeric. Total cost of refinancing.
 Must be non-negative.}
 
+\item{n_payments_new}{Integer. Term of new refinanced loan in months.
+Must be positive. Default: n_payments_remaining (keep same term).}
+
 \item{tax_rate}{Numeric. Marginal tax rate for interest deduction (as decimal).
 Must be between 0 and 1. Default: 0.25.}
 
@@ -51,8 +55,11 @@ Must be positive. Default: n_payments_remaining.}
 \value{
 List containing:
   - months: Vector of evaluation months (1 to max_eval_months)
-  - net_benefits: Vector of cumulative net benefits for each month
-  - breakeven_month: First month where benefit > 0 (NA if none)
+  - net_benefits: Vector of cumulative net benefits for each month (total wealth impact)
+  - net_cash_benefits: Vector of cumulative cash benefits for each month (excluding equity)
+  - equity_differences: Vector of equity differences for each month (old_balance - new_balance)
+  - breakeven_month: First month where total benefit > 0 (NA if none)
+  - cash_breakeven_month: First month where cash benefit > 0 (NA if none)
   - old_payment: Monthly payment on existing loan
   - new_payment: Monthly payment on refinance loan
   - monthly_savings: Difference in monthly payments

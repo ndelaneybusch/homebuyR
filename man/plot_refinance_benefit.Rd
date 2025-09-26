@@ -14,8 +14,11 @@ plot_refinance_benefit(
 \item{refinance_data}{List returned by calculate_refinance_benefit_curve() containing:
 \describe{
   \item{months}{Vector of evaluation months (1 to max_eval_months)}
-  \item{net_benefits}{Vector of cumulative net benefits for each month}
-  \item{breakeven_month}{First month where benefit > 0 (NA if none)}
+  \item{net_benefits}{Vector of cumulative net benefits for each month (total wealth impact)}
+  \item{net_cash_benefits}{Vector of cumulative cash benefits for each month (excluding equity)}
+  \item{equity_differences}{Vector of equity differences for each month}
+  \item{breakeven_month}{First month where total benefit > 0 (NA if none)}
+  \item{cash_breakeven_month}{First month where cash benefit > 0 (NA if none)}
   \item{old_payment}{Monthly payment on existing loan}
   \item{new_payment}{Monthly payment on refinance loan}
   \item{monthly_savings}{Difference in monthly payments}

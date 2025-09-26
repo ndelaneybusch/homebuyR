@@ -616,8 +616,11 @@ plot_principal_interest <- function(amortization_table) {
 #' @param refinance_data List returned by calculate_refinance_benefit_curve() containing:
 #'   \describe{
 #'     \item{months}{Vector of evaluation months (1 to max_eval_months)}
-#'     \item{net_benefits}{Vector of cumulative net benefits for each month}
-#'     \item{breakeven_month}{First month where benefit > 0 (NA if none)}
+#'     \item{net_benefits}{Vector of cumulative net benefits for each month (total wealth impact)}
+#'     \item{net_cash_benefits}{Vector of cumulative cash benefits for each month (excluding equity)}
+#'     \item{equity_differences}{Vector of equity differences for each month}
+#'     \item{breakeven_month}{First month where total benefit > 0 (NA if none)}
+#'     \item{cash_breakeven_month}{First month where cash benefit > 0 (NA if none)}
 #'     \item{old_payment}{Monthly payment on existing loan}
 #'     \item{new_payment}{Monthly payment on refinance loan}
 #'     \item{monthly_savings}{Difference in monthly payments}
@@ -666,55 +669,135 @@ plot_refinance_benefit <- function(refinance_data,
   if (length(refinance_data$months) != length(refinance_data$net_benefits)) {
     stop("months and net_benefits must have the same length")
   }
+  has_cash_benefits <- "net_cash_benefits" %in% names(refinance_data)
+  has_equity_differences <- "equity_differences" %in% names(refinance_data)
+  has_cash_breakeven <- "cash_breakeven_month" %in% names(refinance_data)
 
   # --- Data Preparation ---
-  plot_data <- tibble::tibble(
-    months = refinance_data$months,
-    net_benefit = refinance_data$net_benefits,
-    benefit_positive = .data$net_benefit > 0,
-    tooltip_text = sprintf(
-      paste0(
-        "<b>Month %d</b><br>",
-        "Net Benefit: %s<br><br>",
-        "Old Payment: %s<br>",
-        "New Payment: %s<br>",
-        "Monthly Savings: %s"
-      ),
-      .data$months,
-      scales::dollar(.data$net_benefit, accuracy = 1),
-      scales::dollar(refinance_data$old_payment, accuracy = 1),
-      scales::dollar(refinance_data$new_payment, accuracy = 1),
-      scales::dollar(refinance_data$monthly_savings, accuracy = 1)
+  if (has_cash_benefits && has_equity_differences) {
+    # New format with separate cash and wealth benefits
+    plot_data_wide <- tibble::tibble(
+      months = refinance_data$months,
+      net_wealth_benefit = refinance_data$net_benefits,
+      net_cash_benefit = refinance_data$net_cash_benefits,
+      equity_difference = refinance_data$equity_differences
     )
-  )
+
+    # Create comprehensive tooltips
+    plot_data_wide <- plot_data_wide %>%
+      dplyr::mutate(
+        tooltip_text = sprintf(
+          paste0(
+            "<b>Month %d</b><br>",
+            "<strong>Net Cash Benefit:</strong> %s<br>",
+            "<strong>Net Wealth Benefit:</strong> %s<br>",
+            "<strong>Equity Difference:</strong> %s<br><br>",
+            "Old Payment: %s<br>",
+            "New Payment: %s<br>",
+            "Monthly Savings: %s"
+          ),
+          .data$months,
+          scales::dollar(.data$net_cash_benefit, accuracy = 1),
+          scales::dollar(.data$net_wealth_benefit, accuracy = 1),
+          scales::dollar(.data$equity_difference, accuracy = 1),
+          scales::dollar(refinance_data$old_payment, accuracy = 1),
+          scales::dollar(refinance_data$new_payment, accuracy = 1),
+          scales::dollar(refinance_data$monthly_savings, accuracy = 1)
+        )
+      )
+
+    # Pivot to long format for multiple lines
+    plot_data_long <- plot_data_wide %>%
+      tidyr::pivot_longer(
+        cols = c(.data$net_cash_benefit, .data$net_wealth_benefit),
+        names_to = "benefit_type",
+        values_to = "benefit_amount"
+      ) %>%
+      dplyr::mutate(
+        benefit_type_label = factor(
+          ifelse(.data$benefit_type == "net_cash_benefit",
+                "Net Cash Benefit", "Net Wealth Benefit"),
+          levels = c("Net Cash Benefit", "Net Wealth Benefit")
+        )
+      )
+
+    # Define colors and line types
+    benefit_colors <- c(
+      "Net Cash Benefit" = "#0072B2",    # Blue - cash only
+      "Net Wealth Benefit" = "#009E73"   # Green - total wealth
+    )
+
+    benefit_linetypes <- c(
+      "Net Cash Benefit" = "dashed",     # Dashed for cash
+      "Net Wealth Benefit" = "solid"     # Solid for total wealth
+    )
+
+  } else {
+    # Legacy format - single line
+    plot_data_wide <- tibble::tibble(
+      months = refinance_data$months,
+      net_wealth_benefit = refinance_data$net_benefits,
+      tooltip_text = sprintf(
+        paste0(
+          "<b>Month %d</b><br>",
+          "Net Benefit: %s<br><br>",
+          "Old Payment: %s<br>",
+          "New Payment: %s<br>",
+          "Monthly Savings: %s"
+        ),
+        .data$months,
+        scales::dollar(.data$net_wealth_benefit, accuracy = 1),
+        scales::dollar(refinance_data$old_payment, accuracy = 1),
+        scales::dollar(refinance_data$new_payment, accuracy = 1),
+        scales::dollar(refinance_data$monthly_savings, accuracy = 1)
+      )
+    )
+
+    plot_data_long <- plot_data_wide %>%
+      tidyr::pivot_longer(
+        cols = .data$net_wealth_benefit,
+        names_to = "benefit_type",
+        values_to = "benefit_amount"
+      ) %>%
+      dplyr::mutate(
+        benefit_type_label = factor("Net Benefit", levels = "Net Benefit")
+      )
+
+    benefit_colors <- c("Net Benefit" = "steelblue")
+    benefit_linetypes <- c("Net Benefit" = "solid")
+  }
 
   # --- Create Base Plot ---
-  p <- ggplot(
-    plot_data,
-    aes(x = .data$months, y = .data$net_benefit)
-  ) +
+  p <- ggplot(plot_data_long, aes(x = .data$months, y = .data$benefit_amount)) +
     # Add horizontal line at y=0
     geom_hline(yintercept = 0, color = "grey50", linetype = "solid", size = 0.5) +
-    # Main benefit curve
+    # Benefit curves
     geom_line_interactive(
-      aes(tooltip = .data$tooltip_text, data_id = .data$months),
-      color = "steelblue",
+      aes(
+        color = .data$benefit_type_label,
+        linetype = .data$benefit_type_label,
+        tooltip = .data$tooltip_text,
+        data_id = paste(.data$benefit_type_label, .data$months, sep = "_")
+      ),
       size = 1.2
     ) +
     # Interactive points for better tooltip interaction
     geom_point_interactive(
       aes(
+        color = .data$benefit_type_label,
         tooltip = .data$tooltip_text,
-        data_id = .data$months,
-        color = .data$benefit_positive
+        data_id = paste(.data$benefit_type_label, .data$months, sep = "_")
       ),
-      size = 2,
-      alpha = 0.8
+      size = 1.5,
+      alpha = 0.6
     ) +
     scale_color_manual(
-      values = c("FALSE" = "#d73027", "TRUE" = "#1a9850"),
-      labels = c("FALSE" = "Net Cost", "TRUE" = "Net Benefit"),
-      name = "Refinance Impact"
+      values = benefit_colors,
+      name = "Benefit Type"
+    ) +
+    scale_linetype_manual(
+      values = benefit_linetypes,
+      name = "Benefit Type"
     ) +
     scale_y_continuous(
       name = "Cumulative Net Benefit ($)",
@@ -732,9 +815,14 @@ plot_refinance_benefit <- function(refinance_data,
         "Monthly Payment: ", scales::dollar(refinance_data$old_payment), " → ",
         scales::dollar(refinance_data$new_payment), " (",
         ifelse(refinance_data$monthly_savings > 0, "saves ", "costs "),
-        scales::dollar(abs(refinance_data$monthly_savings)), ")"
+        scales::dollar(abs(refinance_data$monthly_savings)), ")",
+        if (has_cash_benefits) "\nCash benefit excludes equity; Wealth benefit includes equity changes" else ""
       ),
-      caption = "Hover over points for detailed information"
+      caption = if (has_cash_benefits) {
+        "Hover over lines for detailed information. Cash benefit shows refinance value excluding home equity."
+      } else {
+        "Hover over points for detailed information"
+      }
     ) +
     theme_minimal(base_size = 12) +
     theme(
@@ -749,50 +837,76 @@ plot_refinance_benefit <- function(refinance_data,
     )
 
   # --- Add Breakeven Point Highlighting ---
-  if (show_breakeven && !is.na(refinance_data$breakeven_month)) {
-    breakeven_benefit <- refinance_data$net_benefits[refinance_data$breakeven_month]
+  if (show_breakeven) {
+    # Wealth breakeven
+    if (!is.na(refinance_data$breakeven_month)) {
+      breakeven_benefit <- refinance_data$net_benefits[refinance_data$breakeven_month]
 
-    # Add vertical line at breakeven point
-    p <- p +
-      geom_vline(
-        xintercept = refinance_data$breakeven_month,
-        color = "#e31a1c",
-        linetype = "dashed",
-        size = 0.8
-      ) +
-      # Add breakeven point annotation
-      geom_point(
-        aes(x = refinance_data$breakeven_month, y = breakeven_benefit),
-        color = "#e31a1c",
-        size = 4,
-        shape = 21,
-        fill = "white",
-        stroke = 2
-      ) +
-      # Add breakeven text annotation
-      annotate(
-        "text",
-        x = refinance_data$breakeven_month,
-        y = max(plot_data$net_benefit) * 0.9,
-        label = paste0("Breakeven:\n", refinance_data$breakeven_month, " months"),
-        color = "#e31a1c",
-        fontface = "bold",
-        size = 3.5,
-        hjust = ifelse(refinance_data$breakeven_month > max(plot_data$months) * 0.7, 1.1, -0.1)
-      )
-  } else if (show_breakeven && is.na(refinance_data$breakeven_month)) {
-    # Add annotation indicating no breakeven within timeframe
-    p <- p +
-      annotate(
-        "text",
-        x = max(plot_data$months) * 0.75,
-        y = max(plot_data$net_benefit) * 0.9,
-        label = "No breakeven\nwithin timeframe",
-        color = "#d73027",
-        fontface = "bold",
-        size = 3.5,
-        hjust = 0.5
-      )
+      p <- p +
+        geom_vline(
+          xintercept = refinance_data$breakeven_month,
+          color = "#e31a1c",
+          linetype = "dotted",
+          size = 0.8
+        ) +
+        geom_point(
+          aes(x = refinance_data$breakeven_month, y = breakeven_benefit),
+          color = "#e31a1c",
+          size = 4,
+          shape = 21,
+          fill = "white",
+          stroke = 2
+        ) +
+        annotate(
+          "text",
+          x = refinance_data$breakeven_month,
+          y = max(plot_data_long$benefit_amount, na.rm = TRUE) * 0.9,
+          label = paste0("Wealth Breakeven:\n", refinance_data$breakeven_month, " months"),
+          color = "#e31a1c",
+          fontface = "bold",
+          size = 3.2,
+          hjust = ifelse(refinance_data$breakeven_month > max(refinance_data$months) * 0.7, 1.1, -0.1)
+        )
+    }
+
+    # Cash breakeven (if available)
+    if (has_cash_breakeven && !is.na(refinance_data$cash_breakeven_month)) {
+      cash_breakeven_benefit <- refinance_data$net_cash_benefits[refinance_data$cash_breakeven_month]
+
+      p <- p +
+        geom_vline(
+          xintercept = refinance_data$cash_breakeven_month,
+          color = "#0072B2",
+          linetype = "dotted",
+          size = 0.8,
+          alpha = 0.8
+        ) +
+        annotate(
+          "text",
+          x = refinance_data$cash_breakeven_month,
+          y = max(plot_data_long$benefit_amount, na.rm = TRUE) * 0.75,
+          label = paste0("Cash Breakeven:\n", refinance_data$cash_breakeven_month, " months"),
+          color = "#0072B2",
+          fontface = "bold",
+          size = 3.2,
+          hjust = ifelse(refinance_data$cash_breakeven_month > max(refinance_data$months) * 0.7, 1.1, -0.1)
+        )
+    }
+
+    # No breakeven message
+    if (is.na(refinance_data$breakeven_month)) {
+      p <- p +
+        annotate(
+          "text",
+          x = max(refinance_data$months) * 0.75,
+          y = max(plot_data_long$benefit_amount, na.rm = TRUE) * 0.9,
+          label = "No breakeven\nwithin timeframe",
+          color = "#d73027",
+          fontface = "bold",
+          size = 3.5,
+          hjust = 0.5
+        )
+    }
   }
 
   # --- Convert to Interactive Plot ---
@@ -810,7 +924,7 @@ plot_refinance_benefit <- function(refinance_data,
           "border:1px solid #cccccc;"
         )
       ),
-      opts_sizing(rescale = TRUE, width = 1), # width = 1 means 100% of container
+      opts_sizing(rescale = TRUE, width = 1),
       opts_toolbar(position = "topright", saveaspng = TRUE),
       opts_hover(css = "stroke-width:3px;r:4px;"),
       opts_hover_inv(css = "opacity:0.4;")
