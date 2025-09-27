@@ -690,47 +690,67 @@ analyses:</p>
 five main categories:</p>
 <h3 id="id_1-annuity-calculations-fct_annuityr">1. Annuity Calculations
 (<code>fct_annuity.R</code>)</h3>
-<p>Core mortgage payment mathematics: -
-<code>compute_monthly_payment()</code>: Calculate standard mortgage
-payments - <code>compute_principal()</code>: Reverse calculation from
-payment to principal amount -
-<code>compute_principal_remaining()</code>: Outstanding balance
-calculations - <code>compute_principal_paid()</code> /
-<code>compute_interest_paid()</code>: Payment breakdowns over time</p>
+<p>Core mortgage payment mathematics:</p>
+<ul>
+<li><code>compute_monthly_payment()</code>: Calculate standard mortgage
+payments</li>
+<li><code>compute_principal()</code>: Reverse calculation from payment
+to principal amount</li>
+<li><code>compute_principal_remaining()</code>: Outstanding balance
+calculations</li>
+<li><code>compute_principal_paid()</code> /
+<code>compute_interest_paid()</code>: Payment breakdowns over time</li>
+</ul>
 <h3 id="id_2-budget-planning-fct_budgetingr">2. Budget Planning
 (<code>fct_budgeting.R</code>)</h3>
-<p>Determine affordable housing budgets using different methodologies: -
-<code>housing_budget_from_gross_pct()</code>: Simple percentage of gross
-income approach - <code>housing_budget_from_dpi()</code>: Debt-to-income
-ratio methodology - <code>housing_budget_from_stressed_dti()</code>:
-Stress-tested affordability with financial shock scenarios</p>
+<p>Determine affordable housing budgets using different
+methodologies:</p>
+<ul>
+<li><code>housing_budget_from_gross_pct()</code>: Simple percentage of
+gross income approach</li>
+<li><code>housing_budget_from_dpi()</code>: Debt-to-income ratio
+methodology</li>
+<li><code>housing_budget_from_stressed_dti()</code>: Stress-tested
+affordability with financial shock scenarios</li>
+</ul>
 <h3 id="id_3-mortgage-analysis-fct_mortgagesr">3. Mortgage Analysis
 (<code>fct_mortgages.R</code>)</h3>
-<p>Advanced affordability calculations including taxes and PMI: -
-<code>compute_affordable_principal()</code>: Core affordability with
-property tax integration - <code>estimate_monthly_property_tax()</code>:
-Property tax estimation based on home price -
-<code>compute_principal_with_pmi()</code>: PMI-aware affordability
-calculations - <code>calculate_mortgage_savings()</code>: Extra payment
-analysis with detailed amortization</p>
+<p>Advanced affordability calculations including taxes and PMI:</p>
+<ul>
+<li><code>compute_affordable_principal()</code>: Core affordability with
+property tax integration</li>
+<li><code>estimate_monthly_property_tax()</code>: Property tax
+estimation based on home price</li>
+<li><code>compute_principal_with_pmi()</code>: PMI-aware affordability
+calculations</li>
+<li><code>calculate_mortgage_savings()</code>: Extra payment analysis
+with detailed amortization</li>
+</ul>
 <h3 id="id_4-refinance-analysis-fct_refinancer">4. Refinance Analysis
 (<code>fct_refinance.R</code>)</h3>
-<p>Comprehensive refinance benefit analysis: -
-<code>calculate_refinance_benefit_curve()</code>: Month-by-month
+<p>Comprehensive refinance benefit analysis:</p>
+<ul>
+<li><code>calculate_refinance_benefit_curve()</code>: Month-by-month
 refinance benefit calculation including investment returns and tax
-considerations - <code>calculate_invested_savings_fv()</code>: Future
-value calculations for invested payment savings -
-<code>calculate_tax_savings_differential()</code>: Mortgage interest
-deduction analysis</p>
+considerations</li>
+<li><code>calculate_invested_savings_fv()</code>: Future value
+calculations for invested payment savings</li>
+<li><code>calculate_tax_savings_differential()</code>: Mortgage interest
+deduction analysis</li>
+</ul>
 <h3 id="id_5-interactive-visualizations-fct_visualizationsr">5.
 Interactive Visualizations (<code>fct_visualizations.R</code>)</h3>
-<p>Create interactive plots for exploring mortgage scenarios: -
-<code>plot_price_vs_down_payment()</code>: Affordability vs. down
-payment percentage - <code>plot_price_vs_rate()</code>: Affordability
-vs. interest rate with PMI zones -
-<code>plot_principal_interest()</code>: Loan paydown comparison over
-time - <code>plot_refinance_benefit()</code>: Interactive refinance
-benefit curves</p>
+<p>Create interactive plots for exploring mortgage scenarios:</p>
+<ul>
+<li><code>plot_price_vs_down_payment()</code>: Affordability vs. down
+payment percentage</li>
+<li><code>plot_price_vs_rate()</code>: Affordability vs. interest rate
+with PMI zones</li>
+<li><code>plot_principal_interest()</code>: Loan paydown comparison over
+time</li>
+<li><code>plot_refinance_benefit()</code>: Interactive refinance benefit
+curves</li>
+</ul>
 <hr />
 <h2 id="for-developers">For Developers</h2>
 <h3 id="golem-framework-infrastructure">Golem Framework

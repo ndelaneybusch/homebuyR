@@ -118,47 +118,58 @@ main categories:
 
 ### 1. Annuity Calculations (`fct_annuity.R`)
 
-Core mortgage payment mathematics: - `compute_monthly_payment()`:
-Calculate standard mortgage payments - `compute_principal()`: Reverse
-calculation from payment to principal amount -
-`compute_principal_remaining()`: Outstanding balance calculations -
-`compute_principal_paid()` / `compute_interest_paid()`: Payment
-breakdowns over time
+Core mortgage payment mathematics:
+
+- `compute_monthly_payment()`: Calculate standard mortgage payments
+- `compute_principal()`: Reverse calculation from payment to principal
+  amount
+- `compute_principal_remaining()`: Outstanding balance calculations
+- `compute_principal_paid()` / `compute_interest_paid()`: Payment
+  breakdowns over time
 
 ### 2. Budget Planning (`fct_budgeting.R`)
 
-Determine affordable housing budgets using different methodologies: -
-`housing_budget_from_gross_pct()`: Simple percentage of gross income
-approach - `housing_budget_from_dpi()`: Debt-to-income ratio
-methodology - `housing_budget_from_stressed_dti()`: Stress-tested
-affordability with financial shock scenarios
+Determine affordable housing budgets using different methodologies:
+
+- `housing_budget_from_gross_pct()`: Simple percentage of gross income
+  approach
+- `housing_budget_from_dpi()`: Debt-to-income ratio methodology
+- `housing_budget_from_stressed_dti()`: Stress-tested affordability with
+  financial shock scenarios
 
 ### 3. Mortgage Analysis (`fct_mortgages.R`)
 
-Advanced affordability calculations including taxes and PMI: -
-`compute_affordable_principal()`: Core affordability with property tax
-integration - `estimate_monthly_property_tax()`: Property tax estimation
-based on home price - `compute_principal_with_pmi()`: PMI-aware
-affordability calculations - `calculate_mortgage_savings()`: Extra
-payment analysis with detailed amortization
+Advanced affordability calculations including taxes and PMI:
+
+- `compute_affordable_principal()`: Core affordability with property tax
+  integration
+- `estimate_monthly_property_tax()`: Property tax estimation based on
+  home price
+- `compute_principal_with_pmi()`: PMI-aware affordability calculations
+- `calculate_mortgage_savings()`: Extra payment analysis with detailed
+  amortization
 
 ### 4. Refinance Analysis (`fct_refinance.R`)
 
-Comprehensive refinance benefit analysis: -
-`calculate_refinance_benefit_curve()`: Month-by-month refinance benefit
-calculation including investment returns and tax considerations -
-`calculate_invested_savings_fv()`: Future value calculations for
-invested payment savings - `calculate_tax_savings_differential()`:
-Mortgage interest deduction analysis
+Comprehensive refinance benefit analysis:
+
+- `calculate_refinance_benefit_curve()`: Month-by-month refinance
+  benefit calculation including investment returns and tax
+  considerations
+- `calculate_invested_savings_fv()`: Future value calculations for
+  invested payment savings
+- `calculate_tax_savings_differential()`: Mortgage interest deduction
+  analysis
 
 ### 5. Interactive Visualizations (`fct_visualizations.R`)
 
-Create interactive plots for exploring mortgage scenarios: -
-`plot_price_vs_down_payment()`: Affordability vs. down payment
-percentage - `plot_price_vs_rate()`: Affordability vs. interest rate
-with PMI zones - `plot_principal_interest()`: Loan paydown comparison
-over time - `plot_refinance_benefit()`: Interactive refinance benefit
-curves
+Create interactive plots for exploring mortgage scenarios:
+
+- `plot_price_vs_down_payment()`: Affordability vs. down payment
+  percentage
+- `plot_price_vs_rate()`: Affordability vs. interest rate with PMI zones
+- `plot_principal_interest()`: Loan paydown comparison over time
+- `plot_refinance_benefit()`: Interactive refinance benefit curves
 
 ------------------------------------------------------------------------
 
