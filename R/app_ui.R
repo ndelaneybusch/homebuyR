@@ -417,7 +417,136 @@ app_ui <- function(request) {
                                    DT::dataTableOutput("savings_table")
                                ) # Closes Extra Principal Payments Div
                       ), # Closes Payments Tab
-                      tabPanel("Refinancing")
+                      tabPanel("Refinancing",
+                               div(style = "border: 2px solid #007bff; padding: 15px; border-radius: 5px;", # Opens Section 1 Div
+                                   h3("1) Refinance Details"),
+                                   p(em("Analyze the benefit of refinancing your current mortgage, including investment opportunities from payment savings.")),
+
+                                   # New interest rate (primary new input)
+                                   shinyhelper::helper(
+                                     numericInput("refi_new_rate_pct",
+                                                 "New Interest Rate (%)",
+                                                 value = 5.0,
+                                                 min = 0,
+                                                 step = 0.01,
+                                                 max = 20),
+                                     content = "Enter the interest rate offered for the refinanced loan.",
+                                     type = "inline"
+                                   ),
+
+                                   # Closing costs
+                                   shinyhelper::helper(
+                                     autonumericInput("refi_closing_costs",
+                                                     "Closing Costs ($)",
+                                                     value = 3000,
+                                                     currencySymbol = "$",
+                                                     currencySymbolPlacement = "p",
+                                                     decimalCharacter = ".",
+                                                     digitGroupSeparator = ",",
+                                                     minimumValue = 0),
+                                     content = "Total cost to refinance, including loan origination fees, appraisal, title insurance, etc.",
+                                     type = "inline"
+                                   ),
+
+                                   # New loan term
+                                   shinyhelper::helper(
+                                     numericInput("refi_new_term_years",
+                                                 "New Loan Term (Years)",
+                                                 value = 30,
+                                                 min = 1,
+                                                 max = 30,
+                                                 step = 1),
+                                     content = "Term of the refinanced loan in years. Can be shorter or longer than remaining term on current loan.",
+                                     type = "inline"
+                                   ),
+
+                                   # Optional lump sum paydown
+                                   shinyhelper::helper(
+                                     autonumericInput("refi_lump_sum_paydown",
+                                                     "Optional Lump Sum Paydown ($)",
+                                                     value = 0,
+                                                     currencySymbol = "$",
+                                                     currencySymbolPlacement = "p",
+                                                     decimalCharacter = ".",
+                                                     digitGroupSeparator = ",",
+                                                     minimumValue = 0),
+                                     content = "Additional principal payment made at time of refinance.",
+                                     type = "inline"
+                                   ),
+
+                                   # Refinance-specific advanced controls
+                                   shinyWidgets::materialSwitch(inputId = "refinance_advanced_controls", label = "Advanced Financial Assumptions", status = "info"),
+                                   conditionalPanel(
+                                     condition = "input.refinance_advanced_controls",
+
+                                     # Tax rate
+                                     shinyhelper::helper(
+                                       numericInput("refi_tax_rate_pct",
+                                                   "Marginal Tax Rate (%)",
+                                                   value = 22.0,
+                                                   min = 0,
+                                                   max = 50,
+                                                   step = 0.1),
+                                       content = "Your marginal income tax rate for calculating mortgage interest deduction value.",
+                                       type = "inline"
+                                     ),
+
+                                     # Investment return
+                                     shinyhelper::helper(
+                                       numericInput("refi_investment_return_pct",
+                                                   "After-Tax Investment Return (%)",
+                                                   value = 0.0,
+                                                   min = 0,
+                                                   max = 15,
+                                                   step = 0.1),
+                                       content = "Expected annual after-tax return if you invest monthly payment savings.",
+                                       type = "inline"
+                                     ),
+
+                                     # MID limit
+                                     shinyhelper::helper(
+                                       autonumericInput("refi_mid_limit",
+                                                       "Mortgage Interest Deduction Limit ($)",
+                                                       value = 750000,
+                                                       currencySymbol = "$",
+                                                       currencySymbolPlacement = "p",
+                                                       decimalCharacter = ".",
+                                                       digitGroupSeparator = ",",
+                                                       minimumValue = 0),
+                                       content = "IRS limit on mortgage balance eligible for interest deduction (current limit is $750,000).",
+                                       type = "inline"
+                                     )
+                                   )
+                               ), # Closes Section 1 Div (Refinance Details)
+
+                               # Current loan summary section
+                               div(style = "border: 2px solid #007bff; padding: 15px; border-radius: 5px; margin-top: 20px;", # Opens Section 2 Div
+                                   h3("2) Current Loan Summary"),
+                                   p(em("Summary of your existing mortgage based on the loan details entered in the sidebar.")),
+                                   uiOutput("current_loan_summary")
+                               ), # Closes Section 2 Div (Current Loan Summary)
+
+                               # Results visualization section
+                               div(style = "border: 2px solid #28a745; padding: 15px; border-radius: 5px; margin-top: 20px;", # Opens Section 3 Div
+                                   h3("3) Refinance Analysis Results"),
+                                   hr(),
+                                   p(em("Explore the financial benefit of refinancing over time, including breakeven analysis and investment opportunities.")),
+
+                                   # Results tabs
+                                   tabsetPanel(
+                                     tabPanel("Benefit Curve",
+                                              br(),
+                                              h4("Refinance Benefit Over Time"),
+                                              ggiraph::girafeOutput("refinance_benefit_plot", height = "500px")
+                                     ),
+                                     tabPanel("Summary Table",
+                                              br(),
+                                              h4("Key Refinance Metrics"),
+                                              DT::dataTableOutput("refinance_summary_table")
+                                     )
+                                   )
+                               ) # Closes Section 3 Div (Results)
+                      )
           ) # Closes tabsetPanel
         ) # Closes mainPanel
       ) # Closes sidebarLayout

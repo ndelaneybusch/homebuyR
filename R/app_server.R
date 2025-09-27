@@ -590,4 +590,164 @@ app_server <- function(input, output, session) {
   selection = 'single',
   filter = 'bottom',
   rownames = FALSE)
+
+  # --- Refinancing Tab --- #
+
+  # Current loan details (computed from existing app values)
+  current_loan_details <- reactive({
+    req(input$loan_amount,
+        monthly_rate_dec(),
+        input$mortgage_term,
+        input$loan_start)
+
+    # Calculate remaining months from loan start date
+    loan_start_month <- as.Date(cut(input$loan_start, "month"))
+    current_month <- as.Date(cut(Sys.Date(), "month"))
+    months_elapsed <- as.integer(
+      (lubridate::year(current_month) - lubridate::year(loan_start_month)) * 12 +
+      (lubridate::month(current_month) - lubridate::month(loan_start_month))
+    )
+    months_elapsed <- max(0, months_elapsed) # Ensure non-negative
+    n_payments_remaining <- max(0, as.numeric(input$mortgage_term) - months_elapsed)
+
+    # Calculate current principal balance
+    monthly_payment <- compute_monthly_payment(
+      principal = input$loan_amount,
+      rate_per_month = monthly_rate_dec(),
+      n_payments_total = as.numeric(input$mortgage_term)
+    )
+
+    current_principal <- compute_principal_remaining(
+      monthly_payment = monthly_payment,
+      rate_per_month = monthly_rate_dec(),
+      n_payments_remaining = n_payments_remaining
+    )
+
+    list(
+      principal = current_principal,
+      monthly_payment = monthly_payment,
+      n_payments_remaining = n_payments_remaining,
+      rate_per_month = monthly_rate_dec(),
+      original_amount = input$loan_amount
+    )
+  })
+
+  # Current loan summary output
+  output$current_loan_summary <- renderUI({
+    req(current_loan_details())
+
+    details <- current_loan_details()
+
+    tagList(
+      p(strong("Original Loan Amount:"), scales::dollar(details$original_amount)),
+      p(strong("Current Principal Balance:"), scales::dollar(details$principal)),
+      p(strong("Current Interest Rate:"), paste0(input$annual_rate_pct, "%")),
+      p(strong("Monthly Payment:"), scales::dollar(details$monthly_payment)),
+      p(strong("Payments Remaining:"), details$n_payments_remaining, "months")
+    )
+  })
+
+  # Refinance calculations (leveraging computed values)
+  refinance_data <- reactive({
+    req(current_loan_details(),
+        input$refi_new_rate_pct,
+        input$refi_closing_costs,
+        input$refi_new_term_years,
+        input$refi_lump_sum_paydown)
+
+    # Also require advanced control inputs so reactive updates when they change
+    if(!is.null(input$refinance_advanced_controls) && input$refinance_advanced_controls) {
+      req(input$refi_tax_rate_pct,
+          input$refi_investment_return_pct,
+          input$refi_mid_limit)
+    }
+
+    current_loan <- current_loan_details()
+
+    validate(
+      need(current_loan$principal > 0, "Current principal balance must be positive"),
+      need(input$refi_new_rate_pct > 0, "New interest rate must be positive"),
+      need(current_loan$n_payments_remaining > 0, "Must have remaining payments"),
+      need(input$refi_closing_costs >= 0, "Closing costs cannot be negative"),
+      need(input$refi_new_term_years > 0, "New loan term must be positive"),
+      need(input$refi_lump_sum_paydown <= current_loan$principal, "Lump sum paydown cannot exceed remaining principal")
+    )
+
+    # Get advanced control values (use defaults if not enabled)
+    tax_rate <- if(!is.null(input$refi_tax_rate_pct) && input$refinance_advanced_controls) {
+      input$refi_tax_rate_pct / 100
+    } else {
+      0.22
+    }
+
+    investment_return <- if(!is.null(input$refi_investment_return_pct) && input$refinance_advanced_controls) {
+      input$refi_investment_return_pct / 100
+    } else {
+      0.0
+    }
+
+    mid_limit <- if(!is.null(input$refi_mid_limit) && input$refinance_advanced_controls) {
+      input$refi_mid_limit
+    } else {
+      750000
+    }
+
+    calculate_refinance_benefit_curve(
+      principal = current_loan$principal,
+      rate_per_month_old = current_loan$rate_per_month,
+      rate_per_month_new = input$refi_new_rate_pct / 100 / 12,
+      n_payments_remaining = current_loan$n_payments_remaining,
+      closing_costs = input$refi_closing_costs,
+      n_payments_new = input$refi_new_term_years * 12,
+      tax_rate = tax_rate,
+      investment_return_annual = investment_return,
+      lump_sum_paydown = input$refi_lump_sum_paydown,
+      mid_limit = mid_limit,
+      max_eval_months = max(current_loan$n_payments_remaining, input$refi_new_term_years * 12)
+    )
+  })
+
+  # Plot output
+  output$refinance_benefit_plot <- ggiraph::renderGirafe({
+    req(refinance_data())
+
+    plot_refinance_benefit(refinance_data())
+  })
+
+  # Monthly refinance data table
+  output$refinance_summary_table <- DT::renderDataTable({
+    req(refinance_data())
+
+    data <- refinance_data()
+
+    # Create monthly breakdown table
+    monthly_data <- tibble::tibble(
+      Month = data$months,
+      `Net Wealth Benefit` = data$net_benefits,
+      `Net Cash Benefit` = data$net_cash_benefits,
+      `Equity Difference` = data$equity_differences,
+      `Cumulative Tax Savings` = data$cumulative_tax_advantage,
+      `Cumulative Investments` = data$cumulative_investments,
+      `Cumulative FV Savings` = data$cumulative_fv_savings,
+      `Dynamic Monthly Savings` = data$dynamic_monthly_savings
+    ) %>%
+      dplyr::mutate(dplyr::across(dplyr::where(is.numeric) & !Month, ~round(., 2)))
+
+    DT::datatable(monthly_data,
+                  options = list(
+                    paging = TRUE,
+                    pageLength = 50,
+                    scrollX = TRUE,
+                    scrollY = TRUE,
+                    autoWidth = TRUE,
+                    server = FALSE,
+                    dom = 'Bfrtip',
+                    buttons = c('csv', 'excel')
+                  ),
+                  extensions = 'Buttons',
+                  selection = 'single',
+                  filter = 'bottom',
+                  rownames = FALSE)
+  })
+
 }
