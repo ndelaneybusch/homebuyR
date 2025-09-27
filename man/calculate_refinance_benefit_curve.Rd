@@ -35,7 +35,7 @@ Must be positive.}
 Must be non-negative.}
 
 \item{n_payments_new}{Integer. Term of new refinanced loan in months.
-Must be positive. Default: n_payments_remaining (keep same term).}
+Must be positive. Default: 360 (30 years).}
 
 \item{tax_rate}{Numeric. Marginal tax rate for interest deduction (as decimal).
 Must be between 0 and 1. Default: 0.25.}
@@ -50,7 +50,7 @@ Must be non-negative. Default: 0.}
 Must be non-negative. Default: 750000.}
 
 \item{max_eval_months}{Integer. Maximum months to evaluate.
-Must be positive. Default: n_payments_remaining.}
+Must be positive. Default: 360 (30 years).}
 }
 \value{
 List containing:
@@ -58,6 +58,9 @@ List containing:
   - net_benefits: Vector of cumulative net benefits for each month (total wealth impact)
   - net_cash_benefits: Vector of cumulative cash benefits for each month (excluding equity)
   - equity_differences: Vector of equity differences for each month (old_balance - new_balance)
+  - cumulative_investments: Vector of cumulative investment returns for each month
+  - cumulative_fv_savings: Vector of cumulative future value of savings for each month
+  - cumulative_tax_savings: Vector of cumulative tax savings for each month
   - breakeven_month: First month where total benefit > 0 (NA if none)
   - cash_breakeven_month: First month where cash benefit > 0 (NA if none)
   - old_payment: Monthly payment on existing loan
@@ -67,8 +70,22 @@ List containing:
 \description{
 Computes the cumulative net benefit of refinancing vs. keeping existing loan
 for each month of a specified holding period. Handles both beneficial refinances
-(rate reductions) and detrimental refinances (rate increases) by properly
-accounting for investment opportunities or additional costs.
+(rate reductions) and detrimental refinances (rate increases).
+}
+\details{
+Includes consideration of tax savings if tax_rate > 0. The tax savings come from
+the mortgage interest deduction limit (MID), and assumes your deductions are itemized 
+and that the relevant tax bracket for the deductions is fixed.
+
+Also includes consideration of investment returns on the monthly savings from the 
+refinance if investment_return_annual > 0. This assumes the returns are reinvested 
+and compounded monthly.
+
+The two primary bottom-line metrics are:
+- `cash_benefits`: The cumulative cash benefit of refinancing vs. keeping the existing loan
+- `net_benefits`: The cumulative net benefit of refinancing vs. keeping the existing loan 
+  (includes changes in equity). This is useful if you plan to sell the home before the 
+  end of the holding period (because equity would convert to cash).
 }
 \examples{
 # Basic refinance analysis: 300k remaining, 6\% to 4\%, 25 years left

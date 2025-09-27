@@ -154,7 +154,7 @@ test_that("calculate_tax_savings_differential input validation works", {
 # --- Testing calculate_refinance_benefit_curve ---
 
 test_that("calculate_refinance_benefit_curve basic functionality", {
-  result <- calculate_refinance_benefit_curve(p1, r_old1, r_new1, n_rem1, closing1)
+  result <- calculate_refinance_benefit_curve(p1, r_old1, r_new1, n_rem1, closing1, n_payments_new = n_rem1)
 
   # Check return structure
   expect_true(is.list(result))
@@ -177,7 +177,7 @@ test_that("calculate_refinance_benefit_curve basic functionality", {
 
 test_that("calculate_refinance_benefit_curve handles rate increase scenario", {
   # When new rate is higher, refinancing is typically bad
-  result <- calculate_refinance_benefit_curve(p2, r_old2, r_new2, n_rem2, closing2)
+  result <- calculate_refinance_benefit_curve(p2, r_old2, r_new2, n_rem2, closing2, n_payments_new = n_rem2)
 
   # Monthly savings should be negative (new payment higher)
   expect_lt(result$monthly_savings, 0)
@@ -190,7 +190,7 @@ test_that("calculate_refinance_benefit_curve handles rate increase scenario", {
 })
 
 test_that("calculate_refinance_benefit_curve handles zero interest rates", {
-  result <- calculate_refinance_benefit_curve(p3, r_old3, r_new3, n_rem3, closing3)
+  result <- calculate_refinance_benefit_curve(p3, r_old3, r_new3, n_rem3, closing3, n_payments_new = n_rem3)
 
   # With same zero rates, only difference should be closing costs and lump sum
   expect_equal(result$monthly_savings, 0)
@@ -296,7 +296,7 @@ test_that("calculate_refinance_benefit_curve max_eval_months parameter", {
 test_that("refinance functions handle floating point precision", {
   # Very small rate differences
   tiny_diff <- 0.0001 / 12
-  result <- calculate_refinance_benefit_curve(p1, r_old1, r_old1 - tiny_diff, n_rem1, 100)
+  result <- calculate_refinance_benefit_curve(p1, r_old1, r_old1 - tiny_diff, n_rem1, 100, n_payments_new = n_rem1)
 
   # Should still produce sensible results
   expect_true(is.numeric(result$monthly_savings))
