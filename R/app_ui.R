@@ -652,7 +652,7 @@ app_ui <- function(request) {
                                      tabPanel("Benefit Curve",
                                               br(),
                                               h4("Refinance Benefit Over Time"),
-                                              ggiraph::girafeOutput("refinance_benefit_plot", height = "500px")
+                                              ggiraph::girafeOutput("refinance_benefit_plot", width = "100%")
                                      ),
                                      tabPanel("Summary Table",
                                               br(),
