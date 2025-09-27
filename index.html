@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">homebuyR</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
       </span>
     </div>
 
@@ -159,27 +159,73 @@
 <div class="section level3">
 <h3 id="id_1-annuity-calculations-fct_annuityr">1. Annuity Calculations (<code>fct_annuity.R</code>)<a class="anchor" aria-label="anchor" href="#id_1-annuity-calculations-fct_annuityr"></a>
 </h3>
-<p>Core mortgage payment mathematics: - <code><a href="reference/compute_monthly_payment.html">compute_monthly_payment()</a></code>: Calculate standard mortgage payments - <code><a href="reference/compute_principal.html">compute_principal()</a></code>: Reverse calculation from payment to principal amount - <code><a href="reference/compute_principal_remaining.html">compute_principal_remaining()</a></code>: Outstanding balance calculations - <code><a href="reference/compute_principal_paid.html">compute_principal_paid()</a></code> / <code><a href="reference/compute_interest_paid.html">compute_interest_paid()</a></code>: Payment breakdowns over time</p>
+<p>Core mortgage payment mathematics:</p>
+<ul>
+<li>
+<code><a href="reference/compute_monthly_payment.html">compute_monthly_payment()</a></code>: Calculate standard mortgage payments</li>
+<li>
+<code><a href="reference/compute_principal.html">compute_principal()</a></code>: Reverse calculation from payment to principal amount</li>
+<li>
+<code><a href="reference/compute_principal_remaining.html">compute_principal_remaining()</a></code>: Outstanding balance calculations</li>
+<li>
+<code><a href="reference/compute_principal_paid.html">compute_principal_paid()</a></code> / <code><a href="reference/compute_interest_paid.html">compute_interest_paid()</a></code>: Payment breakdowns over time</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="id_2-budget-planning-fct_budgetingr">2. Budget Planning (<code>fct_budgeting.R</code>)<a class="anchor" aria-label="anchor" href="#id_2-budget-planning-fct_budgetingr"></a>
 </h3>
-<p>Determine affordable housing budgets using different methodologies: - <code><a href="reference/housing_budget_from_gross_pct.html">housing_budget_from_gross_pct()</a></code>: Simple percentage of gross income approach - <code><a href="reference/housing_budget_from_dpi.html">housing_budget_from_dpi()</a></code>: Debt-to-income ratio methodology - <code><a href="reference/housing_budget_from_stressed_dti.html">housing_budget_from_stressed_dti()</a></code>: Stress-tested affordability with financial shock scenarios</p>
+<p>Determine affordable housing budgets using different methodologies:</p>
+<ul>
+<li>
+<code><a href="reference/housing_budget_from_gross_pct.html">housing_budget_from_gross_pct()</a></code>: Simple percentage of gross income approach</li>
+<li>
+<code><a href="reference/housing_budget_from_dpi.html">housing_budget_from_dpi()</a></code>: Debt-to-income ratio methodology</li>
+<li>
+<code><a href="reference/housing_budget_from_stressed_dti.html">housing_budget_from_stressed_dti()</a></code>: Stress-tested affordability with financial shock scenarios</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="id_3-mortgage-analysis-fct_mortgagesr">3. Mortgage Analysis (<code>fct_mortgages.R</code>)<a class="anchor" aria-label="anchor" href="#id_3-mortgage-analysis-fct_mortgagesr"></a>
 </h3>
-<p>Advanced affordability calculations including taxes and PMI: - <code><a href="reference/compute_affordable_principal.html">compute_affordable_principal()</a></code>: Core affordability with property tax integration - <code><a href="reference/estimate_monthly_property_tax.html">estimate_monthly_property_tax()</a></code>: Property tax estimation based on home price - <code><a href="reference/compute_principal_with_pmi.html">compute_principal_with_pmi()</a></code>: PMI-aware affordability calculations - <code><a href="reference/calculate_mortgage_savings.html">calculate_mortgage_savings()</a></code>: Extra payment analysis with detailed amortization</p>
+<p>Advanced affordability calculations including taxes and PMI:</p>
+<ul>
+<li>
+<code><a href="reference/compute_affordable_principal.html">compute_affordable_principal()</a></code>: Core affordability with property tax integration</li>
+<li>
+<code><a href="reference/estimate_monthly_property_tax.html">estimate_monthly_property_tax()</a></code>: Property tax estimation based on home price</li>
+<li>
+<code><a href="reference/compute_principal_with_pmi.html">compute_principal_with_pmi()</a></code>: PMI-aware affordability calculations</li>
+<li>
+<code><a href="reference/calculate_mortgage_savings.html">calculate_mortgage_savings()</a></code>: Extra payment analysis with detailed amortization</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="id_4-refinance-analysis-fct_refinancer">4. Refinance Analysis (<code>fct_refinance.R</code>)<a class="anchor" aria-label="anchor" href="#id_4-refinance-analysis-fct_refinancer"></a>
 </h3>
-<p>Comprehensive refinance benefit analysis: - <code><a href="reference/calculate_refinance_benefit_curve.html">calculate_refinance_benefit_curve()</a></code>: Month-by-month refinance benefit calculation including investment returns and tax considerations - <code><a href="reference/calculate_invested_savings_fv.html">calculate_invested_savings_fv()</a></code>: Future value calculations for invested payment savings - <code><a href="reference/calculate_tax_savings_differential.html">calculate_tax_savings_differential()</a></code>: Mortgage interest deduction analysis</p>
+<p>Comprehensive refinance benefit analysis:</p>
+<ul>
+<li>
+<code><a href="reference/calculate_refinance_benefit_curve.html">calculate_refinance_benefit_curve()</a></code>: Month-by-month refinance benefit calculation including investment returns and tax considerations</li>
+<li>
+<code><a href="reference/calculate_invested_savings_fv.html">calculate_invested_savings_fv()</a></code>: Future value calculations for invested payment savings</li>
+<li>
+<code><a href="reference/calculate_tax_savings_differential.html">calculate_tax_savings_differential()</a></code>: Mortgage interest deduction analysis</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="id_5-interactive-visualizations-fct_visualizationsr">5. Interactive Visualizations (<code>fct_visualizations.R</code>)<a class="anchor" aria-label="anchor" href="#id_5-interactive-visualizations-fct_visualizationsr"></a>
 </h3>
-<p>Create interactive plots for exploring mortgage scenarios: - <code><a href="reference/plot_price_vs_down_payment.html">plot_price_vs_down_payment()</a></code>: Affordability vs. down payment percentage - <code><a href="reference/plot_price_vs_rate.html">plot_price_vs_rate()</a></code>: Affordability vs. interest rate with PMI zones - <code><a href="reference/plot_principal_interest.html">plot_principal_interest()</a></code>: Loan paydown comparison over time - <code><a href="reference/plot_refinance_benefit.html">plot_refinance_benefit()</a></code>: Interactive refinance benefit curves</p>
+<p>Create interactive plots for exploring mortgage scenarios:</p>
+<ul>
+<li>
+<code><a href="reference/plot_price_vs_down_payment.html">plot_price_vs_down_payment()</a></code>: Affordability vs. down payment percentage</li>
+<li>
+<code><a href="reference/plot_price_vs_rate.html">plot_price_vs_rate()</a></code>: Affordability vs. interest rate with PMI zones</li>
+<li>
+<code><a href="reference/plot_principal_interest.html">plot_principal_interest()</a></code>: Loan paydown comparison over time</li>
+<li>
+<code><a href="reference/plot_refinance_benefit.html">plot_refinance_benefit()</a></code>: Interactive refinance benefit curves</li>
+</ul>
 <hr>
 </div>
 </div>
@@ -366,7 +412,7 @@
 <div class="dev-status">
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
-<li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
+<li><a href="https://lifecycle.r-lib.org/articles/stages.html#stable" class="external-link"><img src="https://img.shields.io/badge/lifecycle-stable-brightgreen.svg" alt="Lifecycle: stable"></a></li>
 <li><a href="https://github.com/ndelaneybusch/homebuyR/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/ndelaneybusch/homebuyR/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://app.codecov.io/gh/ndelaneybusch/homebuyR" class="external-link"><img src="https://codecov.io/gh/ndelaneybusch/homebuyR/graph/badge.svg" alt="Codecov test coverage"></a></li>
 </ul>
