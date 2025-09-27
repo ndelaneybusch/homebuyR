@@ -87,7 +87,7 @@
   - "Readme": Documentation (placeholder)
   - "Budgeting": Multi-step budget calculation workflow
   - "Paying": Extra payment analysis and visualizations
-  - "Refinancing": (placeholder for future features)
+  - "Refinancing": Comprehensive refinance analysis with benefit curves and detailed metrics
 
 ### Input Controls
 - **Consistent Styling**: Uses `shinyWidgets::autonumericInput` for currency inputs with proper formatting
@@ -107,6 +107,8 @@
 - `estimated_monthly_tax()`: Property tax estimation
 - `affordable_mortgage()`: Core affordability calculation
 - `mortgage_savings()`: Extra payment analysis
+- `current_loan_details()`: Calculates current loan status from original parameters and elapsed time
+- `refinance_data()`: Comprehensive refinance benefit analysis with real-time reactivity
 
 ### Event Handling
 - **Apply Buttons**: `observeEvent()` for user-triggered calculations
