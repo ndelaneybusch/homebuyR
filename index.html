@@ -60,37 +60,281 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>The goal of homebuyR is to …</p>
+<p><strong>homebuyR</strong> is a comprehensive R package that provides tools for home financing analysis through an interactive Shiny web application. The package helps prospective homebuyers and current homeowners make informed financial decisions by offering:</p>
+<ul>
+<li>
+<strong>Budget Planning</strong>: Calculate affordable housing budgets using multiple methodologies (percentage of income, debt-to-income ratios, stress-tested scenarios)</li>
+<li>
+<strong>Mortgage Analysis</strong>: Compute affordable home prices, monthly payments, and explore the impact of different down payment amounts and interest rates</li>
+<li>
+<strong>Payment Optimization</strong>: Analyze the benefits of extra mortgage payments and compare different payment strategies</li>
+<li>
+<strong>Refinancing Analysis</strong>: Comprehensive refinance benefit calculations that account for equity/amortization, investment opportunities, tax implications, and break-even analysis</li>
+<li>
+<strong>Interactive Visualizations</strong>: Explore scenarios through interactive plots and detailed financial projections</li>
+</ul>
+<p>See documentation <a href="https://ndelaneybusch.github.io/homebuyR/" class="external-link">here</a>.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install the development version of homebuyR like so:</p>
+<p>You can install the development version of homebuyR from GitHub using several methods:</p>
+<div class="section level3">
+<h3 id="option-1-using-remotes">Option 1: Using <code>remotes</code>
+<a class="anchor" aria-label="anchor" href="#option-1-using-remotes"></a>
+</h3>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Install remotes if you haven't already</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Install homebuyR</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"ndelaneybusch/homebuyR"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="option-2-using-devtools">Option 2: Using <code>devtools</code>
+<a class="anchor" aria-label="anchor" href="#option-2-using-devtools"></a>
+</h3>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Install devtools if you haven't already</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Install homebuyR</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"ndelaneybusch/homebuyR"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="for-developers-with-dependencies">For developers (with dependencies)<a class="anchor" aria-label="anchor" href="#for-developers-with-dependencies"></a>
+</h3>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Clone the repository and install with development dependencies</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"ndelaneybusch/homebuyR"</span>, dependencies <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
-<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+<h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
-<p>This is a basic example which shows you how to solve a common problem:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="section level3">
+<h3 id="launch-the-interactive-app">Launch the Interactive App<a class="anchor" aria-label="anchor" href="#launch-the-interactive-app"></a>
+</h3>
+<p>The easiest way to use homebuyR is through its interactive Shiny web application:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">homebuyR</span><span class="fu">::</span><span class="fu"><a href="reference/run_app.html">run_app</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="using-the-function-library">Using the Function Library<a class="anchor" aria-label="anchor" href="#using-the-function-library"></a>
+</h3>
+<p>You can also use homebuyR’s functions programmatically for custom analyses:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">homebuyR</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: replacing previous import 'purrr::discard' by 'scales::discard' when</span></span>
-<span><span class="co">#&gt; loading 'homebuyR'</span></span>
-<span><span class="co">## basic example code</span></span></code></pre></div>
-<p>What is special about using <code>README.Rmd</code> instead of just <code>README.md</code>? You can include R chunks like so:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">cars</span><span class="op">)</span></span>
-<span><span class="co">#&gt;      speed           dist       </span></span>
-<span><span class="co">#&gt;  Min.   : 4.0   Min.   :  2.00  </span></span>
-<span><span class="co">#&gt;  1st Qu.:12.0   1st Qu.: 26.00  </span></span>
-<span><span class="co">#&gt;  Median :15.0   Median : 36.00  </span></span>
-<span><span class="co">#&gt;  Mean   :15.4   Mean   : 42.98  </span></span>
-<span><span class="co">#&gt;  3rd Qu.:19.0   3rd Qu.: 56.00  </span></span>
-<span><span class="co">#&gt;  Max.   :25.0   Max.   :120.00</span></span></code></pre></div>
-<p>You’ll still need to render <code>README.Rmd</code> regularly, to keep <code>README.md</code> up-to-date. <code><a href="https://devtools.r-lib.org/reference/build_rmd.html" class="external-link">devtools::build_readme()</a></code> is handy for this.</p>
-<p>You can also embed plots, for example:</p>
-<p><img src="reference/figures/README-pressure-1.png" width="100%"></p>
-<p>In that case, don’t forget to commit and push the resulting figure files, so they display on GitHub and CRAN.</p>
+<span></span>
+<span><span class="co"># Calculate affordable mortgage principal</span></span>
+<span><span class="va">principal</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute_affordable_principal.html">compute_affordable_principal</a></span><span class="op">(</span></span>
+<span>  budget <span class="op">=</span> <span class="fl">3000</span>,                    <span class="co"># Monthly housing budget</span></span>
+<span>  annual_rate <span class="op">=</span> <span class="fl">0.065</span>,              <span class="co"># 6.5% annual interest rate</span></span>
+<span>  term_years <span class="op">=</span> <span class="fl">30</span>,                  <span class="co"># 30-year mortgage</span></span>
+<span>  property_tax_annual <span class="op">=</span> <span class="fl">8000</span>,       <span class="co"># Annual property tax</span></span>
+<span>  insurance_monthly <span class="op">=</span> <span class="fl">200</span>,          <span class="co"># Monthly insurance</span></span>
+<span>  hoa_monthly <span class="op">=</span> <span class="fl">150</span>                 <span class="co"># Monthly HOA fees</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Calculate monthly payment for a given principal</span></span>
+<span><span class="va">payment</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute_monthly_payment.html">compute_monthly_payment</a></span><span class="op">(</span></span>
+<span>  principal <span class="op">=</span> <span class="fl">400000</span>,               <span class="co"># Loan amount</span></span>
+<span>  annual_rate <span class="op">=</span> <span class="fl">0.065</span>,              <span class="co"># Annual interest rate</span></span>
+<span>  term_years <span class="op">=</span> <span class="fl">30</span>                   <span class="co"># Loan term</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Analyze refinance benefits</span></span>
+<span><span class="va">refinance_analysis</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_refinance_benefit_curve.html">calculate_refinance_benefit_curve</a></span><span class="op">(</span></span>
+<span>  current_principal <span class="op">=</span> <span class="fl">300000</span>,</span>
+<span>  current_rate <span class="op">=</span> <span class="fl">0.075</span>,</span>
+<span>  new_rate <span class="op">=</span> <span class="fl">0.055</span>,</span>
+<span>  closing_costs <span class="op">=</span> <span class="fl">5000</span>,</span>
+<span>  investment_return <span class="op">=</span> <span class="fl">0.07</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="function-library-overview">Function Library Overview<a class="anchor" aria-label="anchor" href="#function-library-overview"></a>
+</h2>
+<p>homebuyR provides a comprehensive set of functions organized into five main categories:</p>
+<div class="section level3">
+<h3 id="id_1-annuity-calculations-fct_annuityr">1. Annuity Calculations (<code>fct_annuity.R</code>)<a class="anchor" aria-label="anchor" href="#id_1-annuity-calculations-fct_annuityr"></a>
+</h3>
+<p>Core mortgage payment mathematics: - <code><a href="reference/compute_monthly_payment.html">compute_monthly_payment()</a></code>: Calculate standard mortgage payments - <code><a href="reference/compute_principal.html">compute_principal()</a></code>: Reverse calculation from payment to principal amount - <code><a href="reference/compute_principal_remaining.html">compute_principal_remaining()</a></code>: Outstanding balance calculations - <code><a href="reference/compute_principal_paid.html">compute_principal_paid()</a></code> / <code><a href="reference/compute_interest_paid.html">compute_interest_paid()</a></code>: Payment breakdowns over time</p>
+</div>
+<div class="section level3">
+<h3 id="id_2-budget-planning-fct_budgetingr">2. Budget Planning (<code>fct_budgeting.R</code>)<a class="anchor" aria-label="anchor" href="#id_2-budget-planning-fct_budgetingr"></a>
+</h3>
+<p>Determine affordable housing budgets using different methodologies: - <code><a href="reference/housing_budget_from_gross_pct.html">housing_budget_from_gross_pct()</a></code>: Simple percentage of gross income approach - <code><a href="reference/housing_budget_from_dpi.html">housing_budget_from_dpi()</a></code>: Debt-to-income ratio methodology - <code><a href="reference/housing_budget_from_stressed_dti.html">housing_budget_from_stressed_dti()</a></code>: Stress-tested affordability with financial shock scenarios</p>
+</div>
+<div class="section level3">
+<h3 id="id_3-mortgage-analysis-fct_mortgagesr">3. Mortgage Analysis (<code>fct_mortgages.R</code>)<a class="anchor" aria-label="anchor" href="#id_3-mortgage-analysis-fct_mortgagesr"></a>
+</h3>
+<p>Advanced affordability calculations including taxes and PMI: - <code><a href="reference/compute_affordable_principal.html">compute_affordable_principal()</a></code>: Core affordability with property tax integration - <code><a href="reference/estimate_monthly_property_tax.html">estimate_monthly_property_tax()</a></code>: Property tax estimation based on home price - <code><a href="reference/compute_principal_with_pmi.html">compute_principal_with_pmi()</a></code>: PMI-aware affordability calculations - <code><a href="reference/calculate_mortgage_savings.html">calculate_mortgage_savings()</a></code>: Extra payment analysis with detailed amortization</p>
+</div>
+<div class="section level3">
+<h3 id="id_4-refinance-analysis-fct_refinancer">4. Refinance Analysis (<code>fct_refinance.R</code>)<a class="anchor" aria-label="anchor" href="#id_4-refinance-analysis-fct_refinancer"></a>
+</h3>
+<p>Comprehensive refinance benefit analysis: - <code><a href="reference/calculate_refinance_benefit_curve.html">calculate_refinance_benefit_curve()</a></code>: Month-by-month refinance benefit calculation including investment returns and tax considerations - <code><a href="reference/calculate_invested_savings_fv.html">calculate_invested_savings_fv()</a></code>: Future value calculations for invested payment savings - <code><a href="reference/calculate_tax_savings_differential.html">calculate_tax_savings_differential()</a></code>: Mortgage interest deduction analysis</p>
+</div>
+<div class="section level3">
+<h3 id="id_5-interactive-visualizations-fct_visualizationsr">5. Interactive Visualizations (<code>fct_visualizations.R</code>)<a class="anchor" aria-label="anchor" href="#id_5-interactive-visualizations-fct_visualizationsr"></a>
+</h3>
+<p>Create interactive plots for exploring mortgage scenarios: - <code><a href="reference/plot_price_vs_down_payment.html">plot_price_vs_down_payment()</a></code>: Affordability vs. down payment percentage - <code><a href="reference/plot_price_vs_rate.html">plot_price_vs_rate()</a></code>: Affordability vs. interest rate with PMI zones - <code><a href="reference/plot_principal_interest.html">plot_principal_interest()</a></code>: Loan paydown comparison over time - <code><a href="reference/plot_refinance_benefit.html">plot_refinance_benefit()</a></code>: Interactive refinance benefit curves</p>
+<hr>
+</div>
+</div>
+<div class="section level2">
+<h2 id="for-developers">For Developers<a class="anchor" aria-label="anchor" href="#for-developers"></a>
+</h2>
+<div class="section level3">
+<h3 id="golem-framework-infrastructure">Golem Framework Infrastructure<a class="anchor" aria-label="anchor" href="#golem-framework-infrastructure"></a>
+</h3>
+<p>homebuyR is built using the <a href="https://thinkr-open.github.io/golem/" class="external-link">Golem framework</a>.</p>
+<div class="section level4">
+<h4 id="project-structure">Project Structure<a class="anchor" aria-label="anchor" href="#project-structure"></a>
+</h4>
+<div class="sourceCode" id="cb6"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>R<span class="sc">/</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>├── app_config.R          <span class="co"># App configuration</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>├── app_server.R          <span class="co"># Main server logic</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>├── app_ui.R              <span class="co"># Main UI definition</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>├── run_app.R             <span class="co"># App entry point</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>├── fct_<span class="sc">*</span>.R               <span class="co"># Business logic functions</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>└── golem_utils_<span class="sc">*</span>.R       <span class="co"># Golem utilities</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>inst<span class="sc">/</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>└── golem<span class="sc">-</span>config.yml      <span class="co"># Environment-specific settings</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level3">
+<h3 id="environment-and-dependencies-management">Environment and Dependencies Management<a class="anchor" aria-label="anchor" href="#environment-and-dependencies-management"></a>
+</h3>
+<p>homebuyR uses <code>renv</code> for reproducible package management.</p>
+<div class="section level4">
+<h4 id="key-renv-commands">Key renv Commands<a class="anchor" aria-label="anchor" href="#key-renv-commands"></a>
+</h4>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Activate renv (done automatically via .Rprofile)</span></span>
+<span><span class="fu">renv</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/renv/reference/activate.html" class="external-link">activate</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Install packages and update lockfile</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"package_name"</span><span class="op">)</span></span>
+<span><span class="fu">renv</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/renv/reference/snapshot.html" class="external-link">snapshot</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Restore packages from lockfile</span></span>
+<span><span class="fu">renv</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/renv/reference/restore.html" class="external-link">restore</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Check for package updates</span></span>
+<span><span class="fu">renv</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/renv/reference/status.html" class="external-link">status</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Update packages</span></span>
+<span><span class="fu">renv</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/renv/reference/update.html" class="external-link">update</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Install development dependencies</span></span>
+<span><span class="fu">renv</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/renv/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"devtools"</span>, <span class="st">"pkgdown"</span>, <span class="st">"covr"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="dependency-management-workflow">Dependency Management Workflow<a class="anchor" aria-label="anchor" href="#dependency-management-workflow"></a>
+</h4>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># 1. Install new package</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"new_package"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 2. Add to DESCRIPTION file (if needed for package)</span></span>
+<span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/use_package.html" class="external-link">use_package</a></span><span class="op">(</span><span class="st">"new_package"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 3. Update lockfile</span></span>
+<span><span class="fu">renv</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/renv/reference/snapshot.html" class="external-link">snapshot</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 4. Document changes</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/document.html" class="external-link">document</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level3">
+<h3 id="testing-infrastructure">Testing Infrastructure<a class="anchor" aria-label="anchor" href="#testing-infrastructure"></a>
+</h3>
+<div class="section level4">
+<h4 id="running-tests">Running Tests<a class="anchor" aria-label="anchor" href="#running-tests"></a>
+</h4>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Run all tests</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/test.html" class="external-link">test</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Run specific test file</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/test.html" class="external-link">test</a></span><span class="op">(</span>filter <span class="op">=</span> <span class="st">"fct_annuity"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Run tests with coverage</span></span>
+<span><span class="fu">covr</span><span class="fu">::</span><span class="fu">package_coverage</span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Interactive coverage report</span></span>
+<span><span class="fu">covr</span><span class="fu">::</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="test-commands">Test Commands<a class="anchor" aria-label="anchor" href="#test-commands"></a>
+</h4>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Command line testing (if available)</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"devtools::test()"</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co"># Coverage report</span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"covr::package_coverage()"</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="writing-tests">Writing Tests<a class="anchor" aria-label="anchor" href="#writing-tests"></a>
+</h4>
+<p>Tests follow the pattern <code>test-{filename}.R</code> in <code>tests/testthat/</code>:</p>
+</div>
+</div>
+<div class="section level3">
+<h3 id="github-workflows">GitHub Workflows<a class="anchor" aria-label="anchor" href="#github-workflows"></a>
+</h3>
+<p>The project includes CI/CD automation:</p>
+<div class="section level4">
+<h4 id="id_1-r-cmd-check-r-cmd-checkyaml">1. R-CMD-check (<code>R-CMD-check.yaml</code>)<a class="anchor" aria-label="anchor" href="#id_1-r-cmd-check-r-cmd-checkyaml"></a>
+</h4>
+<p><strong>Multi-platform automated testing:</strong></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Triggers: push to main/master, all PRs</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co"># Platforms: macOS, Windows, Ubuntu</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="co"># R versions: devel, release, oldrel-1</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="id_2-test-coverage-test-coverageyaml">2. Test Coverage (<code>test-coverage.yaml</code>)<a class="anchor" aria-label="anchor" href="#id_2-test-coverage-test-coverageyaml"></a>
+</h4>
+<p><strong>Automated coverage analysis:</strong></p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># Triggers: push to main/master, all PRs</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="co"># Platform: Ubuntu latest</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co"># Integration: Codecov</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="id_3-auto-documentation-pkgdownyaml">3. Auto-documentation (<code>pkgdown.yaml</code>)<a class="anchor" aria-label="anchor" href="#id_3-auto-documentation-pkgdownyaml"></a>
+</h4>
+<p><strong>Automated website generation:</strong></p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Triggers: push/PR to main, releases, manual dispatch</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co"># Deployment: GitHub Pages</span></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="co"># Content: Full package documentation and function references</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="id_4-documentation-updates-documentyaml">4. Documentation Updates (<code>document.yaml</code>)<a class="anchor" aria-label="anchor" href="#id_4-documentation-updates-documentyaml"></a>
+</h4>
+<p><strong>Automatic roxygen2 documentation:</strong></p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Triggers: changes to R/ files</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="co"># Actions: Updates man/, NAMESPACE, DESCRIPTION</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="co"># Auto-commit: Yes</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="developer-workflow-integration">Developer Workflow Integration<a class="anchor" aria-label="anchor" href="#developer-workflow-integration"></a>
+</h4>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Before pushing changes:</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/document.html" class="external-link">document</a></span><span class="op">(</span><span class="op">)</span>          <span class="co"># Update documentation</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/test.html" class="external-link">test</a></span><span class="op">(</span><span class="op">)</span>              <span class="co"># Run tests locally</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/check.html" class="external-link">check</a></span><span class="op">(</span><span class="op">)</span>             <span class="co"># Full package check</span></span>
+<span></span>
+<span><span class="co"># The CI will automatically:</span></span>
+<span><span class="co"># 1. Run R-CMD-check on multiple platforms</span></span>
+<span><span class="co"># 2. Generate coverage reports</span></span>
+<span><span class="co"># 3. Update documentation if needed</span></span>
+<span><span class="co"># 4. Deploy website updates (on main branch)</span></span></code></pre></div>
+</div>
+</div>
 </div>
 </div>
   </div>
