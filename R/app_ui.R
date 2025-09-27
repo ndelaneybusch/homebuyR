@@ -84,7 +84,122 @@ app_ui <- function(request) {
         ),
         mainPanel(
           tabsetPanel(id = "main_tabs",
-                      tabPanel("Readme"),
+                      tabPanel("Readme",
+                               div(style = "padding: 20px;",
+                                   h2("Home Buying Analysis Tool"),
+                                   p("Welcome to the Home Buying Analysis Tool! This application helps you make informed decisions about home purchases, mortgage payments, and refinancing options."),
+
+                                   h3("Application Tabs Overview"),
+
+                                   div(style = "border: 2px solid #007bff; padding: 15px; border-radius: 5px; margin: 15px 0;",
+                                       h4("1. Budgeting Tab"),
+                                       p("Determine how much house you can afford using multiple approaches:"),
+                                       tags$ul(
+                                         tags$li(strong("Manual:"), "Enter your housing budget directly"),
+                                         tags$li(strong("Income %:"), "Calculate based on percentage of gross income (typically 28%)"),
+                                         tags$li(strong("Debt-to-Income Ratio:"), "Factor in existing debts and maximum DTI limits"),
+                                         tags$li(strong("Financial Stress Resilience:"), "Stress-test your budget against income shocks")
+                                       ),
+                                       h5("Common Workflow:"),
+                                       tags$ol(
+                                         tags$li("Select a budget model and enter your financial details"),
+                                         tags$li("Click 'Apply' to calculate your housing budget"),
+                                         tags$li("Enter insurance costs, HOA dues, and property tax rate"),
+                                         tags$li("Review the cost breakdown table"),
+                                         tags$li("Click 'Apply' again to populate the loan amount"),
+                                         tags$li("Use 'Calculate 20%' to determine down payment needed"),
+                                         tags$li("Explore affordability charts to see how down payment and rates affect home prices")
+                                       )
+                                   ),
+
+                                   div(style = "border: 2px solid #28a745; padding: 15px; border-radius: 5px; margin: 15px 0;",
+                                       h4("2. Paying Tab"),
+                                       p("Analyze the benefits of making extra mortgage payments:"),
+                                       tags$ul(
+                                         tags$li("Calculate interest savings from extra monthly payments"),
+                                         tags$li("Analyze one-time lump sum payments"),
+                                         tags$li("See visual comparisons of principal vs interest over time"),
+                                         tags$li("Download detailed amortization schedules")
+                                       ),
+                                       h5("Common Workflow:"),
+                                       tags$ol(
+                                         tags$li("Enter your planned extra monthly payment amount"),
+                                         tags$li("Set a lump sum payment amount (if applicable)"),
+                                         tags$li("Choose when to start making extra payments"),
+                                         tags$li("Review the savings summary showing total interest saved and months reduced"),
+                                         tags$li("Examine the principal vs interest plot to visualize payoff acceleration"),
+                                         tags$li("Download the detailed payment schedule for your records")
+                                       )
+                                   ),
+
+                                   div(style = "border: 2px solid #ffc107; padding: 15px; border-radius: 5px; margin: 15px 0;",
+                                       h4("3. Refinancing Tab"),
+                                       p("Evaluate whether refinancing makes financial sense:"),
+                                       tags$ul(
+                                         tags$li("Compare current loan terms with new refinance options"),
+                                         tags$li("Factor in closing costs and break-even analysis"),
+                                         tags$li("Consider tax implications and investment opportunities"),
+                                         tags$li("Analyze benefit curves over time")
+                                       ),
+                                       h5("Common Workflow:"),
+                                       tags$ol(
+                                         tags$li("Enter the new interest rate you've been offered"),
+                                         tags$li("Input estimated closing costs for the refinance"),
+                                         tags$li("Set the new loan term (can be shorter or longer)"),
+                                         tags$li("Optionally add a lump sum payment at refinance"),
+                                         tags$li("Enable 'Advanced Financial Assumptions' for tax and investment analysis"),
+                                         tags$li("Review your current loan summary"),
+                                         tags$li("Examine the benefit curve to see break-even point and long-term savings"),
+                                         tags$li("Download the detailed monthly analysis table")
+                                       )
+                                   ),
+
+                                   h3("Getting Started"),
+                                   div(style = "border: 2px solid #6c757d; padding: 15px; border-radius: 5px; margin: 15px 0;",
+                                       h5("For New Home Buyers:"),
+                                       tags$ol(
+                                         tags$li("Start with the Budgeting tab to determine your price range"),
+                                         tags$li("Use the stress-testing features to ensure financial resilience"),
+                                         tags$li("Explore different down payment scenarios"),
+                                         tags$li("Once you have a mortgage, use the Paying tab to optimize payments")
+                                       ),
+
+                                       h5("For Current Homeowners:"),
+                                       tags$ol(
+                                         tags$li("Set your loan start date accurately in the left panel"),
+                                         tags$li("Enter your current loan details (amount, rate, term)"),
+                                         tags$li("Use the Paying tab to analyze extra payment strategies"),
+                                         tags$li("Use the Refinancing tab when rates drop or your situation changes")
+                                       )
+                                   ),
+
+                                   h3("Tips for Best Results"),
+                                   tags$ul(
+                                     tags$li("Enable 'Advanced Controls' in the sidebar for PMI calculations"),
+                                     tags$li("Hover over help icons (", icon("question-circle"), ") for detailed explanations"),
+                                     tags$li("Use the interactive charts to explore different scenarios"),
+                                     tags$li("Download tables and charts for offline analysis or sharing with advisors")
+                                   ),
+
+                                   
+                                   div(style = "border: 2px solid #17a2b8; padding: 15px; border-radius: 5px; margin: 20px 0; background-color: #f8f9fa;",
+                                       h4(icon("exclamation-circle"), " Important Note About Loan Start Date"),
+                                       p(strong("The loan start date in the left control panel is crucial for all calculations."),
+                                         "This date determines how many months have elapsed since your mortgage began, which affects:"),
+                                       tags$ul(
+                                         tags$li("Remaining principal balance calculations"),
+                                         tags$li("Number of payments left on your loan"),
+                                         tags$li("Refinancing analysis accuracy"),
+                                         tags$li("Extra payment timing in the Paying tab")
+                                       ),
+                                       p("Make sure to set this to your actual mortgage start date for accurate results.")
+                                   ),
+
+                                   hr(),
+                                   p(em("This tool provides estimates based on standard financial calculations. Always consult with qualified financial advisors for personalized advice."),
+                                     style = "color: #6c757d; font-size: 0.9em;")
+                               )
+                      ),
                       tabPanel("Budgeting",
                                div(style = "border: 2px solid #007bff; padding: 15px; border-radius: 5px;", # Opens Section 1 Div
                                    h3("1) Monthly Housing Budget"),
