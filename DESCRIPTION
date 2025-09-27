@@ -1,6 +1,6 @@
 Package: homebuyR
 Title: Tools for financing a home
-Version: 0.0.1
+Version: 0.1.0
 Authors@R: 
     person("Nate", "Delaney-Busch", , "ndelaneybusch@gmail.com", role = c("aut", "cre"))
 Description: Make a budget, explore implications of various options (money
