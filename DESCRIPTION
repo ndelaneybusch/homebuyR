@@ -6,7 +6,7 @@ Authors@R:
 Description: Make a budget, explore implications of various options (money
     down, buying points, extra payments etc), compute whether it's a good
     time to refinance, and more.
-License: MIT + file LICENSE
+License: MIT
 Imports: 
     config,
     dplyr,
