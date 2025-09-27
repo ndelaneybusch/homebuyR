@@ -29,6 +29,8 @@ knitr::opts_chunk$set(
 - **Refinancing Analysis**: Comprehensive refinance benefit calculations that account for equity/amortization, investment opportunities, tax implications, and break-even analysis
 - **Interactive Visualizations**: Explore scenarios through interactive plots and detailed financial projections
 
+See documentation [here](https://ndelaneybusch.github.io/homebuyR/). 
+
 ## Installation
 
 You can install the development version of homebuyR from GitHub using several methods:
