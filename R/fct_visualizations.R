@@ -930,7 +930,7 @@ plot_refinance_benefit <- function(refinance_data,
     labs(
       title = title,
       subtitle = paste0(
-        "Monthly Payment: ", scales::dollar(refinance_data$old_payment), " → ",
+        "Monthly Payment: ", scales::dollar(refinance_data$old_payment), " -> ",
         scales::dollar(refinance_data$new_payment), " (",
         ifelse(refinance_data$monthly_savings > 0, "saves ", "costs "),
         scales::dollar(abs(refinance_data$monthly_savings)), ")",
