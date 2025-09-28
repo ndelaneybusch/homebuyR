@@ -78,7 +78,7 @@ homebuyR::run_app()
 
 ### Using the Function Library
 
-You can also use homebuyR’s functions programmatically for custom
+You can also use homebuyR's functions programmatically for custom
 analyses:
 
 ``` r
