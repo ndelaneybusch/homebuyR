@@ -306,8 +306,8 @@ Monthly Housing Spend: $%.0f",
       dplyr::mutate(
         down_payment_pct = (down_payment_value / .data$affordable_home_price) * 100,
         monthly_payment = (.data$affordable_home_price - down_payment_value) *
-          (rate_pct / 100 / 12) * (1 + rate_pct / 100 / 12)^mortgage_term_months /
-          ((1 + rate_pct / 100 / 12)^mortgage_term_months - 1) +
+          (.data$rate_pct / 100 / 12) * (1 + .data$rate_pct / 100 / 12)^mortgage_term_months /
+          ((1 + .data$rate_pct / 100 / 12)^mortgage_term_months - 1) +
           (.data$affordable_home_price * prop_tax_rate_annual / 100 / 12),
         zone = case_when(
           down_payment_pct < pmi_threshold_pct ~ "PMI",
@@ -501,7 +501,7 @@ plot_principal_interest <- function(amortization_table) {
     ) %>%
     # Filter out any rows where series_label might be NA (if a key wasn't in mapping)
     # or where amount is NA (geom_line does this, but good for points if they were visible)
-    dplyr::filter(!is.na(series_label))
+    dplyr::filter(!is.na(.data$series_label))
   # Note: We don't filter !is.na(amount) here to allow lines to naturally break
   # if a series ends (e.g. loan paid off). ggplot2 handles NA y-values for lines.
 
