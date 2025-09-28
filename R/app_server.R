@@ -731,7 +731,7 @@ app_server <- function(input, output, session) {
       `Cumulative FV Savings` = data$cumulative_fv_savings,
       `Dynamic Monthly Savings` = data$dynamic_monthly_savings
     ) %>%
-      dplyr::mutate(dplyr::across(dplyr::where(is.numeric) & !Month, ~round(., 2)))
+      dplyr::mutate(dplyr::across(dplyr::where(is.numeric) & !.data$Month, ~round(., 2)))
 
     DT::datatable(monthly_data,
                   options = list(
