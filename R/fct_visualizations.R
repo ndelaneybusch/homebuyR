@@ -269,7 +269,7 @@ plot_price_vs_rate <- function(monthly_housing_budget,
       monthly_mortgage_payment = compute_monthly_payment(
         principal = .data$affordable_principal,
         rate_per_month = .data$rate_per_month,
-        n_payments = mortgage_term_months
+        n_payments_total = mortgage_term_months
       )
     ) %>%
     dplyr::ungroup()
