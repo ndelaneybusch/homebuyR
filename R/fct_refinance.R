@@ -248,7 +248,8 @@ calculate_refinance_benefit_curve <- function(principal,
   tax_savings_diffs <- numeric(max_eval_months)
 
   # Initialize cumulative calculations (incremental approach)
-  cumulative_investment <- 0
+  # Seed with negative lump sum to capture the cash outflow and its opportunity cost
+  cumulative_investment <- -lump_sum_paydown
   cumulative_deductible_interest_old <- 0
   cumulative_deductible_interest_new <- 0
 
