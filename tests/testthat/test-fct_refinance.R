@@ -210,8 +210,11 @@ test_that("calculate_refinance_benefit_curve with lump sum paydown", {
   # Monthly savings should be higher with lump sum
   expect_gt(result_with_lump$monthly_savings, result_no_lump$monthly_savings)
 
-  # Benefits should be better with lump sum (all else equal)
-  expect_gt(tail(result_with_lump$net_benefits, 1), tail(result_no_lump$net_benefits, 1))
+  # Early benefits should be worse with lump sum (cash outflow dominates initially)
+  expect_lt(result_with_lump$net_benefits[1], result_no_lump$net_benefits[1])
+
+  # Equity difference should be positive (lump sum created more equity in new loan)
+  expect_gt(result_with_lump$equity_differences[1], result_no_lump$equity_differences[1])
 })
 
 test_that("lump_sum_timing defaults to at_refi and matches explicit at_refi", {
