@@ -58,6 +58,7 @@ for each month of a specified holding period. Handles both beneficial refinances
 <span>  tax_rate <span class="op">=</span> <span class="fl">0.25</span>,</span>
 <span>  investment_return_annual <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  lump_sum_paydown <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  lump_sum_timing <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"at_refi"</span>, <span class="st">"post_refi"</span><span class="op">)</span>,</span>
 <span>  mid_limit <span class="op">=</span> <span class="fl">750000</span>,</span>
 <span>  max_eval_months <span class="op">=</span> <span class="va">n_payments_remaining</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -110,6 +111,14 @@ Must be non-negative. Default: 0.0.</p></dd>
 <dt id="arg-lump-sum-paydown">lump_sum_paydown<a class="anchor" aria-label="anchor" href="#arg-lump-sum-paydown"></a></dt>
 <dd><p>Numeric. Optional additional principal payment at refinance.
 Must be non-negative. Default: 0.</p></dd>
+
+
+<dt id="arg-lump-sum-timing">lump_sum_timing<a class="anchor" aria-label="anchor" href="#arg-lump-sum-timing"></a></dt>
+<dd><p>Character. When the lump sum is applied:
+`"at_refi"` (default) reduces the new loan principal before payment calculation,
+resulting in lower monthly payments. `"post_refi"` applies the lump sum as a
+direct principal payment immediately after closing, keeping the scheduled payment
+based on the full principal but paying off the loan faster.</p></dd>
 
 
 <dt id="arg-mid-limit">mid_limit<a class="anchor" aria-label="anchor" href="#arg-mid-limit"></a></dt>
@@ -174,6 +183,17 @@ and compounded monthly.</p>
 <span class="r-in"><span>  investment_return_annual <span class="op">=</span> <span class="fl">0.05</span>,</span></span>
 <span class="r-in"><span>  lump_sum_paydown <span class="op">=</span> <span class="fl">20000</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Post-refi lump sum: same monthly payment, faster payoff</span></span></span>
+<span class="r-in"><span><span class="va">result3</span> <span class="op">&lt;-</span> <span class="fu">calculate_refinance_benefit_curve</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  principal <span class="op">=</span> <span class="fl">300000</span>,</span></span>
+<span class="r-in"><span>  rate_per_month_old <span class="op">=</span> <span class="fl">0.06</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
+<span class="r-in"><span>  rate_per_month_new <span class="op">=</span> <span class="fl">0.04</span> <span class="op">/</span> <span class="fl">12</span>,</span></span>
+<span class="r-in"><span>  n_payments_remaining <span class="op">=</span> <span class="fl">300</span>,</span></span>
+<span class="r-in"><span>  closing_costs <span class="op">=</span> <span class="fl">5000</span>,</span></span>
+<span class="r-in"><span>  lump_sum_paydown <span class="op">=</span> <span class="fl">20000</span>,</span></span>
+<span class="r-in"><span>  lump_sum_timing <span class="op">=</span> <span class="st">"post_refi"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -188,7 +208,7 @@ and compounded monthly.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
       </footer></div>
