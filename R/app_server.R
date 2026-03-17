@@ -653,7 +653,8 @@ app_server <- function(input, output, session) {
         input$refi_new_rate_pct,
         input$refi_closing_costs,
         input$refi_new_term_years,
-        input$refi_lump_sum_paydown)
+        input$refi_lump_sum_paydown,
+        input$refi_lump_sum_timing)
 
     # Also require advanced control inputs so reactive updates when they change
     if(!is.null(input$refinance_advanced_controls) && input$refinance_advanced_controls) {
@@ -702,6 +703,7 @@ app_server <- function(input, output, session) {
       tax_rate = tax_rate,
       investment_return_annual = investment_return,
       lump_sum_paydown = input$refi_lump_sum_paydown,
+      lump_sum_timing = input$refi_lump_sum_timing,
       mid_limit = mid_limit,
       max_eval_months = max(current_loan$n_payments_remaining, input$refi_new_term_years * 12)
     )

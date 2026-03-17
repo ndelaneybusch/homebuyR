@@ -589,6 +589,21 @@ app_ui <- function(request) {
                                      type = "inline"
                                    ),
 
+                                   # Paydown timing toggle
+                                   shinyhelper::helper(
+                                     shinyWidgets::radioGroupButtons(
+                                       inputId = "refi_lump_sum_timing",
+                                       label = "Paydown Timing",
+                                       choices = c("At Refi" = "at_refi", "Post Refi" = "post_refi"),
+                                       selected = "at_refi",
+                                       justified = TRUE,
+                                       size = "sm",
+                                       status = "primary"
+                                     ),
+                                     content = "At Refi: lump sum reduces the new loan principal, lowering monthly payments. Post Refi: lump sum is applied as a principal payment after closing, keeping the same monthly payment but paying off the loan faster.",
+                                     type = "inline"
+                                   ),
+
                                    # Refinance-specific advanced controls
                                    shinyWidgets::materialSwitch(inputId = "refinance_advanced_controls", label = "Advanced Financial Assumptions", status = "info"),
                                    conditionalPanel(

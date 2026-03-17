@@ -136,6 +136,11 @@ calculate_tax_savings_differential <- function(old_interest_paid,
 #'   Must be non-negative. Default: 0.0.
 #' @param lump_sum_paydown Numeric. Optional additional principal payment at refinance.
 #'   Must be non-negative. Default: 0.
+#' @param lump_sum_timing Character. When the lump sum is applied:
+#'   `"at_refi"` (default) reduces the new loan principal before payment calculation,
+#'   resulting in lower monthly payments. `"post_refi"` applies the lump sum as a
+#'   direct principal payment immediately after closing, keeping the scheduled payment
+#'   based on the full principal but paying off the loan faster.
 #' @param mid_limit Numeric. Mortgage interest deduction limit.
 #'   Must be non-negative. Default: 750000.
 #' @param max_eval_months Integer. Maximum months to evaluate.
@@ -177,6 +182,17 @@ calculate_tax_savings_differential <- function(old_interest_paid,
 #'   investment_return_annual = 0.05,
 #'   lump_sum_paydown = 20000
 #' )
+#'
+#' # Post-refi lump sum: same monthly payment, faster payoff
+#' result3 <- calculate_refinance_benefit_curve(
+#'   principal = 300000,
+#'   rate_per_month_old = 0.06 / 12,
+#'   rate_per_month_new = 0.04 / 12,
+#'   n_payments_remaining = 300,
+#'   closing_costs = 5000,
+#'   lump_sum_paydown = 20000,
+#'   lump_sum_timing = "post_refi"
+#' )
 calculate_refinance_benefit_curve <- function(principal,
                                             rate_per_month_old,
                                             rate_per_month_new,
@@ -186,8 +202,10 @@ calculate_refinance_benefit_curve <- function(principal,
                                             tax_rate = 0.25,
                                             investment_return_annual = 0.0,
                                             lump_sum_paydown = 0,
+                                            lump_sum_timing = c("at_refi", "post_refi"),
                                             mid_limit = 750000,
                                             max_eval_months = n_payments_remaining) {
+  lump_sum_timing <- match.arg(lump_sum_timing)
   # Input validation
   stopifnot(is.numeric(principal), principal > 0)
   stopifnot(is.numeric(rate_per_month_old), rate_per_month_old >= 0)
@@ -209,7 +227,12 @@ calculate_refinance_benefit_curve <- function(principal,
 
   # Calculate monthly payments for both scenarios
   old_payment <- compute_monthly_payment(principal, rate_per_month_old, n_payments_remaining)
-  new_principal <- principal - lump_sum_paydown
+  if (lump_sum_timing == "at_refi") {
+    new_principal <- principal - lump_sum_paydown
+  } else {
+    # post_refi: payment is based on full principal; lump sum applied after closing
+    new_principal <- principal
+  }
   new_payment <- compute_monthly_payment(new_principal, rate_per_month_new, n_payments_new)
 
   # Calculate monthly payment savings
@@ -229,19 +252,48 @@ calculate_refinance_benefit_curve <- function(principal,
   cumulative_deductible_interest_old <- 0
   cumulative_deductible_interest_new <- 0
 
+  # For post_refi timing, track early loan termination
+  new_loan_terminated <- FALSE
+  prev_new_balance <- if (lump_sum_timing == "post_refi") principal - lump_sum_paydown else new_principal
+
   # Calculate net benefit for each month
   for (k in months) {
     # Calculate remaining balances for both scenarios
     # Old loan: continues with remaining term, reduced by months elapsed
     old_balance <- compute_principal_remaining(old_payment, rate_per_month_old,
                                              max(0, n_payments_remaining - k))
-    # New loan: starts fresh with new term, reduced by months elapsed since refinance
-    new_balance <- compute_principal_remaining(new_payment, rate_per_month_new,
-                                             max(0, n_payments_new - k))
+
+    # New loan balance depends on lump sum timing
+    if (lump_sum_timing == "at_refi") {
+      # Standard: lump sum already reduced the principal
+      new_balance <- compute_principal_remaining(new_payment, rate_per_month_new,
+                                               max(0, n_payments_new - k))
+    } else {
+      # Post-refi: standard amortization balance minus FV of lump sum prepayment
+      standard_balance <- compute_principal_remaining(new_payment, rate_per_month_new,
+                                                     max(0, n_payments_new - k))
+      lump_sum_fv <- lump_sum_paydown * (1 + rate_per_month_new)^k
+      new_balance <- max(0, standard_balance - lump_sum_fv)
+    }
 
     # Calculate current month's cash flow difference
     current_old_payment <- if (k <= n_payments_remaining) old_payment else 0
-    current_new_payment <- if (k <= n_payments_new) new_payment else 0
+    if (lump_sum_timing == "at_refi") {
+      current_new_payment <- if (k <= n_payments_new) new_payment else 0
+    } else {
+      # Post-refi: track early termination from lump sum prepayment
+      if (new_loan_terminated) {
+        current_new_payment <- 0
+      } else if (new_balance < 0.005) {
+        # Final month: only pay remaining balance + interest
+        current_new_payment <- prev_new_balance * (1 + rate_per_month_new)
+        new_loan_terminated <- TRUE
+      } else if (k <= n_payments_new) {
+        current_new_payment <- new_payment
+      } else {
+        current_new_payment <- 0
+      }
+    }
     current_monthly_savings <- current_old_payment - current_new_payment
 
     # Update cumulative investment value incrementally
@@ -281,6 +333,9 @@ calculate_refinance_benefit_curve <- function(principal,
     cumulative_investments[k] <- cumulative_investment
     fv_savings_track[k] <- fv_savings
     tax_savings_diffs[k] <- tax_savings_diff
+
+    # Track previous balance for post_refi final payment calculation
+    prev_new_balance <- new_balance
   }
 
   # Find breakeven months
@@ -295,11 +350,41 @@ calculate_refinance_benefit_curve <- function(principal,
   }
 
   # Calculate dynamic monthly savings for display purposes
-  dynamic_monthly_savings <- sapply(months, function(k) {
-    current_old_payment <- if (k <= n_payments_remaining) old_payment else 0
-    current_new_payment <- if (k <= n_payments_new) new_payment else 0
-    current_old_payment - current_new_payment
-  })
+  if (lump_sum_timing == "at_refi") {
+    dynamic_monthly_savings <- sapply(months, function(k) {
+      current_old_payment <- if (k <= n_payments_remaining) old_payment else 0
+      current_new_payment <- if (k <= n_payments_new) new_payment else 0
+      current_old_payment - current_new_payment
+    })
+  } else {
+    # Post-refi: reconstruct payment schedule accounting for early termination
+    post_terminated <- FALSE
+    post_prev_balance <- principal - lump_sum_paydown
+    dynamic_monthly_savings <- sapply(months, function(k) {
+      current_old_payment <- if (k <= n_payments_remaining) old_payment else 0
+      standard_bal <- compute_principal_remaining(new_payment, rate_per_month_new,
+                                                 max(0, n_payments_new - k))
+      bal <- max(0, standard_bal - lump_sum_paydown * (1 + rate_per_month_new)^k)
+      # Check previous month balance
+      if (k == 1) {
+        prev_bal <- principal - lump_sum_paydown
+      } else {
+        prev_standard <- compute_principal_remaining(new_payment, rate_per_month_new,
+                                                    max(0, n_payments_new - (k - 1)))
+        prev_bal <- max(0, prev_standard - lump_sum_paydown * (1 + rate_per_month_new)^(k - 1))
+      }
+      if (prev_bal < 0.005) {
+        current_new_payment <- 0
+      } else if (bal < 0.005) {
+        current_new_payment <- prev_bal * (1 + rate_per_month_new)
+      } else if (k <= n_payments_new) {
+        current_new_payment <- new_payment
+      } else {
+        current_new_payment <- 0
+      }
+      current_old_payment - current_new_payment
+    })
+  }
 
   return(list(
     months = months,

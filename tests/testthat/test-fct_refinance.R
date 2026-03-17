@@ -214,6 +214,93 @@ test_that("calculate_refinance_benefit_curve with lump sum paydown", {
   expect_gt(tail(result_with_lump$net_benefits, 1), tail(result_no_lump$net_benefits, 1))
 })
 
+test_that("lump_sum_timing defaults to at_refi and matches explicit at_refi", {
+  lump_sum <- 50000
+  result_default <- calculate_refinance_benefit_curve(p1, r_old1, r_new1, n_rem1, closing1,
+                                                     lump_sum_paydown = lump_sum)
+  result_explicit <- calculate_refinance_benefit_curve(p1, r_old1, r_new1, n_rem1, closing1,
+                                                      lump_sum_paydown = lump_sum,
+                                                      lump_sum_timing = "at_refi")
+
+  expect_equal(result_default$new_payment, result_explicit$new_payment)
+  expect_equal(result_default$net_benefits, result_explicit$net_benefits)
+  expect_equal(result_default$net_cash_benefits, result_explicit$net_cash_benefits)
+})
+
+test_that("post_refi has higher payment than at_refi with same lump sum", {
+  lump_sum <- 50000
+  result_at <- calculate_refinance_benefit_curve(p1, r_old1, r_new1, n_rem1, closing1,
+                                                lump_sum_paydown = lump_sum,
+                                                lump_sum_timing = "at_refi")
+  result_post <- calculate_refinance_benefit_curve(p1, r_old1, r_new1, n_rem1, closing1,
+                                                  lump_sum_paydown = lump_sum,
+                                                  lump_sum_timing = "post_refi")
+
+  # Post-refi payment is based on full principal, so it's higher
+  expect_gt(result_post$new_payment, result_at$new_payment)
+
+  # Post-refi monthly savings are therefore lower
+  expect_lt(result_post$monthly_savings, result_at$monthly_savings)
+
+  # Post-refi payment should equal no-lump-sum payment (same principal)
+  result_no_lump <- calculate_refinance_benefit_curve(p1, r_old1, r_new1, n_rem1, closing1)
+  expect_equal(result_post$new_payment, result_no_lump$new_payment)
+})
+
+test_that("post_refi loan terminates earlier than scheduled", {
+  lump_sum <- 50000
+  result_post <- calculate_refinance_benefit_curve(p1, r_old1, r_new1, n_rem1, closing1,
+                                                  lump_sum_paydown = lump_sum,
+                                                  lump_sum_timing = "post_refi",
+                                                  n_payments_new = 360)
+
+  # Dynamic monthly savings should eventually jump (loan pays off early)
+  # Near the end of the scheduled term, the new balance should be 0
+  late_month <- 340
+  standard_balance <- compute_principal_remaining(
+    result_post$new_payment, r_new1, max(0, 360 - late_month)
+  )
+  lump_fv <- lump_sum * (1 + r_new1)^late_month
+  # The lump sum FV should exceed remaining standard balance at some point
+  expect_true(lump_fv > standard_balance)
+})
+
+test_that("zero lump sum gives identical results for both timings", {
+  result_at <- calculate_refinance_benefit_curve(p1, r_old1, r_new1, n_rem1, closing1,
+                                                lump_sum_paydown = 0,
+                                                lump_sum_timing = "at_refi")
+  result_post <- calculate_refinance_benefit_curve(p1, r_old1, r_new1, n_rem1, closing1,
+                                                  lump_sum_paydown = 0,
+                                                  lump_sum_timing = "post_refi")
+
+  expect_equal(result_at$new_payment, result_post$new_payment)
+  expect_equal(result_at$net_benefits, result_post$net_benefits)
+  expect_equal(result_at$net_cash_benefits, result_post$net_cash_benefits)
+  expect_equal(result_at$monthly_savings, result_post$monthly_savings)
+})
+
+test_that("post_refi with zero interest rate works correctly", {
+  lump_sum <- 50000
+  result_post <- calculate_refinance_benefit_curve(
+    principal = 300000,
+    rate_per_month_old = 0,
+    rate_per_month_new = 0,
+    n_payments_remaining = 300,
+    closing_costs = 0,
+    n_payments_new = 360,
+    tax_rate = 0,
+    lump_sum_paydown = lump_sum,
+    lump_sum_timing = "post_refi"
+  )
+
+  # With zero rate, new payment is based on full principal: 300000/360
+  expect_equal(result_post$new_payment, 300000 / 360)
+
+  # Monthly savings = old_payment - new_payment = 300000/300 - 300000/360
+  expected_savings <- 300000 / 300 - 300000 / 360
+  expect_equal(result_post$monthly_savings, expected_savings, tolerance = 0.01)
+})
+
 test_that("calculate_refinance_benefit_curve with investment return", {
   result_no_inv <- calculate_refinance_benefit_curve(p1, r_old1, r_new1, n_rem1, closing1,
                                                    investment_return_annual = 0)
