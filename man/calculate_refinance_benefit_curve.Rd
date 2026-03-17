@@ -14,6 +14,7 @@ calculate_refinance_benefit_curve(
   tax_rate = 0.25,
   investment_return_annual = 0,
   lump_sum_paydown = 0,
+  lump_sum_timing = c("at_refi", "post_refi"),
   mid_limit = 750000,
   max_eval_months = n_payments_remaining
 )
@@ -45,6 +46,12 @@ Must be non-negative. Default: 0.0.}
 
 \item{lump_sum_paydown}{Numeric. Optional additional principal payment at refinance.
 Must be non-negative. Default: 0.}
+
+\item{lump_sum_timing}{Character. When the lump sum is applied:
+`"at_refi"` (default) reduces the new loan principal before payment calculation,
+resulting in lower monthly payments. `"post_refi"` applies the lump sum as a
+direct principal payment immediately after closing, keeping the scheduled payment
+based on the full principal but paying off the loan faster.}
 
 \item{mid_limit}{Numeric. Mortgage interest deduction limit.
 Must be non-negative. Default: 750000.}
@@ -106,5 +113,16 @@ result2 <- calculate_refinance_benefit_curve(
   closing_costs = 5000,
   investment_return_annual = 0.05,
   lump_sum_paydown = 20000
+)
+
+# Post-refi lump sum: same monthly payment, faster payoff
+result3 <- calculate_refinance_benefit_curve(
+  principal = 300000,
+  rate_per_month_old = 0.06 / 12,
+  rate_per_month_new = 0.04 / 12,
+  n_payments_remaining = 300,
+  closing_costs = 5000,
+  lump_sum_paydown = 20000,
+  lump_sum_timing = "post_refi"
 )
 }
