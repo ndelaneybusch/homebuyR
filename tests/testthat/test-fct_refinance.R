@@ -210,8 +210,8 @@ test_that("calculate_refinance_benefit_curve with lump sum paydown", {
   # Monthly savings should be higher with lump sum
   expect_gt(result_with_lump$monthly_savings, result_no_lump$monthly_savings)
 
-  # Early benefits should be worse with lump sum (cash outflow dominates initially)
-  expect_lt(result_with_lump$net_benefits[1], result_no_lump$net_benefits[1])
+  # Early cash benefits should be worse with lump sum (cash outflow dominates initially)
+  expect_lt(result_with_lump$net_cash_benefits[1], result_no_lump$net_cash_benefits[1])
 
   # Equity difference should be positive (lump sum created more equity in new loan)
   expect_gt(result_with_lump$equity_differences[1], result_no_lump$equity_differences[1])
