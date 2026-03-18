@@ -767,7 +767,7 @@ plot_refinance_benefit <- function(refinance_data,
     # Pivot to long format for multiple lines
     plot_data_long <- plot_data_wide %>%
       tidyr::pivot_longer(
-        cols = c(.data$net_cash_benefit, .data$net_wealth_benefit),
+        cols = c("net_cash_benefit", "net_wealth_benefit"),
         names_to = "benefit_type",
         values_to = "benefit_amount"
       ) %>%
@@ -873,7 +873,7 @@ plot_refinance_benefit <- function(refinance_data,
 
     plot_data_long <- plot_data_wide %>%
       tidyr::pivot_longer(
-        cols = .data$net_wealth_benefit,
+        cols = "net_wealth_benefit",
         names_to = "benefit_type",
         values_to = "benefit_amount"
       ) %>%
