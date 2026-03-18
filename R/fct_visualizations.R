@@ -888,7 +888,7 @@ plot_refinance_benefit <- function(refinance_data,
   # --- Create Base Plot ---
   p <- ggplot(plot_data_long, aes(x = .data$months, y = .data$benefit_amount)) +
     # Add horizontal line at y=0
-    geom_hline(yintercept = 0, color = "grey50", linetype = "solid", size = 0.5) +
+    geom_hline(yintercept = 0, color = "grey50", linetype = "solid", linewidth = 0.5) +
     # Benefit curves
     geom_line_interactive(
       aes(
@@ -965,7 +965,7 @@ plot_refinance_benefit <- function(refinance_data,
           xintercept = refinance_data$breakeven_month,
           color = "#e31a1c",
           linetype = "dotted",
-          size = 0.8
+          linewidth = 0.8
         ) +
         geom_point(
           aes(x = refinance_data$breakeven_month, y = breakeven_benefit),
@@ -996,7 +996,7 @@ plot_refinance_benefit <- function(refinance_data,
           xintercept = refinance_data$cash_breakeven_month,
           color = "#0072B2",
           linetype = "dotted",
-          size = 0.8,
+          linewidth = 0.8,
           alpha = 0.8
         ) +
         annotate(
