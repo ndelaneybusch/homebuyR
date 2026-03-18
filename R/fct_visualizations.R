@@ -968,12 +968,17 @@ plot_refinance_benefit <- function(refinance_data,
           linewidth = 0.8
         ) +
         geom_point(
-          aes(x = refinance_data$breakeven_month, y = breakeven_benefit),
+          data = data.frame(
+            months = refinance_data$breakeven_month,
+            benefit_amount = breakeven_benefit
+          ),
+          aes(x = .data$months, y = .data$benefit_amount),
           color = "#e31a1c",
           size = 4,
           shape = 21,
           fill = "white",
-          stroke = 2
+          stroke = 2,
+          inherit.aes = FALSE
         ) +
         annotate(
           "text",
