@@ -12,7 +12,10 @@
 #'
 #' @examples
 #' # Net income $3000, 30% housing, 40% total debt, other debts $200 -> 900
-#' housing_budget_from_dpi(net_income = 3000, max_housing_pct = 0.30, max_total_debt_pct = 0.40, other_debts = 200)
+#' housing_budget_from_dpi(
+#'   net_income = 3000, max_housing_pct = 0.30,
+#'   max_total_debt_pct = 0.40, other_debts = 200
+#' )
 housing_budget_from_dpi <- function(net_income, max_housing_pct = 0.30, max_total_debt_pct = 0.45, other_debts = 0) {
   stopifnot(
     is.numeric(net_income), net_income >= 0, is.finite(net_income), !is.na(net_income),
@@ -46,7 +49,11 @@ housing_budget_from_dpi <- function(net_income, max_housing_pct = 0.30, max_tota
 #'
 #' @examples
 #' # Gross $5000, $500 debts, $1000 essentials -> 1500
-#' housing_budget_from_stressed_dti(gross_monthly_income = 5000, other_debts = 500, non_housing_essentials = 1000, rate_per_month = 0, n_payments_total = 1)
+#' housing_budget_from_stressed_dti(
+#'   gross_monthly_income = 5000, other_debts = 500,
+#'   non_housing_essentials = 1000,
+#'   rate_per_month = 0, n_payments_total = 1
+#' )
 housing_budget_from_stressed_dti <- function(
     gross_monthly_income,
     other_debts,

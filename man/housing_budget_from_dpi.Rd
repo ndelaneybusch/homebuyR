@@ -28,5 +28,8 @@ Calculates the maximum monthly housing budget based on net income and debt const
 }
 \examples{
 # Net income $3000, 30\% housing, 40\% total debt, other debts $200 -> 900
-housing_budget_from_dpi(net_income = 3000, max_housing_pct = 0.30, max_total_debt_pct = 0.40, other_debts = 200)
+housing_budget_from_dpi(
+  net_income = 3000, max_housing_pct = 0.30,
+  max_total_debt_pct = 0.40, other_debts = 200
+)
 }

@@ -43,5 +43,9 @@ Calculates the maximum affordable housing amount under cash-flow and debt-to-inc
 }
 \examples{
 # Gross $5000, $500 debts, $1000 essentials -> 1500
-housing_budget_from_stressed_dti(gross_monthly_income = 5000, other_debts = 500, non_housing_essentials = 1000, rate_per_month = 0, n_payments_total = 1)
+housing_budget_from_stressed_dti(
+  gross_monthly_income = 5000, other_debts = 500,
+  non_housing_essentials = 1000,
+  rate_per_month = 0, n_payments_total = 1
+)
 }

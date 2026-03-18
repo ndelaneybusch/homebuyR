@@ -216,7 +216,9 @@ compute_principal_remaining <- function(monthly_payment, rate_per_month, n_payme
 #' monthly_rate <- annual_rate / 12
 #' original_principal <- 300000
 #' total_payments <- 360
-#' payment <- compute_monthly_payment(original_principal, monthly_rate, total_payments) # approx 1798.65
+#' payment <- compute_monthly_payment(
+#'   original_principal, monthly_rate, total_payments
+#' ) # approx 1798.65
 #' payments_made <- 60
 #' remaining_payments <- total_payments - payments_made
 #'
@@ -275,7 +277,9 @@ compute_principal_paid <- function(principal, monthly_payment, rate_per_month, n
 #' monthly_rate <- annual_rate / 12
 #' original_principal <- 300000
 #' total_payments <- 360
-#' payment <- compute_monthly_payment(original_principal, monthly_rate, total_payments) # approx 1798.65
+#' payment <- compute_monthly_payment(
+#'   original_principal, monthly_rate, total_payments
+#' ) # approx 1798.65
 #' payments_made <- 60
 #' remaining_payments <- total_payments - payments_made
 #'
@@ -342,7 +346,9 @@ compute_total_interest_remaining <- function(monthly_payment, rate_per_month, n_
 #' monthly_rate <- annual_rate / 12
 #' original_principal <- 300000
 #' total_payments <- 360
-#' payment <- compute_monthly_payment(original_principal, monthly_rate, total_payments) # approx 1798.65
+#' payment <- compute_monthly_payment(
+#'   original_principal, monthly_rate, total_payments
+#' ) # approx 1798.65
 #' payments_made <- 60
 #' remaining_payments <- total_payments - payments_made
 #'

@@ -34,7 +34,9 @@ annual_rate <- 0.06
 monthly_rate <- annual_rate / 12
 original_principal <- 300000
 total_payments <- 360
-payment <- compute_monthly_payment(original_principal, monthly_rate, total_payments) # approx 1798.65
+payment <- compute_monthly_payment(
+  original_principal, monthly_rate, total_payments
+) # approx 1798.65
 payments_made <- 60
 remaining_payments <- total_payments - payments_made
 
