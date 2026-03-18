@@ -86,7 +86,9 @@ on the loan. Must be non-negative.</p></dd>
 <span class="r-in"><span><span class="va">monthly_rate</span> <span class="op">&lt;-</span> <span class="va">annual_rate</span> <span class="op">/</span> <span class="fl">12</span></span></span>
 <span class="r-in"><span><span class="va">original_principal</span> <span class="op">&lt;-</span> <span class="fl">300000</span></span></span>
 <span class="r-in"><span><span class="va">total_payments</span> <span class="op">&lt;-</span> <span class="fl">360</span></span></span>
-<span class="r-in"><span><span class="va">payment</span> <span class="op">&lt;-</span> <span class="fu"><a href="compute_monthly_payment.html">compute_monthly_payment</a></span><span class="op">(</span><span class="va">original_principal</span>, <span class="va">monthly_rate</span>, <span class="va">total_payments</span><span class="op">)</span> <span class="co"># approx 1798.65</span></span></span>
+<span class="r-in"><span><span class="va">payment</span> <span class="op">&lt;-</span> <span class="fu"><a href="compute_monthly_payment.html">compute_monthly_payment</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">original_principal</span>, <span class="va">monthly_rate</span>, <span class="va">total_payments</span></span></span>
+<span class="r-in"><span><span class="op">)</span> <span class="co"># approx 1798.65</span></span></span>
 <span class="r-in"><span><span class="va">payments_made</span> <span class="op">&lt;-</span> <span class="fl">60</span></span></span>
 <span class="r-in"><span><span class="va">remaining_payments</span> <span class="op">&lt;-</span> <span class="va">total_payments</span> <span class="op">-</span> <span class="va">payments_made</span></span></span>
 <span class="r-in"><span></span></span>

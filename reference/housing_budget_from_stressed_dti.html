@@ -105,7 +105,11 @@
     <div id="ref-examples">
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Gross $5000, $500 debts, $1000 essentials -&gt; 1500</span></span></span>
-<span class="r-in"><span><span class="fu">housing_budget_from_stressed_dti</span><span class="op">(</span>gross_monthly_income <span class="op">=</span> <span class="fl">5000</span>, other_debts <span class="op">=</span> <span class="fl">500</span>, non_housing_essentials <span class="op">=</span> <span class="fl">1000</span>, rate_per_month <span class="op">=</span> <span class="fl">0</span>, n_payments_total <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">housing_budget_from_stressed_dti</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  gross_monthly_income <span class="op">=</span> <span class="fl">5000</span>, other_debts <span class="op">=</span> <span class="fl">500</span>,</span></span>
+<span class="r-in"><span>  non_housing_essentials <span class="op">=</span> <span class="fl">1000</span>,</span></span>
+<span class="r-in"><span>  rate_per_month <span class="op">=</span> <span class="fl">0</span>, n_payments_total <span class="op">=</span> <span class="fl">1</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1500</span>
 </code></pre></div>
     </div>
